@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fcapy
-Version: 0.0.3
+Version: 0.0.5
 Summary: A library to work with formal (and pattern) contexts, concepts, lattices
 Home-page: https://github.com/EgorDudyrev/FCApy
 Author: Egor Dudyrev
@@ -22,7 +22,7 @@ Description: # FCApy
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: GPL-3.0 License
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.0
 Description-Content-Type: text/markdown
