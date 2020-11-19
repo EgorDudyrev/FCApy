@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fcapy",
-    version="0.0.1",
+    version="0.0.2",
     author="Egor Dudyrev",
     author_email="egor.dudyrev@yandex.ru",
     description="A library to work with formal (and pattern) contexts, concepts, lattices",
