@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fcapy",
-    version="0.0.3",
+    version="0.0.4",
     author="Egor Dudyrev",
     author_email="egor.dudyrev@yandex.ru",
     description="A library to work with formal (and pattern) contexts, concepts, lattices",
@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GPL-3.0 License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.0',
