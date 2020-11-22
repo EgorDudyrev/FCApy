@@ -1,6 +1,8 @@
 class FormalContext:
     def __init__(self, **kwargs):
         self.data = kwargs.get('data')
+        self.object_names = kwargs.get('object_names')
+        self.attribute_names = kwargs.get('attribute_names')
 
     @property
     def data(self):
@@ -17,14 +19,73 @@ class FormalContext:
 
         length = len(value[0])
         for g_ms in value:
-            assert len(g_ms) == length, 'FormalContext.data.setter: All sublists of the "value" should have the same length'
+            assert len(g_ms) == length,\
+                'FormalContext.data.setter: All sublists of the "value" should have the same length'
             for m in g_ms:
                 assert m in {0, 1}, 'FormalContext.data.setter: "Value" should consist only of numbers 0 and 1'
 
         self._data = value
+
+    @property
+    def object_names(self):
+        return self._object_names
+
+    @object_names.setter
+    def object_names(self, value):
+        if value is None:
+            self._object_names = None
+            return
+
+        assert len(value) == len(self._data),\
+            'FormalContext.object_names.setter: Length of "value" should match length of data'
+        assert all(type(name) == str for name in value),\
+            'FormalContext.object_names.setter: Object names should be of type str'
+        self._object_names = value
+
+    @property
+    def attribute_names(self):
+        return self._attribute_names
+
+    @attribute_names.setter
+    def attribute_names(self, value):
+        if value is None:
+            self._attribute_names = None
+            return
+
+        assert len(value) == len(self._data[0]),\
+            'FormalContext.attribute_names.setter: Length of "value" should match length of data[0]'
+        assert all(type(name) == str for name in value),\
+            'FormalContext.object_names.setter: Object names should be of type str'
+        self._attribute_names = value
 
     def extension_i(self, attributes):
         return [g_idx for g_idx, g_ms in enumerate(self._data) if all([g_ms[m] for m in attributes])]
 
     def intention_i(self, objects):
         return [m_idx for m_idx in range(len(self._data[0])) if all([self._data[g_idx][m_idx] for g_idx in objects])]
+
+    def intention(self, objects):
+        obj_idx_dict = {g: g_idx for g_idx, g in enumerate(self._object_names)}
+        obj_indices = []
+        for g in objects:
+            try:
+                obj_indices.append(obj_idx_dict[g])
+            except KeyError as e:
+                raise KeyError(f'FormalContext.intention: Context does not have an object "{g}"')
+
+        intention_i = self.intention_i(obj_indices)
+        intention = [self._attribute_names[m_idx] for m_idx in intention_i]
+        return intention
+
+    def extension(self, attributes):
+        attr_idx_dict = {m: m_idx for m_idx, m in enumerate(self._attribute_names)}
+        attr_indices = []
+        for m in attributes:
+            try:
+                attr_indices.append(attr_idx_dict[m])
+            except KeyError as e:
+                raise KeyError(f'FormalContext.extension: Context does not have an attribute "{m}"')
+
+        extension_i = self.extension_i(attr_indices)
+        extension = [self._object_names[g_idx] for g_idx in extension_i]
+        return extension
