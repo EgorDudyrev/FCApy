@@ -3,6 +3,7 @@ class FormalContext:
         self.data = kwargs.get('data')
         self.object_names = kwargs.get('object_names')
         self.attribute_names = kwargs.get('attribute_names')
+        self.description = kwargs.get('description')
 
     @property
     def data(self):
@@ -101,6 +102,16 @@ class FormalContext:
     @property
     def n_attributes(self):
         return self._n_attributes
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        assert isinstance(value, (type(None), str)), 'FormalContext.description: Description should be of type `str`'
+
+        self._description = value
 
     def to_cxt(self, path=None):
         from fcapy.context.converters import to_cxt

@@ -103,6 +103,16 @@ def test_n_attributes(example_context_data):
         ctx.n_attributes = 4
 
 
+def test_description():
+    ctx = FormalContext()
+    ctx.description = 'Test description'
+    assert ctx.description == 'Test description',\
+        'FormalContext.description failed. The description differs from the given "Test description"'
+
+    with pytest.raises(AssertionError):
+        ctx.description = 42
+
+
 def test_to_cxt():
     path = 'data/digits.cxt'
     with open(path, 'r') as f:

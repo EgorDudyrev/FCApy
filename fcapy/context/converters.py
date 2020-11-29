@@ -44,10 +44,11 @@ def read_json(path):
 
     object_names = ctx_metadata.get('ObjNames')
     attribute_names = ctx_metadata['Params'].get('AttrNames') if 'Params' in ctx_metadata else None
+    description = ctx_metadata.get('Description')
     data_inds = [set(line['Inds']) for line in object_info['Data']]
     data = [[ind in inds for ind in range(len(attribute_names))] for inds in data_inds]
 
-    ctx = FormalContext(data=data, object_names=object_names, attribute_names=attribute_names)
+    ctx = FormalContext(data=data, object_names=object_names, attribute_names=attribute_names, description=description)
     return ctx
 
 
@@ -55,10 +56,8 @@ def write_json(context, path=None):
     import json
 
     ctx_metadata, object_info = {}, {}
-    try:
+    if context.description is not None:
         ctx_metadata['Description'] = context.description
-    except AttributeError:
-        pass
     ctx_metadata['ObjNames'] = context.object_names
     ctx_metadata['Params'] = {}
     ctx_metadata['Params']['AttrNames'] = context.attribute_names
