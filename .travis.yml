@@ -9,6 +9,6 @@ before_install:
 install:
   - pip install .
 script:
-  - pytest
+  - pytest --cov=./
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
