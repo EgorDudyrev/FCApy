@@ -12,6 +12,8 @@ class FormalContext:
     def data(self, value):
         if value is None:
             self._data = None
+            self._n_objects = None
+            self._n_attributes = None
             return
 
         assert isinstance(value, list), 'FormalContext.data.setter: "value" should have type "list"'
@@ -25,6 +27,8 @@ class FormalContext:
                 assert m in {0, 1}, 'FormalContext.data.setter: "Value" should consist only of numbers 0 and 1'
 
         self._data = value
+        self._n_objects = len(value)
+        self._n_attributes = length
 
     @property
     def object_names(self):
@@ -89,3 +93,11 @@ class FormalContext:
         extension_i = self.extension_i(attr_indices)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
         return extension
+
+    @property
+    def n_objects(self):
+        return self._n_objects
+
+    @property
+    def n_attributes(self):
+        return self._n_attributes

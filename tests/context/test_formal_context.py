@@ -69,3 +69,28 @@ def test_intent_extent(example_context_data):
         ctx.intention(['d1'])
     with pytest.raises(KeyError):
         ctx.extension((['z93']))
+
+
+def test_n_objects(example_context_data):
+    data = example_context_data[0]
+    ctx = FormalContext()
+    assert ctx.n_objects is None, 'FormalContext.n_objects failed. Should be None since no data in the context'
+
+    ctx = FormalContext(data=data)
+    assert ctx.n_objects == 3, 'FormalContext.n_objects failed. Should be 3 since data has 3 lines'
+
+    with pytest.raises(AttributeError):
+        ctx.n_objects = 4
+
+
+def test_n_attributes(example_context_data):
+    data = example_context_data[0]
+    ctx = FormalContext()
+    assert ctx.n_attributes is None, 'FormalContext.n_attributes failed. Should be None since no data in the context'
+
+    ctx = FormalContext(data=data)
+    assert ctx.n_attributes == 3,\
+        'FormalContext.n_attributes failed. Should be 3 since each line in data is of length 3'
+
+    with pytest.raises(AttributeError):
+        ctx.n_attributes = 4
