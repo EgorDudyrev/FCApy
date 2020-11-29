@@ -33,8 +33,9 @@ def test_read_cxt(digits_context_data):
 
 
 def test_to_cxt():
+    import os
     path_from = 'data/digits.cxt'
-    path_to = 'data/digits.cxt'
+    path_to = 'data/digits_test.cxt'
     with open(path_from, 'r') as f:
         file_from = f.read()
 
@@ -46,4 +47,5 @@ def test_to_cxt():
 
     with open(path_to, 'r') as f:
         file_to = f.read()
+    os.remove(path_to)
     assert file_from == file_to, f"Converters.to_cxt failed. Output file does not match the input file"
