@@ -105,3 +105,7 @@ class FormalContext:
     def to_cxt(self, path=None):
         from fcapy.context.converters import to_cxt
         return to_cxt(self, path)
+
+    def to_json(self, path=None):
+        from fcapy.context.converters import write_json
+        return write_json(self, path)

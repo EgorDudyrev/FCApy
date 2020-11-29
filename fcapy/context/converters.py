@@ -31,3 +31,47 @@ def to_cxt(context, path=None):
 
     with open(path, 'w') as f:
         f.write(file_data)
+
+
+def read_json(path):
+    import json
+
+    with open(path, 'r') as f:
+        file_data = json.load(f)
+
+    ctx_metadata = file_data[0]
+    object_info = file_data[1]
+
+    object_names = ctx_metadata.get('ObjNames')
+    attribute_names = ctx_metadata['Params'].get('AttrNames') if 'Params' in ctx_metadata else None
+    data_inds = [set(line['Inds']) for line in object_info['Data']]
+    data = [[ind in inds for ind in range(len(attribute_names))] for inds in data_inds]
+
+    ctx = FormalContext(data=data, object_names=object_names, attribute_names=attribute_names)
+    return ctx
+
+
+def write_json(context, path=None):
+    import json
+
+    ctx_metadata, object_info = {}, {}
+    try:
+        ctx_metadata['Description'] = context.description
+    except AttributeError:
+        pass
+    ctx_metadata['ObjNames'] = context.object_names
+    ctx_metadata['Params'] = {}
+    ctx_metadata['Params']['AttrNames'] = context.attribute_names
+
+    object_info['Count'] = context.n_objects
+    object_info['Data'] = [
+        {'Count': sum(g_ms), 'Inds': [ind for ind in range(context.n_attributes) if g_ms[ind]]}
+        for g_ms in context.data
+    ]
+    file_data = json.dumps([ctx_metadata, object_info], separators=(',', ':'))
+
+    if path is None:
+        return file_data
+
+    with open(path, 'w') as f:
+        f.write(file_data)

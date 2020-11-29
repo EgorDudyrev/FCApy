@@ -1,5 +1,5 @@
 import pytest
-from fcapy.context import FormalContext, read_cxt
+from fcapy.context import FormalContext, read_cxt, read_json
 
 
 @pytest.fixture
@@ -110,4 +110,14 @@ def test_to_cxt():
 
     ctx = read_cxt(path)
     file_new = ctx.to_cxt()
+    assert file_new == file_orig, 'FormalContext.to_ext failed. Result context file does not math the initial one'
+
+
+def test_to_json():
+    path = 'data/animal_movement.json'
+    with open(path, 'r') as f:
+        file_orig = f.read()
+
+    ctx = read_json(path)
+    file_new = ctx.to_json()
     assert file_new == file_orig, 'FormalContext.to_ext failed. Result context file does not math the initial one'
