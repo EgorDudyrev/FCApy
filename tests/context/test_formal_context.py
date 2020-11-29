@@ -28,8 +28,15 @@ def test_data_property(example_context_data):
         FormalContext(data=[[0], [1, 2]])
 
 
-def test_attribute_names(example_context_data):
+def test_object_attribute_names(example_context_data):
     data, obj_names, attr_names = example_context_data
+
+    ctx = FormalContext(data=data)
+    assert ctx.object_names == ['0', '1', '2'],\
+        'FormalContext.object_names failed. Default object names should be ["0", "1", "2"]'
+    assert ctx.attribute_names == ['0', '1', '2'], \
+        'FormalContext.attribute_names failed. Default attribute names should be ["0", "1", "2"]'
+
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     assert ctx.object_names == obj_names, 'FormalContext.object_names has changed the initial object_names'
     assert ctx.attribute_names == attr_names, 'FormalContext.attribute_names has changed the initial attribute_names'
