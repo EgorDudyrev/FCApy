@@ -37,7 +37,7 @@ class FormalContext:
     @object_names.setter
     def object_names(self, value):
         if value is None:
-            self._object_names = None
+            self._object_names = [str(idx) for idx in range(self.n_objects)] if self.data is not None else None
             return
 
         assert len(value) == len(self._data),\
@@ -53,7 +53,7 @@ class FormalContext:
     @attribute_names.setter
     def attribute_names(self, value):
         if value is None:
-            self._attribute_names = None
+            self._attribute_names = [str(idx) for idx in range(self.n_attributes)] if self.data is not None else None
             return
 
         assert len(value) == len(self._data[0]),\
