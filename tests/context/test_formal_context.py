@@ -1,12 +1,12 @@
 import pytest
-from fcapy.context import FormalContext
+from fcapy.context import FormalContext, read_cxt
 
 
 @pytest.fixture
 def example_context_data():
-    data = [[1, 1, 1],
-            [0, 1, 1],
-            [0, 0, 1]
+    data = [[True, True, True],
+            [False, True, True],
+            [False, False, True]
             ]
     obj_names = ['g1', 'g2', 'g3']
     attr_names = ['m1', 'm2', 'm3']
@@ -94,3 +94,13 @@ def test_n_attributes(example_context_data):
 
     with pytest.raises(AttributeError):
         ctx.n_attributes = 4
+
+
+def test_to_cxt():
+    path = 'data/digits.cxt'
+    with open(path, 'r') as f:
+        file_orig = f.read()
+
+    ctx = read_cxt(path)
+    file_new = ctx.to_cxt()
+    assert file_new == file_orig, 'FormalContext.to_ext failed. Result context file does not math the initial one'

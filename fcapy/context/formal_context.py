@@ -24,7 +24,7 @@ class FormalContext:
             assert len(g_ms) == length,\
                 'FormalContext.data.setter: All sublists of the "value" should have the same length'
             for m in g_ms:
-                assert m in {0, 1}, 'FormalContext.data.setter: "Value" should consist only of numbers 0 and 1'
+                assert type(m) == bool, 'FormalContext.data.setter: "Value" should consist only of boolean number'
 
         self._data = value
         self._n_objects = len(value)
@@ -101,3 +101,7 @@ class FormalContext:
     @property
     def n_attributes(self):
         return self._n_attributes
+
+    def to_cxt(self, path=None):
+        from fcapy.context.converters import to_cxt
+        return to_cxt(self, path)
