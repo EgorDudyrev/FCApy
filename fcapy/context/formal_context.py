@@ -120,3 +120,7 @@ class FormalContext:
     def to_json(self, path=None):
         from fcapy.context.converters import write_json
         return write_json(self, path)
+
+    def to_csv(self, path=None, **kwargs):
+        from fcapy.context.converters import write_csv
+        return write_csv(self, path=path, **kwargs)

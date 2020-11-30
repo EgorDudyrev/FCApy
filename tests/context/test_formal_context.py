@@ -1,5 +1,5 @@
 import pytest
-from fcapy.context import FormalContext, read_cxt, read_json
+from fcapy.context import FormalContext, read_cxt, read_json, read_csv
 
 
 @pytest.fixture
@@ -116,15 +116,19 @@ def test_description():
 def test_to_funcs():
     path = 'data/animal_movement'
     for fnc_read, file_extension in [(read_cxt, '.cxt'),
-                   (read_json, '.json')
-                   ]:
+                                     (read_json, '.json'),
+                                     (read_csv, '.csv')
+                                     ]:
         path_ext = path+file_extension
 
         with open(path_ext, 'r') as f:
             file_orig = f.read()
 
         ctx = fnc_read(path_ext)
-        fnc_write = {'.cxt': ctx.to_cxt, '.json': ctx.to_json}[file_extension]
+        fnc_write = {'.cxt': ctx.to_cxt,
+                     '.json': ctx.to_json,
+                     '.csv': ctx.to_csv
+                     }[file_extension]
         fnc_name = fnc_write.__name__
 
         file_new = fnc_write()

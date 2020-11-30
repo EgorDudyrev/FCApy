@@ -32,7 +32,8 @@ def test_read_converter(animal_movement_data):
     data, obj_names, attr_names, path = animal_movement_data
 
     for fnc, file_extension in [(converters.read_json, '.json'),
-                                (converters.read_cxt, '.cxt')
+                                (converters.read_cxt, '.cxt'),
+                                (converters.read_csv, '.csv')
                                 ]:
         fnc_name = fnc.__name__
         path_ext = path+file_extension
@@ -53,7 +54,8 @@ def test_write_converter():
     path_to = 'data/animal_movement_test'
 
     for params in [(converters.read_json, converters.write_json, '.json'),
-                   (converters.read_cxt, converters.write_cxt, '.cxt')
+                   (converters.read_cxt, converters.write_cxt, '.cxt'),
+                   (converters.read_csv, converters.write_csv, '.csv')
                    ]:
         fnc_read, fnc_write, file_extension = params
 
@@ -74,3 +76,14 @@ def test_write_converter():
             file_to = f.read()
         os.remove(path_to_ext)
         assert file_from == file_to, f"Converters.{fnc_name} failed. Output file does not match the input file"
+
+
+def test_csv_true_false_words(animal_movement_data):
+    path = animal_movement_data[3]
+    path += '.csv'
+
+    with pytest.raises(ValueError):
+        converters.read_csv(path, word_false='test_word')
+
+    with pytest.raises(ValueError):
+        converters.read_csv(path, word_true='test_word')
