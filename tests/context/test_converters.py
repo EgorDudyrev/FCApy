@@ -3,23 +3,6 @@ from fcapy.context import converters
 
 
 @pytest.fixture
-def digits_context_data():
-    data = [[True, False, True, True, True, True, True],
-            [False, False, False, False, False, True, True],
-            [True, True, True, False, True, True, False],
-            [True, True, True, False, False, True, True],
-            [False, True, False, True, False, True, True],
-            [True, True, True, True, False, False, True],
-            [False, True, True, True, True, False, True],
-            [True, False, False, False, False, True, True],
-            [True, True, True, True, True, True, True],
-            [True, True, False, True, False, True, True]]
-    obj_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    attr_names = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-    return data, obj_names, attr_names
-
-
-@pytest.fixture
 def animal_movement_data():
     data = [[True, False, False, False],
             [False, False, False, False],
@@ -41,70 +24,66 @@ def animal_movement_data():
                  'hawk', 'eagle', 'fox', 'dog', 'wolf',
                  'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
     attr_names = ['fly', 'hunt', 'run', 'swim']
-    return data, obj_names, attr_names
+    path = 'data/animal_movement'
+    return data, obj_names, attr_names, path
 
 
-def test_read_cxt(digits_context_data):
-    data, obj_names, attr_names = digits_context_data
-    path = 'data/digits.cxt'
+def test_read_converter(animal_movement_data):
+    data, obj_names, attr_names, path = animal_movement_data
 
-    ctx = converters.read_cxt(path)
-    assert ctx.n_objects == len(obj_names),\
-        f'Converters.read_cxt failed. n_objects should be equal {len(obj_names)}'
-    assert ctx.n_attributes == len(attr_names),\
-        f'Converters.read_cxt failed. n_attributes should be equal {len(obj_names)}'
-    assert ctx.object_names == obj_names, f'Converters.read_cxt failed. Objects names should be {obj_names}'
-    assert ctx.attribute_names == attr_names, f'Converters.read_cxt failed. Attributes names should be {attr_names}'
-    assert ctx.data == data, f'Converters.read_cxt failed. Data should be {data}'
+    for fnc, file_extension in [(converters.read_json, '.json'),
+                                (converters.read_cxt, '.cxt'),
+                                (converters.read_csv, '.csv')
+                                ]:
+        fnc_name = fnc.__name__
+        path_ext = path+file_extension
+
+        ctx = fnc(path_ext)
+        assert ctx.n_objects == len(obj_names),\
+            f'Converters.{fnc_name} failed. n_objects should be equal {len(obj_names)}'
+        assert ctx.n_attributes == len(attr_names),\
+            f'Converters.{fnc_name} failed. n_attributes should be equal {len(obj_names)}'
+        assert ctx.object_names == obj_names, f'Converters.{fnc_name} failed. Objects names should be {obj_names}'
+        assert ctx.attribute_names == attr_names, f'Converters.{fnc_name} failed. Attributes names should be {attr_names}'
+        assert ctx.data == data, f'Converters.{fnc_name} failed. Data should be {data}'
 
 
-def test_write_cxt():
+def test_write_converter():
     import os
-    path_from = 'data/digits.cxt'
-    path_to = 'data/digits_test.cxt'
-    with open(path_from, 'r') as f:
-        file_from = f.read()
+    path_from = 'data/animal_movement'
+    path_to = 'data/animal_movement_test'
 
-    ctx = converters.read_cxt(path_from)
-    assert converters.write_cxt(ctx) == file_from,\
-        "Converters.write_cxt failed. The function should return output file text if given path=None"
+    for params in [(converters.read_json, converters.write_json, '.json'),
+                   (converters.read_cxt, converters.write_cxt, '.cxt'),
+                   (converters.read_csv, converters.write_csv, '.csv')
+                   ]:
+        fnc_read, fnc_write, file_extension = params
 
-    converters.write_cxt(ctx, path_to)
+        fnc_name = fnc_write.__name__
+        path_from_ext = path_from+file_extension
+        path_to_ext = path_to+file_extension
 
-    with open(path_to, 'r') as f:
-        file_to = f.read()
-    os.remove(path_to)
-    assert file_from == file_to, f"Converters.write_cxt failed. Output file does not match the input file"
+        with open(path_from_ext, 'r') as f:
+            file_from = f.read()
 
+        ctx = fnc_read(path_from_ext)
+        assert fnc_write(ctx) == file_from,\
+            f"Converters.{fnc_name} failed. The function should return output file text if given path=None"
 
-def test_read_json(animal_movement_data):
-    data, obj_names, attr_names = animal_movement_data
-    path = 'data/animal_movement.json'
+        fnc_write(ctx, path_to_ext)
 
-    ctx = converters.read_json(path)
-    assert ctx.n_objects == len(obj_names),\
-        f'Converters.read_json failed. n_objects should be equal {len(obj_names)}'
-    assert ctx.n_attributes == len(attr_names),\
-        f'Converters.read_json failed. n_attributes should be equal {len(obj_names)}'
-    assert ctx.object_names == obj_names, f'Converters.read_json failed. Objects names should be {obj_names}'
-    assert ctx.attribute_names == attr_names, f'Converters.read_json failed. Attributes names should be {attr_names}'
-    assert ctx.data == data, f'Converters.read_json failed. Data should be {data}'
+        with open(path_to_ext, 'r') as f:
+            file_to = f.read()
+        os.remove(path_to_ext)
+        assert file_from == file_to, f"Converters.{fnc_name} failed. Output file does not match the input file"
 
 
-def test_write_json():
-    import os
-    path_from = 'data/animal_movement.json'
-    path_to = 'data/animal_movement_test.cxt'
-    with open(path_from, 'r') as f:
-        file_from = f.read()
+def test_csv_true_false_words(animal_movement_data):
+    path = animal_movement_data[3]
+    path += '.csv'
 
-    ctx = converters.read_json(path_from)
-    assert converters.write_json(ctx) == file_from,\
-        "Converters.write_json failed. The function should return output file text if given path=None"
+    with pytest.raises(ValueError):
+        converters.read_csv(path, word_false='test_word')
 
-    converters.write_json(ctx, path_to)
-
-    with open(path_to, 'r') as f:
-        file_to = f.read()
-    os.remove(path_to)
-    assert file_from == file_to, f"Converters.write_json failed. Output file does not match the input file"
+    with pytest.raises(ValueError):
+        converters.read_csv(path, word_true='test_word')

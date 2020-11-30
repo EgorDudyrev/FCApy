@@ -74,3 +74,40 @@ def write_json(context, path=None):
 
     with open(path, 'w') as f:
         f.write(file_data)
+
+
+def read_csv(path, sep=',', word_true='True', word_false='False'):
+    with open(path, 'r') as f:
+        file_data = f.read().strip().split('\n')
+    header, file_data = file_data[0], file_data[1:]
+
+    attr_names = header.split(sep)[1:]
+    obj_names, data = [], []
+    for line in file_data:
+        line = line.split(sep)
+        obj_names.append(line[0])
+        val_error = ValueError(f'Csv file {path} has values that differ from "{word_true}" and "{word_false}". ' + \
+                               'Binarize the file or change values of parameters "word_true", "word_false"')
+        data_line = []
+        for val in line[1:]:
+            if val in {word_true, word_false}:
+                data_line.append(val == word_true)
+            else:
+                raise val_error
+        data.append(data_line)
+
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+    return ctx
+
+
+def write_csv(context, path=None, sep=',', word_true='True', word_false='False'):
+    file_data = sep+sep.join(context.attribute_names)+'\n'
+    for obj_name, data_line in zip(context.object_names, context.data):
+        file_data += obj_name+sep+sep.join([word_true if val else word_false for val in data_line])+'\n'
+    file_data = file_data
+
+    if path is None:
+        return file_data
+
+    with open(path, 'w') as f:
+        f.write(file_data)
