@@ -114,8 +114,8 @@ class FormalContext:
         self._description = value
 
     def to_cxt(self, path=None):
-        from fcapy.context.converters import to_cxt
-        return to_cxt(self, path)
+        from fcapy.context.converters import write_cxt
+        return write_cxt(self, path)
 
     def to_json(self, path=None):
         from fcapy.context.converters import write_json
