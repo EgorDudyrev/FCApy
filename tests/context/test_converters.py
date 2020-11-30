@@ -58,7 +58,7 @@ def test_read_cxt(digits_context_data):
     assert ctx.data == data, f'Converters.read_cxt failed. Data should be {data}'
 
 
-def test_to_cxt():
+def test_write_cxt():
     import os
     path_from = 'data/digits.cxt'
     path_to = 'data/digits_test.cxt'
@@ -66,15 +66,15 @@ def test_to_cxt():
         file_from = f.read()
 
     ctx = converters.read_cxt(path_from)
-    assert ctx.to_cxt() == file_from,\
-        "Converters.to_cxt failed. The function should return output file text if given path=None"
+    assert converters.write_cxt(ctx) == file_from,\
+        "Converters.write_cxt failed. The function should return output file text if given path=None"
 
-    converters.to_cxt(ctx, path_to)
+    converters.write_cxt(ctx, path_to)
 
     with open(path_to, 'r') as f:
         file_to = f.read()
     os.remove(path_to)
-    assert file_from == file_to, f"Converters.to_cxt failed. Output file does not match the input file"
+    assert file_from == file_to, f"Converters.write_cxt failed. Output file does not match the input file"
 
 
 def test_read_json(animal_movement_data):

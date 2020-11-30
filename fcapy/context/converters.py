@@ -17,7 +17,7 @@ def read_cxt(path):
     return ctx
 
 
-def to_cxt(context, path=None):
+def write_cxt(context, path=None):
     file_data = 'B\n\n'
     file_data += f"{context.n_objects}\n{context.n_attributes}\n"
     file_data += '\n'
