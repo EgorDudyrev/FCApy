@@ -25,7 +25,34 @@ def animal_movement_data():
                  'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
     attr_names = ['fly', 'hunt', 'run', 'swim']
     path = 'data/animal_movement'
-    return data, obj_names, attr_names, path
+    repr_data = """FormalContext (16 objects, 4 attributes, 24 connections)
+     |fly|hunt|run|swim|
+dove |  X|    |   |    |
+hen  |   |    |   |    |
+duck |  X|    |   |   X|
+goose|  X|    |   |   X|
+owl  |  X|   X|   |    |
+hawk |  X|   X|   |    |
+eagle|  X|   X|   |    |
+fox  |   |   X|  X|    |
+dog  |   |    |  X|    |
+wolf |   |   X|  X|    |
+cat  |   |   X|  X|    |
+tiger|   |   X|  X|    |
+lion |   |   X|  X|    |
+horse|   |    |  X|    |
+zebra|   |    |  X|    |
+cow  |   |    |   |    |"""
+
+    printed_data_short = """     |fly|...|swim|
+dove |  X|...|    |
+hen  |   |...|    |
+...................
+...................
+zebra|   |...|    |
+cow  |   |...|    |"""
+
+    return data, obj_names, attr_names, path, repr_data, printed_data_short
 
 
 def test_data_property(animal_movement_data):
@@ -153,3 +180,18 @@ def test_to_funcs():
         file_new = fnc_write()
         assert file_new == file_orig,\
             f'FormalContext.{fnc_name} failed. Result context file does not math the initial one'
+
+
+def test_print_data(animal_movement_data):
+    data, obj_names, attr_names, _, _, printed_data_short = animal_movement_data[:6]
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+    s = ctx.print_data(max_n_objects=4, max_n_attributes=2)
+    assert s == printed_data_short, 'FormalContext.print_data failed. Check data formatting.'
+
+
+def test_repr(animal_movement_data):
+    data, obj_names, attr_names, _, repr_data = animal_movement_data[:5]
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+    s = ctx.__repr__()
+    assert s == repr_data, "FormalContext.__repr__ failed. '" \
+                           + "Check print_data parameters: max_n_objects=20, max_n_attributes=10."
