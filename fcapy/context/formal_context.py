@@ -124,3 +124,31 @@ class FormalContext:
     def to_csv(self, path=None, **kwargs):
         from fcapy.context.converters import write_csv
         return write_csv(self, path=path, **kwargs)
+
+    def __repr__(self):
+        data_to_print = f'FormalContext '+\
+                        f'({self.n_objects} objects, {self.n_attributes} attributes, '+\
+                        f'{sum([sum(l) for l in self.data])} connections)\n'
+        data_to_print += self.print_data()
+        return data_to_print
+
+    def print_data(self):
+        if not (self.n_attributes < 10 and self.n_objects < 20):
+            raise NotImplementedError
+
+        max_obj_name_len = max([len(g) for g in self.object_names])
+
+        header = ' ' * max_obj_name_len + '|'
+        header += '|'.join([m for m in self.attribute_names])
+        header += '|'
+
+        lines = []
+        for g_name, g_ms in zip(self.object_names, self.data):
+            line = g_name + ' ' * (max_obj_name_len - len(g_name)) + '|'
+            line += '|'.join([' ' * (len(m_name) - 1) + ('X' if m_val else ' ') for m_name, m_val in
+                              zip(self.attribute_names, g_ms)])
+            line += '|'
+            lines.append(line)
+
+        data_to_print = '\n'.join([header] + lines)
+        return data_to_print
