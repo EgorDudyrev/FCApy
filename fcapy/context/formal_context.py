@@ -124,3 +124,50 @@ class FormalContext:
     def to_csv(self, path=None, **kwargs):
         from fcapy.context.converters import write_csv
         return write_csv(self, path=path, **kwargs)
+
+    def __repr__(self):
+        data_to_print = f'FormalContext ' +\
+                        f'({self.n_objects} objects, {self.n_attributes} attributes, ' +\
+                        f'{sum([sum(l) for l in self.data])} connections)\n'
+        data_to_print += self.print_data(max_n_objects=20, max_n_attributes=10)
+        return data_to_print
+
+    def print_data(self, max_n_objects=20, max_n_attributes=10):
+        objs_to_print = self.object_names
+        attrs_to_print = self.attribute_names
+        data_to_print = self.data
+        plot_objs_line = False
+
+        if self.n_attributes > max_n_attributes:
+            attrs_to_print = attrs_to_print[:max_n_attributes//2]\
+                             + ['...'] + attrs_to_print[-max_n_attributes//2:]
+            data_to_print = [line[:max_n_attributes//2]+['...']+line[-max_n_attributes//2:] for line in data_to_print]
+
+        if self.n_objects > max_n_objects:
+            objs_to_print = objs_to_print[:max_n_objects//2] + objs_to_print[-max_n_objects//2:]
+            data_to_print = data_to_print[:max_n_objects//2] + data_to_print[-max_n_objects//2:]
+            plot_objs_line = True
+
+        max_obj_name_len = max([len(g) for g in objs_to_print])
+
+        header = ' ' * max_obj_name_len + '|'
+        header += '|'.join([m for m in attrs_to_print])
+        header += '|'
+
+        lines = []
+        for idx in range(len(data_to_print)):
+            g_name = objs_to_print[idx]
+            g_ms = data_to_print[idx]
+
+            if plot_objs_line and idx == max_n_objects//2:
+                line = '.' * (max_obj_name_len + 1 + sum([len(m) + 1 for m in attrs_to_print]))
+                lines += [line] * 2
+
+            line = g_name + ' ' * (max_obj_name_len - len(g_name)) + '|'
+            line += '|'.join([(' ' * (len(m_name) - 1) + ('X' if m_val else ' ')) if m_val != '...' else '...'
+                              for m_name, m_val in zip(attrs_to_print, g_ms)])
+            line += '|'
+            lines.append(line)
+
+        data_to_print = '\n'.join([header] + lines)
+        return data_to_print
