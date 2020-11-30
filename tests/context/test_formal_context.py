@@ -113,21 +113,20 @@ def test_description():
         ctx.description = 42
 
 
-def test_to_cxt():
-    path = 'data/digits.cxt'
-    with open(path, 'r') as f:
-        file_orig = f.read()
+def test_to_funcs():
+    path = 'data/animal_movement'
+    for fnc_read, file_extension in [(read_cxt, '.cxt'),
+                   (read_json, '.json')
+                   ]:
+        path_ext = path+file_extension
 
-    ctx = read_cxt(path)
-    file_new = ctx.to_cxt()
-    assert file_new == file_orig, 'FormalContext.to_ext failed. Result context file does not math the initial one'
+        with open(path_ext, 'r') as f:
+            file_orig = f.read()
 
+        ctx = fnc_read(path_ext)
+        fnc_write = {'.cxt': ctx.to_cxt, '.json': ctx.to_json}[file_extension]
+        fnc_name = fnc_write.__name__
 
-def test_to_json():
-    path = 'data/animal_movement.json'
-    with open(path, 'r') as f:
-        file_orig = f.read()
-
-    ctx = read_json(path)
-    file_new = ctx.to_json()
-    assert file_new == file_orig, 'FormalContext.to_ext failed. Result context file does not math the initial one'
+        file_new = fnc_write()
+        assert file_new == file_orig,\
+            f'FormalContext.{fnc_name} failed. Result context file does not math the initial one'
