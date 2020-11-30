@@ -3,20 +3,35 @@ from fcapy.context import FormalContext, read_cxt, read_json, read_csv
 
 
 @pytest.fixture
-def example_context_data():
-    data = [[True, True, True],
-            [False, True, True],
-            [False, False, True]
-            ]
-    obj_names = ['g1', 'g2', 'g3']
-    attr_names = ['m1', 'm2', 'm3']
-    return data, obj_names, attr_names
+def animal_movement_data():
+    data = [[True, False, False, False],
+            [False, False, False, False],
+            [True, False, False, True],
+            [True, False, False, True],
+            [True, True, False, False],
+            [True, True, False, False],
+            [True, True, False, False],
+            [False, True, True, False],
+            [False, False, True, False],
+            [False, True, True, False],
+            [False, True, True, False],
+            [False, True, True, False],
+            [False, True, True, False],
+            [False, False, True, False],
+            [False, False, True, False],
+            [False, False, False, False]]
+    obj_names = ['dove', 'hen', 'duck', 'goose', 'owl',
+                 'hawk', 'eagle', 'fox', 'dog', 'wolf',
+                 'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
+    attr_names = ['fly', 'hunt', 'run', 'swim']
+    path = 'data/animal_movement'
+    return data, obj_names, attr_names, path
 
 
-def test_data_property(example_context_data):
+def test_data_property(animal_movement_data):
     ctx = FormalContext()
 
-    data = example_context_data[0]
+    data = animal_movement_data[0]
     ctx = FormalContext(data=data)
     data_ = ctx.data
     assert data == data_, 'FormalContext.data has changed the initial data'
@@ -28,14 +43,16 @@ def test_data_property(example_context_data):
         FormalContext(data=[[0], [1, 2]])
 
 
-def test_object_attribute_names(example_context_data):
-    data, obj_names, attr_names = example_context_data
+def test_object_attribute_names(animal_movement_data):
+    data, obj_names, attr_names = animal_movement_data[:3]
 
     ctx = FormalContext(data=data)
-    assert ctx.object_names == ['0', '1', '2'],\
-        'FormalContext.object_names failed. Default object names should be ["0", "1", "2"]'
-    assert ctx.attribute_names == ['0', '1', '2'], \
-        'FormalContext.attribute_names failed. Default attribute names should be ["0", "1", "2"]'
+    obj_names_default = [str(idx) for idx in range(len(obj_names))]
+    assert ctx.object_names == obj_names_default,\
+        f'FormalContext.object_names failed. Default object names should be {obj_names_default}'
+    attr_names_default = [str(idx) for idx in range(len(attr_names))]
+    assert ctx.attribute_names == attr_names_default, \
+        f'FormalContext.attribute_names failed. Default attribute names should be {attr_names_default}'
 
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     assert ctx.object_names == obj_names, 'FormalContext.object_names has changed the initial object_names'
@@ -47,27 +64,27 @@ def test_object_attribute_names(example_context_data):
         ctx.object_names = [1, 2]
 
 
-def test_intent_extent_i(example_context_data):
-    data = example_context_data[0]
+def test_intent_extent_i(animal_movement_data):
+    data = animal_movement_data[0]
     ctx = FormalContext(data=data)
     ext_ = ctx.extension_i([0, 1])
-    assert set(ext_) == {0}, 'FormalContext.extension_i failed. Should be {0}'
+    assert set(ext_) == {4, 5, 6}, 'FormalContext.extension_i failed. Should be {4, 5, 6}'
 
-    int_ = ctx.intention_i([0, 1])
-    assert set(int_) == {1, 2}, 'FormalContext.intention_i failed. Should be {1,2}'
+    int_ = ctx.intention_i([4, 5, 6])
+    assert set(int_) == {0, 1}, 'FormalContext.intention_i failed. Should be {0, 1}'
 
     assert ctx.intention_i(ctx.extension_i(int_)) == int_,\
         'Basic FCA theorem failed. Check FormalContext.extension_i, intention_i'
 
 
-def test_intent_extent(example_context_data):
-    data, obj_names, attr_names = example_context_data
+def test_intent_extent(animal_movement_data):
+    data, obj_names, attr_names = animal_movement_data[:3]
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
-    ext_ = ctx.extension(['m1', 'm2'])
-    assert set(ext_) == {'g1'}, 'FormalContext.extension_i failed. Should be {"m1"}'
+    ext_ = ctx.extension(['fly', 'hunt'])
+    assert set(ext_) == {'owl', 'hawk', 'eagle'}, 'FormalContext.extension failed. Should be {"owl", "hawk", "eagle"}'
 
-    int_ = ctx.intention(['g1', 'g2'])
-    assert set(int_) == {'m2', 'm3'}, 'FormalContext.intention failed. Should be {"m2","m3"}'
+    int_ = ctx.intention(['owl', 'hawk', 'eagle'])
+    assert set(int_) == {'fly', 'hunt'}, 'FormalContext.intention failed. Should be {"fly","hunt"}'
 
     assert ctx.intention(ctx.extension(int_)) == int_,\
         'Basic FCA theorem failed. Check FormalContext.extension, intention'
@@ -78,29 +95,31 @@ def test_intent_extent(example_context_data):
         ctx.extension((['z93']))
 
 
-def test_n_objects(example_context_data):
-    data = example_context_data[0]
+def test_n_objects(animal_movement_data):
+    data, obj_names = animal_movement_data[:2]
     ctx = FormalContext()
     assert ctx.n_objects is None, 'FormalContext.n_objects failed. Should be None since no data in the context'
 
     ctx = FormalContext(data=data)
-    assert ctx.n_objects == 3, 'FormalContext.n_objects failed. Should be 3 since data has 3 lines'
+    assert ctx.n_objects == len(obj_names), f'FormalContext.n_objects failed. '\
+                                            + f'Should be {len(obj_names)} since data has {len(obj_names)} lines'
 
     with pytest.raises(AttributeError):
-        ctx.n_objects = 4
+        ctx.n_objects = 42
 
 
-def test_n_attributes(example_context_data):
-    data = example_context_data[0]
+def test_n_attributes(animal_movement_data):
+    data, _, attr_names = animal_movement_data[:3]
     ctx = FormalContext()
     assert ctx.n_attributes is None, 'FormalContext.n_attributes failed. Should be None since no data in the context'
 
     ctx = FormalContext(data=data)
-    assert ctx.n_attributes == 3,\
-        'FormalContext.n_attributes failed. Should be 3 since each line in data is of length 3'
+    assert ctx.n_attributes == len(attr_names),\
+        f'FormalContext.n_attributes failed. '\
+        + f'Should be {len(attr_names)} since each line in data is of length {(len(attr_names))}'
 
     with pytest.raises(AttributeError):
-        ctx.n_attributes = 4
+        ctx.n_attributes = 42
 
 
 def test_description():
