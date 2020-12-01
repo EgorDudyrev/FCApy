@@ -4,6 +4,7 @@ fcapy/__init__.py
 fcapy.egg-info/PKG-INFO
 fcapy.egg-info/SOURCES.txt
 fcapy.egg-info/dependency_links.txt
+fcapy.egg-info/requires.txt
 fcapy.egg-info/top_level.txt
 fcapy/context/__init__.py
 fcapy/context/converters.py

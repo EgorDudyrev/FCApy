@@ -32,5 +32,5 @@ def run_install(**kwargs):
 )
 
 
-if __name__ == "__maine__":
+if __name__ == "__main__":
     run_install()
