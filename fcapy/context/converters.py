@@ -111,3 +111,15 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
 
     with open(path, 'w') as f:
         f.write(file_data)
+
+
+def from_pandas(dataframe):
+    ctx = FormalContext(data=dataframe.values.tolist(),
+                        object_names=dataframe.index.tolist(), attribute_names=dataframe.columns.tolist())
+    return ctx
+
+
+def to_pandas(context):
+    import pandas as pd
+    df = pd.DataFrame(context.data, columns=context.attribute_names, index=context.object_names)
+    return df

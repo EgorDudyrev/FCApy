@@ -1,6 +1,7 @@
 import pytest
-from fcapy.context import converters
+from fcapy.context import converters, FormalContext
 from .data_to_test import animal_movement_data
+import pandas
 from operator import itemgetter
 
 
@@ -63,3 +64,17 @@ def test_csv_true_false_words(animal_movement_data):
 
     with pytest.raises(ValueError):
         converters.read_csv(path, word_true='test_word')
+
+
+def test_pandas_converted(animal_movement_data):
+    data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
+
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+    df = pandas.DataFrame(data, columns=attr_names, index=obj_names)
+    assert all(converters.to_pandas(ctx) == df), 'Converters.to_pandas failed. Converted frame does not match the input data'
+
+    ctx_post = converters.from_pandas(df)
+    assert ctx_post.data, 'Converters.from_pandas failed. Converted context does not match the initial dataframe'
+
+    assert ctx == ctx_post,\
+        'Converters.{to_pandas, from_pandas} failed. Double converted context does not match the initial one'
