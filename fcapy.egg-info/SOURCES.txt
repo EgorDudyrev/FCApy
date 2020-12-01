@@ -6,3 +6,11 @@ fcapy.egg-info/SOURCES.txt
 fcapy.egg-info/dependency_links.txt
 fcapy.egg-info/top_level.txt
 fcapy/context/__init__.py
+fcapy/context/converters.py
+fcapy/context/formal_context.py
+tests/__init__.py
+tests/test_init.py
+tests/context/__init__.py
+tests/context/data_to_test.py
+tests/context/test_converters.py
+tests/context/test_formal_context.py
