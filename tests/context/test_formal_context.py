@@ -1,64 +1,13 @@
 import pytest
 from fcapy.context import FormalContext, read_cxt, read_json, read_csv
-
-
-@pytest.fixture
-def animal_movement_data():
-    data = [[True, False, False, False],
-            [False, False, False, False],
-            [True, False, False, True],
-            [True, False, False, True],
-            [True, True, False, False],
-            [True, True, False, False],
-            [True, True, False, False],
-            [False, True, True, False],
-            [False, False, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, False, True, False],
-            [False, False, True, False],
-            [False, False, False, False]]
-    obj_names = ['dove', 'hen', 'duck', 'goose', 'owl',
-                 'hawk', 'eagle', 'fox', 'dog', 'wolf',
-                 'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
-    attr_names = ['fly', 'hunt', 'run', 'swim']
-    path = 'data/animal_movement'
-    repr_data = """FormalContext (16 objects, 4 attributes, 24 connections)
-     |fly|hunt|run|swim|
-dove |  X|    |   |    |
-hen  |   |    |   |    |
-duck |  X|    |   |   X|
-goose|  X|    |   |   X|
-owl  |  X|   X|   |    |
-hawk |  X|   X|   |    |
-eagle|  X|   X|   |    |
-fox  |   |   X|  X|    |
-dog  |   |    |  X|    |
-wolf |   |   X|  X|    |
-cat  |   |   X|  X|    |
-tiger|   |   X|  X|    |
-lion |   |   X|  X|    |
-horse|   |    |  X|    |
-zebra|   |    |  X|    |
-cow  |   |    |   |    |"""
-
-    printed_data_short = """     |fly|...|swim|
-dove |  X|...|    |
-hen  |   |...|    |
-...................
-...................
-zebra|   |...|    |
-cow  |   |...|    |"""
-
-    return data, obj_names, attr_names, path, repr_data, printed_data_short
+from .data_to_test import animal_movement_data
+from operator import itemgetter
 
 
 def test_data_property(animal_movement_data):
     ctx = FormalContext()
 
-    data = animal_movement_data[0]
+    data = animal_movement_data['data']
     ctx = FormalContext(data=data)
     data_ = ctx.data
     assert data == data_, 'FormalContext.data has changed the initial data'
@@ -71,7 +20,7 @@ def test_data_property(animal_movement_data):
 
 
 def test_object_attribute_names(animal_movement_data):
-    data, obj_names, attr_names = animal_movement_data[:3]
+    data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
 
     ctx = FormalContext(data=data)
     obj_names_default = [str(idx) for idx in range(len(obj_names))]
@@ -92,7 +41,7 @@ def test_object_attribute_names(animal_movement_data):
 
 
 def test_intent_extent_i(animal_movement_data):
-    data = animal_movement_data[0]
+    data = animal_movement_data['data']
     ctx = FormalContext(data=data)
     ext_ = ctx.extension_i([0, 1])
     assert set(ext_) == {4, 5, 6}, 'FormalContext.extension_i failed. Should be {4, 5, 6}'
@@ -105,7 +54,8 @@ def test_intent_extent_i(animal_movement_data):
 
 
 def test_intent_extent(animal_movement_data):
-    data, obj_names, attr_names = animal_movement_data[:3]
+    data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
+
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     ext_ = ctx.extension(['fly', 'hunt'])
     assert set(ext_) == {'owl', 'hawk', 'eagle'}, 'FormalContext.extension failed. Should be {"owl", "hawk", "eagle"}'
@@ -123,7 +73,8 @@ def test_intent_extent(animal_movement_data):
 
 
 def test_n_objects(animal_movement_data):
-    data, obj_names = animal_movement_data[:2]
+    data, obj_names = itemgetter('data', 'obj_names')(animal_movement_data)
+
     ctx = FormalContext()
     assert ctx.n_objects is None, 'FormalContext.n_objects failed. Should be None since no data in the context'
 
@@ -136,7 +87,7 @@ def test_n_objects(animal_movement_data):
 
 
 def test_n_attributes(animal_movement_data):
-    data, _, attr_names = animal_movement_data[:3]
+    data, attr_names = itemgetter('data', 'attr_names')(animal_movement_data)
     ctx = FormalContext()
     assert ctx.n_attributes is None, 'FormalContext.n_attributes failed. Should be None since no data in the context'
 
@@ -159,8 +110,8 @@ def test_description():
         ctx.description = 42
 
 
-def test_to_funcs():
-    path = 'data/animal_movement'
+def test_to_funcs(animal_movement_data):
+    path = animal_movement_data['path']
     for fnc_read, file_extension in [(read_cxt, '.cxt'),
                                      (read_json, '.json'),
                                      (read_csv, '.csv')
@@ -183,14 +134,18 @@ def test_to_funcs():
 
 
 def test_print_data(animal_movement_data):
-    data, obj_names, attr_names, _, _, printed_data_short = animal_movement_data[:6]
+    data, obj_names, attr_names, printed_data_short = \
+        itemgetter('data', 'obj_names', 'attr_names', 'printed_data_short')(animal_movement_data)
+
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     s = ctx.print_data(max_n_objects=4, max_n_attributes=2)
     assert s == printed_data_short, 'FormalContext.print_data failed. Check data formatting.'
 
 
 def test_repr(animal_movement_data):
-    data, obj_names, attr_names, _, repr_data = animal_movement_data[:5]
+    data, obj_names, attr_names, repr_data = \
+        itemgetter('data', 'obj_names', 'attr_names', 'repr_data')(animal_movement_data)
+
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     s = ctx.__repr__()
     assert s == repr_data, "FormalContext.__repr__ failed. '" \
