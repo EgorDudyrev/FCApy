@@ -1,35 +1,11 @@
 import pytest
 from fcapy.context import converters
-
-
-@pytest.fixture
-def animal_movement_data():
-    data = [[True, False, False, False],
-            [False, False, False, False],
-            [True, False, False, True],
-            [True, False, False, True],
-            [True, True, False, False],
-            [True, True, False, False],
-            [True, True, False, False],
-            [False, True, True, False],
-            [False, False, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, True, True, False],
-            [False, False, True, False],
-            [False, False, True, False],
-            [False, False, False, False]]
-    obj_names = ['dove', 'hen', 'duck', 'goose', 'owl',
-                 'hawk', 'eagle', 'fox', 'dog', 'wolf',
-                 'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
-    attr_names = ['fly', 'hunt', 'run', 'swim']
-    path = 'data/animal_movement'
-    return data, obj_names, attr_names, path
+from .data_to_test import animal_movement_data
+from operator import itemgetter
 
 
 def test_read_converter(animal_movement_data):
-    data, obj_names, attr_names, path = animal_movement_data
+    data, obj_names, attr_names, path = itemgetter('data', 'obj_names', 'attr_names', 'path')(animal_movement_data)
 
     for fnc, file_extension in [(converters.read_json, '.json'),
                                 (converters.read_cxt, '.cxt'),
@@ -79,7 +55,7 @@ def test_write_converter():
 
 
 def test_csv_true_false_words(animal_movement_data):
-    path = animal_movement_data[3]
+    path = animal_movement_data['path']
     path += '.csv'
 
     with pytest.raises(ValueError):
