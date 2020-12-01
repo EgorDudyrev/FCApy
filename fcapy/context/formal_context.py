@@ -125,6 +125,10 @@ class FormalContext:
         from fcapy.context.converters import write_csv
         return write_csv(self, path=path, **kwargs)
 
+    def to_pandas(self):
+        from fcapy.context.converters import to_pandas
+        return to_pandas(self)
+
     def __repr__(self):
         data_to_print = f'FormalContext ' +\
                         f'({self.n_objects} objects, {self.n_attributes} attributes, ' +\

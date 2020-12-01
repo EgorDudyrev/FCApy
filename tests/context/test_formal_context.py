@@ -1,5 +1,5 @@
 import pytest
-from fcapy.context import FormalContext, read_cxt, read_json, read_csv
+from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
 from .data_to_test import animal_movement_data
 from operator import itemgetter
 
@@ -131,6 +131,15 @@ def test_to_funcs(animal_movement_data):
         file_new = fnc_write()
         assert file_new == file_orig,\
             f'FormalContext.{fnc_name} failed. Result context file does not math the initial one'
+
+
+def test_to_pandas(animal_movement_data):
+    data, obj_names, attr_names = \
+        itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
+
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+    assert from_pandas(ctx.to_pandas()) == ctx,\
+        'FormalContext.to_pandas failed. Double converted FormalContext does not match the inital one'
 
 
 def test_print_data(animal_movement_data):
