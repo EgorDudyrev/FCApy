@@ -150,3 +150,39 @@ def test_repr(animal_movement_data):
     s = ctx.__repr__()
     assert s == repr_data, "FormalContext.__repr__ failed. '" \
                            + "Check print_data parameters: max_n_objects=20, max_n_attributes=10."
+
+
+def test_eq_neq(animal_movement_data):
+    data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
+    ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
+
+    for func in [ctx.__eq__, ctx.__ne__]:
+        ctx_neq = FormalContext(data=data[:-1], object_names=obj_names[:-1], attribute_names=attr_names)
+        with pytest.raises(ValueError) as excinfo:
+            func(ctx_neq)
+        msg = 'Two FormalContext objects can not be compared since they have different object_names'
+        assert excinfo.value.args[0] == msg,\
+            f'FormalContext.{func.__name__} failed. ' + \
+            f'Error message when comparing object_names differs from the expected one'
+
+        ctx_neq = FormalContext(data=[g_ms[:-1] for g_ms in data],
+                                object_names=obj_names, attribute_names=attr_names[:-1])
+        with pytest.raises(ValueError) as excinfo:
+            func(ctx_neq)
+        msg = 'Two FormalContext objects can not be compared since they have different attribute_names'
+        assert excinfo.value.args[0] == msg,\
+            f'FormalContext.{func.__name__} failed. ' +\
+            'Error message when comparing attribute_names differs from the expected one'
+
+    ctx_eq = FormalContext(data=[g_ms for g_ms in data], object_names=obj_names, attribute_names=attr_names)
+
+    ctx_neq = FormalContext(data=[g_ms[:-1]+[not g_ms[-1]] for g_ms in data], object_names=obj_names,
+                            attribute_names=attr_names)
+
+    assert ctx == ctx_eq, 'FormalContext.__eq__ failed. The same FormalContext objects are classified as different'
+    assert not ctx == ctx_neq,\
+        'FormalContext.__eq__ failed. Two different FormalContext objects are classified as the same'
+    assert ctx != ctx_neq,\
+        'FormalContext.__ne__ failed. Two different FormalContext objects do not classified as different'
+    assert not ctx != ctx_eq,\
+        'FormalContext.__ne__ failed. The same FormalContext objects are classified as different'

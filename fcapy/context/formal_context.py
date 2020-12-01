@@ -171,3 +171,23 @@ class FormalContext:
 
         data_to_print = '\n'.join([header] + lines)
         return data_to_print
+
+    def __eq__(self, other):
+        if not self.object_names == other.object_names:
+            raise ValueError('Two FormalContext objects can not be compared since they have different object_names')
+
+        if not self.attribute_names == other.attribute_names:
+            raise ValueError('Two FormalContext objects can not be compared since they have different attribute_names')
+
+        is_equal = self.data == other.data
+        return is_equal
+
+    def __ne__(self, other):
+        if not self.object_names == other.object_names:
+            raise ValueError('Two FormalContext objects can not be compared since they have different object_names')
+
+        if not self.attribute_names == other.attribute_names:
+            raise ValueError('Two FormalContext objects can not be compared since they have different attribute_names')
+
+        is_not_equal = self.data != other.data
+        return is_not_equal
