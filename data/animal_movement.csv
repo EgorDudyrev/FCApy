@@ -1,0 +1,17 @@
+,fly,hunt,run,swim
+dove,True,False,False,False
+hen,False,False,False,False
+duck,True,False,False,True
+goose,True,False,False,True
+owl,True,True,False,False
+hawk,True,True,False,False
+eagle,True,True,False,False
+fox,False,True,True,False
+dog,False,False,True,False
+wolf,False,True,True,False
+cat,False,True,True,False
+tiger,False,True,True,False
+lion,False,True,True,False
+horse,False,False,True,False
+zebra,False,False,True,False
+cow,False,False,False,False
