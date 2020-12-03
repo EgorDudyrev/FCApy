@@ -2,15 +2,6 @@ class FormalContext:
     """
     A class used to represent Formal Context object from FCA theory.
 
-    Attributes
-    ----------
-    data
-    object_names
-    attribute_names
-    description
-    n_objects
-    n_attributes
-
     Methods
     -------
     intention(objects)
@@ -34,9 +25,9 @@ class FormalContext:
     Notes
     -----
     Formal Context K = (G, M, I) - is a triplet of:
-    * set of objects G (the property ``object_names`` in this class)
-    * set of attributes M (the property ``attribute_names`` in this class)
-    * binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m")
+    1. set of objects G (the property ``object_names`` in this class)
+    2. set of attributes M (the property ``attribute_names`` in this class)
+    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m")
       (the property ``data`` in this class)
 
     """
@@ -141,7 +132,7 @@ class FormalContext:
         Parameters
         ----------
         value : `list of `str
-            The list of names for the attributes (default are '0','1',...,'`n_attributes`-1')
+            The list of names for the attributes (default are "0","1",...,"`n_attributes`-1")
 
         Raises
         ------
