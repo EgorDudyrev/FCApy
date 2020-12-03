@@ -17,9 +17,9 @@ class FormalContext:
         Return maximal set of attributes which are shared by given ``objects``
     extension(attributes)
         Return maximal set of objects which share given ``attributes``
-    intention_i(objects)
+    intention_i(object_indexes)
         Offer the same logic as intention(...) but objects and attributes are defined by their indexes
-    extension_i(attributes)
+    extension_i(attribute_indexes)
         Offer the same logic as extension(...) but objects and attributes are defined by their indexes
 
     to_cxt(path=None)
@@ -164,28 +164,29 @@ class FormalContext:
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
 
-    def extension_i(self, attributes):
-        """Return indexes of maximal set of objects which share given indexes of ``attributes``
+    def extension_i(self, attribute_indexes):
+        """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
         Parameters
         ----------
-        attributes : `list of `int
+        attribute_indexes : `list of `int
             Indexes of the attributes (from [0, ``n_attributes``-1])
 
         Returns
         -------
-        extension_i : `list of `int
+        extension_indexes : `list of `int
             Indexes of maximal set of objects which share ``attributes``
 
         """
-        return [g_idx for g_idx, g_ms in enumerate(self._data) if all([g_ms[m] for m in attributes])]
+        return [g_idx for g_idx, g_ms in enumerate(self._data)
+                if all([g_ms[m] for m in attribute_indexes])]
 
-    def intention_i(self, objects):
-        """Return indexes of maximal set of attributes which are shared by given indexes of ``objects`
+    def intention_i(self, object_indexes):
+        """Return indexes of maximal set of attributes which are shared by given ``object_indexes`
 
         Parameters
         ----------
-        objects : `list of `int
+        object_indexes : `list of `int
             Indexes of the objects (from [0, ``n_objects``-1])
 
         Returns
@@ -194,7 +195,8 @@ class FormalContext:
             Indexes of maximal set of attributes which are shared by ``objects``
 
         """
-        return [m_idx for m_idx in range(len(self._data[0])) if all([self._data[g_idx][m_idx] for g_idx in objects])]
+        return [m_idx for m_idx in range(len(self._data[0]))
+                if all([self._data[g_idx][m_idx] for g_idx in object_indexes])]
 
     def intention(self, objects):
         """Return maximal set of attributes which are shared by given ``objects``
