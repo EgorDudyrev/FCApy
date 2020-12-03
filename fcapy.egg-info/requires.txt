@@ -1,0 +1,6 @@
+
+[all]
+pandas
+
+[context]
+pandas
