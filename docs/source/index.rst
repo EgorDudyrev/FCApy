@@ -4,7 +4,7 @@ Welcome to FCApy's documentation!
 Install
 =======
 
-FCApy can (soon) be installed from `PyPI <https://pypi.org/project/shap>`_::
+FCApy can (soon) be installed from `PyPI <https://pypi.org/project/fcapy>`_::
 
    pip install fcapy
 
