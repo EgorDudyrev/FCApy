@@ -2,6 +2,19 @@ from fcapy.context import FormalContext
 
 
 def read_cxt(path):
+    """Read FormalContext from .cxt file
+
+    Parameters
+    ----------
+    path : `str
+        A path to requested .cxt file
+
+    Returns
+    -------
+    ctx : `FormalContext
+        The loaded FormalContext object
+
+    """
     with open(path, 'r') as f:
         data = f.read()
 
@@ -18,6 +31,20 @@ def read_cxt(path):
 
 
 def write_cxt(context, path=None):
+    """Write FormalContext object to the .cxt file
+
+    Parameters
+    ----------
+    context : `FormalContext
+        A context to write to a file
+    path : `str
+        A path to the file to write a FormalContext object
+    Returns
+    -------
+    file_data : `str
+        The date from the .cxt file. Returned if ``path`` is None
+
+    """
     file_data = 'B\n\n'
     file_data += f"{context.n_objects}\n{context.n_attributes}\n"
     file_data += '\n'
@@ -34,6 +61,19 @@ def write_cxt(context, path=None):
 
 
 def read_json(path):
+    """Read FormalContext from .json file
+
+    Parameters
+    ----------
+    path : `str
+        A path to requested .json file
+
+    Returns
+    -------
+    ctx : `FormalContext
+        The loaded FormalContext object
+
+    """
     import json
 
     with open(path, 'r') as f:
@@ -53,6 +93,20 @@ def read_json(path):
 
 
 def write_json(context, path=None):
+    """Write FormalContext object to the .json file
+
+    Parameters
+    ----------
+    context : `FormalContext
+        A context to write to a file
+    path : `str
+        A path to the file to write a FormalContext object
+    Returns
+    -------
+    file_data : `str
+        The date from the .json file. Returned if ``path`` is None
+
+    """
     import json
 
     ctx_metadata, object_info = {}, {}
@@ -77,6 +131,19 @@ def write_json(context, path=None):
 
 
 def read_csv(path, sep=',', word_true='True', word_false='False'):
+    """Read FormalContext from .csv file
+
+    Parameters
+    ----------
+    path : `str
+        A path to requested .csv file
+
+    Returns
+    -------
+    ctx : `FormalContext
+        The loaded FormalContext object
+
+    """
     with open(path, 'r') as f:
         file_data = f.read().strip().split('\n')
     header, file_data = file_data[0], file_data[1:]
@@ -101,6 +168,20 @@ def read_csv(path, sep=',', word_true='True', word_false='False'):
 
 
 def write_csv(context, path=None, sep=',', word_true='True', word_false='False'):
+    """Write FormalContext object to the .csv file
+
+    Parameters
+    ----------
+    context : `FormalContext
+        A context to write to a file
+    path : `str
+        A path to the file to write a FormalContext object
+    Returns
+    -------
+    file_data : `str
+        The date from the .csv file. Returned if ``path`` is None
+
+    """
     file_data = sep+sep.join(context.attribute_names)+'\n'
     for obj_name, data_line in zip(context.object_names, context.data):
         file_data += obj_name+sep+sep.join([word_true if val else word_false for val in data_line])+'\n'
@@ -114,12 +195,41 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
 
 
 def from_pandas(dataframe):
+    """Create FormalContext object based on pandas.DataFrame
+
+    ``context.object_names`` are parsed from ``dataframe.index``.
+    ``context.column_names`` are parsed from ``dataframe.columns``
+
+    Parameters
+    ----------
+    dataframe : `pandas.DataFrame
+
+    Returns
+    -------
+    ctx : `FormalContext
+
+    """
     ctx = FormalContext(data=dataframe.values.tolist(),
                         object_names=dataframe.index.tolist(), attribute_names=dataframe.columns.tolist())
     return ctx
 
 
 def to_pandas(context):
+    """Convert FormalContext object to pandas.DataFrame object
+
+    ``context.object_names`` are turned into ``df.index``.
+    ``context.column_names`` are turned into ``df.columns``
+
+    Parameters
+    ----------
+    context : `FormalContext
+        A context to convert
+    Returns
+    -------
+    df : `pandas.DataFrame
+        The binary dataframe based on FormalContext object
+
+    """
     import pandas as pd
     df = pd.DataFrame(context.data, columns=context.attribute_names, index=context.object_names)
     return df

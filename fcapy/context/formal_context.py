@@ -1,5 +1,53 @@
 class FormalContext:
+    """
+    A class used to represent Formal Context object from FCA theory.
+
+    Methods
+    -------
+    intention(objects)
+        Return maximal set of attributes which are shared by given ``objects``
+    extension(attributes)
+        Return maximal set of objects which share given ``attributes``
+    intention_i(object_indexes)
+        Offer the same logic as intention(...) but objects and attributes are defined by their indexes
+    extension_i(attribute_indexes)
+        Offer the same logic as extension(...) but objects and attributes are defined by their indexes
+
+    to_cxt(path=None)
+        Convert the FormalContext into cxt file format (save if ``path`` is given)
+    to_json(path=None)
+        Convert the FormalContext into json file format (save if ``path`` is given)
+    to_csv(path=None, **kwargs)
+        Convert the FormalContext into csv file format (save if ``path`` is given)
+    to_pandas()
+        Convert the FormalContext into pandas.DataFrame object
+
+    Notes
+    -----
+    Formal Context K = (G, M, I) - is a triplet of:
+    1. set of objects G (the property ``object_names`` in this class)
+    2. set of attributes M (the property ``attribute_names`` in this class)
+    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m")
+      (the property ``data`` in this class)
+
+    """
+
     def __init__(self, data=None, object_names=None, attribute_names=None, **kwargs):
+        """
+        Parameters
+        ----------
+        data : `list of `list
+            Two dimensional list of bool variables.
+            "data[i][j] = True" represents that i-th object shares j-th attribute
+        object_names : `list of `str, optional
+            Names of objects (rows) of the FormalContext
+        attribute_names : `list of `str, optional
+            Names of attributes (columns) of the FormalContext
+        **kwargs:
+            ``description``:
+                `str with human readable description of the FormalContext (stored only in json file format)
+
+        """
         self.data = data
         self.object_names = object_names
         self.attribute_names = attribute_names
@@ -7,6 +55,22 @@ class FormalContext:
 
     @property
     def data(self):
+        """Get or set the data with relations between objects and attributes (`list of `list)
+
+        Parameters
+        ----------
+        value : `list of `list
+            value[i][j] represents whether i-th object shares j-th attribute
+
+        Raises
+        ------
+        AssertionError
+            If ``value`` is not a `list
+            If ``value`` of type `list is given (should be `list of `list)
+            If some lists ``value[i]`` and ``value[j]`` have different length (should be the same for any ``value[i]``)
+            If any ``value[i][j]`` is not of type `bool
+
+        """
         return self._data
 
     @data.setter
@@ -33,6 +97,20 @@ class FormalContext:
 
     @property
     def object_names(self):
+        """Get of set the names of the objects in the context
+
+        Parameters
+        ----------
+        value : `list of `str
+            The list of names for the objects (default are '0','1',...,'`n_objects`-1')
+
+        Raises
+        ------
+        AssertionError
+            If the number of names in the ``value`` does not equal to the number of objects in the context
+            If the the elements of ``value`` are not of type str
+
+        """
         return self._object_names
 
     @object_names.setter
@@ -49,6 +127,20 @@ class FormalContext:
 
     @property
     def attribute_names(self):
+        """Get of set the names of the attributes in the context
+
+        Parameters
+        ----------
+        value : `list of `str
+            The list of names for the attributes (default are "0","1",...,"`n_attributes`-1")
+
+        Raises
+        ------
+        AssertionError
+            If the number of names in the ``value`` does not equal to the number of attributes in the context
+            If the the elements of ``value`` are not of type str
+
+        """
         return self._attribute_names
 
     @attribute_names.setter
@@ -63,13 +155,53 @@ class FormalContext:
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
 
-    def extension_i(self, attributes):
-        return [g_idx for g_idx, g_ms in enumerate(self._data) if all([g_ms[m] for m in attributes])]
+    def extension_i(self, attribute_indexes):
+        """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
-    def intention_i(self, objects):
-        return [m_idx for m_idx in range(len(self._data[0])) if all([self._data[g_idx][m_idx] for g_idx in objects])]
+        Parameters
+        ----------
+        attribute_indexes : `list of `int
+            Indexes of the attributes (from [0, ``n_attributes``-1])
+
+        Returns
+        -------
+        extension_indexes : `list of `int
+            Indexes of maximal set of objects which share ``attributes``
+
+        """
+        return [g_idx for g_idx, g_ms in enumerate(self._data)
+                if all([g_ms[m] for m in attribute_indexes])]
+
+    def intention_i(self, object_indexes):
+        """Return indexes of maximal set of attributes which are shared by given ``object_indexes`
+
+        Parameters
+        ----------
+        object_indexes : `list of `int
+            Indexes of the objects (from [0, ``n_objects``-1])
+
+        Returns
+        -------
+        intention_i : `list of `int
+            Indexes of maximal set of attributes which are shared by ``objects``
+
+        """
+        return [m_idx for m_idx in range(len(self._data[0]))
+                if all([self._data[g_idx][m_idx] for g_idx in object_indexes])]
 
     def intention(self, objects):
+        """Return maximal set of attributes which are shared by given ``objects``
+
+        Parameters
+        ----------
+        objects : `list of `str
+            Names of the objects (subset of ``object_names``)
+
+        Returns
+        -------
+        intention: `list of `str
+            Names of maximal set of attributes which are shared by given ``objects``
+        """
         obj_idx_dict = {g: g_idx for g_idx, g in enumerate(self._object_names)}
         obj_indices = []
         for g in objects:
@@ -83,6 +215,19 @@ class FormalContext:
         return intention
 
     def extension(self, attributes):
+        """Return maximal set of objects which share given ``attributes``
+
+        Parameters
+        ----------
+        attributes : `list of `str
+            Names of the attributes (subset of ``attribute_names``)
+
+        Returns
+        -------
+        extension : `list of `str
+            Names of the maximal set of objects which share given ``attributes``
+
+        """
         attr_idx_dict = {m: m_idx for m_idx, m in enumerate(self._attribute_names)}
         attr_indices = []
         for m in attributes:
@@ -97,14 +242,32 @@ class FormalContext:
 
     @property
     def n_objects(self):
+        """Get the number of objects in the context (i.e. len(`data`))"""
         return self._n_objects
 
     @property
     def n_attributes(self):
+        """Get the number of attributes in the context (i.e. len(`data[0]`)"""
         return self._n_attributes
 
     @property
     def description(self):
+        """Get or set the human readable description of the context
+
+        JSON is the only file format to store this information.
+        The description will be lost when saving context to .cxt or .csv
+
+        Parameters
+        ----------
+        value : `str, None
+            The human readable description of the context
+
+        Raises
+        ------
+        AssertionError
+            If the given ``value`` is not None and not of type `str
+
+        """
         return self._description
 
     @description.setter
@@ -114,18 +277,73 @@ class FormalContext:
         self._description = value
 
     def to_cxt(self, path=None):
+        """Convert the FormalContext into cxt file format (save if ``path`` is given)
+
+        Parameters
+        ----------
+        path : `str or None
+            Path to save a context
+
+        Returns
+        -------
+        context : `str
+            If ``path`` is None, the string with .cxt file data is returned. If ``path`` is given - return None
+
+        """
         from fcapy.context.converters import write_cxt
         return write_cxt(self, path)
 
     def to_json(self, path=None):
+        """Convert the FormalContext into json file format (save if ``path`` is given)
+
+        Parameters
+        ----------
+        path : `str or None
+            Path to save a context
+
+        Returns
+        -------
+        context : `str
+            If ``path`` is None, the string with .json file data is returned. If ``path`` is given - return None
+
+        """
         from fcapy.context.converters import write_json
         return write_json(self, path)
 
     def to_csv(self, path=None, **kwargs):
+        """Convert the FormalContext into csv file format (save if ``path`` is given)
+
+        Parameters
+        ----------
+        path : `str or None
+            Path to save a context
+        **kwargs :
+            ``sep`` : `str
+                Field delimiter for the output file
+            ``word_true`` : `str
+                A placeholder to put instead of 'True' for data[i][j]==True (default 'True')
+            ``word_false`` : `str
+                A placeholder to put instead of 'False' for data[i][j]==False (default 'False')
+
+        Returns
+        -------
+        context : `str
+            If ``path`` is None, the string with .csv file data is returned. If ``path`` is given - return None
+
+        """
         from fcapy.context.converters import write_csv
         return write_csv(self, path=path, **kwargs)
 
     def to_pandas(self):
+        """Convert the FormalContext into pandas.DataFrame object
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            The dataframe with boolean variables,
+            ``object_names`` turned into ``df.index``, ``attribute_names`` turned into ``df.columns``
+
+        """
         from fcapy.context.converters import to_pandas
         return to_pandas(self)
 
@@ -137,6 +355,23 @@ class FormalContext:
         return data_to_print
 
     def print_data(self, max_n_objects=20, max_n_attributes=10):
+        """Get the FormalContext date in the string formatted as the table
+
+        Parameters
+        ----------
+        max_n_objects : `int
+            Maximal number of objects to print. If it is less then ``n_objects`` then print ``max_n_objects/2``
+            objects from the "top" and the "bottom" of the context
+        max_n_attributes : `int
+            Maximal number of attributes to print. If it is less then ``n_attributes`` then print ``max_n_attributes/2``
+            attributes from the "left" and the "right" part of the context
+
+        Returns
+        -------
+        data_to_print : `str
+            A string with the context data formatted as the table
+
+        """
         objs_to_print = self.object_names
         attrs_to_print = self.attribute_names
         data_to_print = self.data
@@ -177,6 +412,7 @@ class FormalContext:
         return data_to_print
 
     def __eq__(self, other):
+        """Wrapper for the comparison method __eq__"""
         if not self.object_names == other.object_names:
             raise ValueError('Two FormalContext objects can not be compared since they have different object_names')
 
@@ -187,6 +423,7 @@ class FormalContext:
         return is_equal
 
     def __ne__(self, other):
+        """Wrapper for the comparison method __ne__"""
         if not self.object_names == other.object_names:
             raise ValueError('Two FormalContext objects can not be compared since they have different object_names')
 
