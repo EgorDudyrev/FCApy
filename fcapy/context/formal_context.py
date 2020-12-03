@@ -1,8 +1,8 @@
 class FormalContext:
-    def __init__(self, **kwargs):
-        self.data = kwargs.get('data')
-        self.object_names = kwargs.get('object_names')
-        self.attribute_names = kwargs.get('attribute_names')
+    def __init__(self, data=None, object_names=None, attribute_names=None, **kwargs):
+        self.data = data
+        self.object_names = object_names
+        self.attribute_names = attribute_names
         self.description = kwargs.get('description')
 
     @property
