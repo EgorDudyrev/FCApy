@@ -1,19 +1,15 @@
 Welcome to FCApy's documentation!
 =================================
 
-Install
-=======
-
-FCApy can (soon) be installed from `PyPI <https://pypi.org/project/shap>`_::
-
-   pip install fcapy
-
-Contents
-========
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
-   API Reference <api>
+.. automodule:: fcapy.context.formal_context
+    :members:
+
+.. automodule:: fcapy.context.converters
+    :members:
 
 
 Indices and tables

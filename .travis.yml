@@ -1,0 +1,14 @@
+language: python
+python:
+  - 3.6
+before_install:
+  - python --version
+  - pip install -U pip
+  - pip install -U pytest
+  - pip install codecov
+install:
+  - pip install .[all]
+script:
+  - python -m coverage run -m pytest tests
+after_success:
+  - python -m codecov
