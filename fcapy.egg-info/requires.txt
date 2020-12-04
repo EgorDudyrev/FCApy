@@ -1,6 +1,16 @@
 
 [all]
+sphinx_rtd_theme
 pandas
+numpydoc
+sphinx
+nbsphinx
 
 [context]
 pandas
+
+[docs]
+numpydoc
+sphinx_rtd_theme
+sphinx
+nbsphinx

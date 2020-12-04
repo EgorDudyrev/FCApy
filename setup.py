@@ -20,20 +20,21 @@ def run_install(**kwargs):
 
     setuptools.setup(
         name="fcapy",
-        version="0.0.5",
+        version="0.1.0",
         author="Egor Dudyrev",
         author_email="egor.dudyrev@yandex.ru",
         description="A library to work with formal (and pattern) contexts, concepts, lattices",
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/EgorDudyrev/FCApy",
-        packages=setuptools.find_packages(),
+        packages=setuptools.find_packages(exclude=("tests",)),
         classifiers=[
             "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
         ],
-        python_requires='>=3.0',
+        python_requires='>=3.6',
         extras_require=extras_require
 )
 
