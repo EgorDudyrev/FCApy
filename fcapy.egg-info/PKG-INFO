@@ -1,16 +1,38 @@
 Metadata-Version: 2.1
 Name: fcapy
-Version: 0.0.5
+Version: 0.1.0
 Summary: A library to work with formal (and pattern) contexts, concepts, lattices
 Home-page: https://github.com/EgorDudyrev/FCApy
 Author: Egor Dudyrev
 Author-email: egor.dudyrev@yandex.ru
 License: UNKNOWN
 Description: # FCApy
+        [![Travis (.com)](https://img.shields.io/travis/com/EgorDudyrev/FCApy)](https://travis-ci.com/github/EgorDudyrev/FCApy)
+        [![Read the Docs (version)](https://img.shields.io/readthedocs/fcapy/latest)](https://fcapy.readthedocs.io/en/latest/)
+        [![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)](https://codecov.io/gh/EgorDudyrev/FCApy)
+        [![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)](https://github.com/EgorDudyrev/FCApy/blob/main/LICENSE)
+        
         A library to work with formal (and pattern) concexts, concepts, lattices
         
         Created under the guidance of S.O.Kuznetsov and A.A.Neznanov of HSE Moscow.
         
+        ## Install
+        FCApy can be installed from [PyPI](https://pypi.org/project/shap):
+        
+        <pre>
+        pip install fcapy
+        </pre>
+        
+        The library has no strict dependencies. However one would better install it with all the additional packages:
+        <pre>
+        pip install fcapy[all]
+        </pre>
+        
+        ## Current state
+        
+        The library provides an implementation of the Formal Context idea from FCA. An example of this is given in [here](../blob/main/notebooks/Formal%20Context.ipynb).
+         
+        ## Plans
         The library will provide easy-to-use Python interface to work with Formal Concept Analysis (FCA) for both the scientists and ML practitioners.
         In particular:
         * formal (and pattern) contexts conversion from and to different formats (csv, cxt, etc.)
@@ -22,9 +44,11 @@ Description: # FCApy
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.0
+Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 Provides-Extra: context
+Provides-Extra: docs
 Provides-Extra: all
