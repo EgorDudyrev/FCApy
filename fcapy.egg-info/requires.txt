@@ -1,10 +1,10 @@
 
 [all]
-pandas
 sphinx_rtd_theme
-nbsphinx
-sphinx
+pandas
 numpydoc
+sphinx
+nbsphinx
 
 [context]
 pandas
