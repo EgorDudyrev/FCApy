@@ -36,7 +36,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.napoleon',
-    'rinoh.frontend.sphinx',
     'sphinx.ext.autosummary',
     'sphinx_rtd_theme',
     'numpydoc',

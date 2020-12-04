@@ -9,6 +9,12 @@ def run_install(**kwargs):
         'context': [
             'pandas'
         ],
+        'docs': [
+            'numpydoc',
+            'sphinx_rtd_theme',
+            'sphinx',
+            'nbsphinx',
+        ]
     }
     extras_require['all'] = list(set(i for val in extras_require.values() for i in val))
 
