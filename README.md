@@ -1,8 +1,8 @@
 # FCApy
-![Travis (.com)](https://img.shields.io/travis/com/EgorDudyrev/FCApy)
-![Read the Docs](https://img.shields.io/readthedocs/fcapy)
-![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)
-![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)
+[![Travis (.com)](https://img.shields.io/travis/com/EgorDudyrev/FCApy)](https://travis-ci.com/github/EgorDudyrev/FCApy)
+[![Read the Docs (version)](https://img.shields.io/readthedocs/fcapy/latest)](https://fcapy.readthedocs.io/en/latest/)
+[![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)](https://codecov.io/gh/EgorDudyrev/FCApy)
+[![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)](https://github.com/EgorDudyrev/FCApy/blob/main/LICENSE)
 
 A library to work with formal (and pattern) concexts, concepts, lattices
 
