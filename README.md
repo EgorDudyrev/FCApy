@@ -1,4 +1,9 @@
 # FCApy
+![Travis (.com)](https://img.shields.io/travis/com/EgorDudyrev/FCApy)
+![Read the Docs](https://img.shields.io/readthedocs/fcapy)
+![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)
+![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)
+
 A library to work with formal (and pattern) concexts, concepts, lattices
 
 Created under the guidance of S.O.Kuznetsov and A.A.Neznanov of HSE Moscow.
