@@ -8,6 +8,23 @@ A library to work with formal (and pattern) concexts, concepts, lattices
 
 Created under the guidance of S.O.Kuznetsov and A.A.Neznanov of HSE Moscow.
 
+## Current state
+
+The library provides an implementation of the Formal Context idea from FCA. An example of this is given in [here](../blob/main/notebooks/Formal%20Context.ipynb).
+
+## Install
+FCApy can be installed from [PyPI](https://pypi.org/project/shap):
+
+<pre>
+pip install fcapy
+</pre>
+
+The library has no strict dependencies. However one would better install it with the additional packages:
+<pre>
+pip install fcapy[all]
+</pre> 
+
+## Plans
 The library will provide easy-to-use Python interface to work with Formal Concept Analysis (FCA) for both the scientists and ML practitioners.
 In particular:
 * formal (and pattern) contexts conversion from and to different formats (csv, cxt, etc.)
