@@ -4,12 +4,12 @@
 [![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)](https://codecov.io/gh/EgorDudyrev/FCApy)
 [![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)](https://github.com/EgorDudyrev/FCApy/blob/main/LICENSE)
 
-A library to work with formal (and pattern) concexts, concepts, lattices
+A library to work with formal (and pattern) contexts, concepts, lattices
 
 Created under the guidance of S.O.Kuznetsov and A.A.Neznanov of HSE Moscow.
 
 ## Install
-FCApy can be installed from [PyPI](https://pypi.org/project/shap):
+FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
 
 <pre>
 pip install fcapy
@@ -22,7 +22,7 @@ pip install fcapy[all]
 
 ## Current state
 
-The library provides an implementation of the Formal Context idea from FCA. An example of this is given in [here](../blob/main/notebooks/Formal%20Context.ipynb).
+The library provides an implementation of the Formal Context idea from FCA. An example of this is given in [here](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
  
 ## Plans
 The library will provide easy-to-use Python interface to work with Formal Concept Analysis (FCA) for both the scientists and ML practitioners.
