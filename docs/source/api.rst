@@ -9,3 +9,4 @@ Context
     :toctree: generated/
 
     context.FormalContext
+    context.converters
