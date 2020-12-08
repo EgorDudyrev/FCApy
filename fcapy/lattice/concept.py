@@ -20,3 +20,9 @@ class FormalConcept:
     @property
     def intent(self):
         return self._intent
+
+    def __eq__(self, other):
+        return set(self.extent) == set(other.extent)
+
+    def __hash__(self):
+        return hash((self.extent, self.intent))
