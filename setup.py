@@ -36,7 +36,7 @@ def run_install(**kwargs):
         ],
         python_requires='>=3.6',
         extras_require=extras_require
-)
+    )
 
 
 if __name__ == "__main__":
