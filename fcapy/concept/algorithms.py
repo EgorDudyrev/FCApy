@@ -25,7 +25,7 @@ def close_by_one(context: FormalContext):
 
         extent = [object_names[g_i] for g_i in extent_i]
         intent = [attribute_names[m_i] for m_i in intent_i]
-        concepts.add(FormalConcept(extent, intent))
+        concepts.add(FormalConcept(extent_i, extent, intent_i, intent))
         saved_extents_i.add(extent_i)
 
         extent_i = list(extent_i)
