@@ -13,13 +13,19 @@ def test_formal_concept_init():
 
 def test_formal_concept_extent_intent():
     c = FormalConcept([1, 2], ['a', 'b'], [4, 5], ["d", "e"])
+    assert tuple(c.extent_i) == (1, 2), "FormalConcept.extent_i failed. Extent indices differ from the given ones"
     assert tuple(c.extent) == ('a', 'b'), "FormalConcept.extent failed. Extent values differ from the given ones"
+    assert tuple(c.intent_i) == (4, 5), "FormalConcept.intent_i failed. Intent indices differ from the given ones"
     assert tuple(c.intent) == ('d', 'e'), "FormalConcept.intent failed. Intent values differ from the given ones"
 
     with pytest.raises(AttributeError):
         c.extent = 42
     with pytest.raises(AttributeError):
         c.intent = 42
+    with pytest.raises(AttributeError):
+        c.extent_i = 42
+    with pytest.raises(AttributeError):
+        c.intent_i = 42
 
 
 def test__eq__ne__():
@@ -37,3 +43,15 @@ def test__hash__():
     c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
     c2 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
     assert len({c1, c2}) == 1, "FormalConcept.__hash__ failed. Two same concepts put twice in set"
+
+
+def test_json_converter():
+    c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
+    c2 = FormalConcept.from_json(json_data=c1.to_json())
+    assert c1 == c2, "FormalConcept.to_json/from_json failed. The concept is modified after to/from operations"
+
+    c1.to_json('concept_tmp.json')
+    c2 = FormalConcept.from_json('concept_tmp.json')
+    assert c1 == c2, "FormalConcept.to_json/from_json failed. The concept is modified after to/from file operations"
+    import os
+    os.remove('concept_tmp.json')
