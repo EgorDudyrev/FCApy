@@ -16,6 +16,11 @@ class FormalConcept:
         self._intent_i = unify_iterable_type(intent_i, "intent", value_type=int)
         self._intent = unify_iterable_type(intent, "intent", value_type=str)
 
+        assert len(self._extent_i) == len(self._extent),\
+            "FormalConcept.__init__ error. extent and extent_i are of different sizes"
+        assert len(self._intent_i) == len(self._intent), \
+            "FormalConcept.__init__ error. intent and intent_i are of different sizes"
+
     @property
     def extent_i(self):
         return self._extent_i
@@ -47,8 +52,13 @@ class FormalConcept:
 
     @staticmethod
     def from_dict(data):
-        c = FormalConcept(data['Ext']['Inds'], data['Ext']['Names'],
-                          data['Int']['Inds'], data['Int']['Names'])
+        if data["Int"] == "BOTTOM":
+            data["Int"] = {'Inds': [], "Names": []}
+
+        c = FormalConcept(
+            data['Ext']['Inds'], data['Ext'].get('Names', []),
+            data['Int']['Inds'], data['Int'].get('Names', [])
+        )
         return c
 
     def to_json(self, path=None):

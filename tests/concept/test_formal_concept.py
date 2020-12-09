@@ -50,6 +50,10 @@ def test_dict_converter():
     c2 = FormalConcept.from_dict(c1.to_dict())
     assert c1 == c2, "FormalConcept.to_dict/from_dict failed. The concept is modified after to/from operations"
 
+    dct = {'Ext': {'Inds': []}, "Int": "BOTTOM", "Supp": 0}
+    c = FormalConcept([], [], [], [])
+    assert FormalConcept.from_dict(dct) == c, "FormalConcept.from_dict. Can not load bottom concept"
+
 
 def test_json_converter():
     c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
