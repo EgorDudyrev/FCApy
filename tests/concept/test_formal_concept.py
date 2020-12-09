@@ -45,6 +45,12 @@ def test__hash__():
     assert len({c1, c2}) == 1, "FormalConcept.__hash__ failed. Two same concepts put twice in set"
 
 
+def test_dict_converter():
+    c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
+    c2 = FormalConcept.from_dict(c1.to_dict())
+    assert c1 == c2, "FormalConcept.to_dict/from_dict failed. The concept is modified after to/from operations"
+
+
 def test_json_converter():
     c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
     c2 = FormalConcept.from_json(json_data=c1.to_json())
