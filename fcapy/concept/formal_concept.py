@@ -37,3 +37,29 @@ class FormalConcept:
 
     def __hash__(self):
         return hash(self._extent_i)
+
+    def to_json(self, path=None):
+        concept_info = dict()
+        concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
+        concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i)}
+
+        file_data = json.dumps(concept_info)
+        if path is None:
+            return file_data
+
+        with open(path, 'w') as f:
+            f.write(file_data)
+
+    @staticmethod
+    def from_json(path=None, json_data=None):
+        assert path is not None or json_data is not None,\
+            "FormalConcept.from_json error. Either path or data attribute should be given"
+
+        if path is not None:
+            with open(path, 'r') as f:
+                json_data = f.read()
+        data = json.loads(json_data)
+
+        c = FormalConcept(data['Ext']['Inds'], data['Ext']['Names'],
+                          data['Int']['Inds'], data['Int']['Names'])
+        return c
