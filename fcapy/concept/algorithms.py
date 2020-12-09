@@ -1,5 +1,5 @@
 from fcapy.context import FormalContext
-from fcapy.lattice.concept import FormalConcept
+from fcapy.concept.formal_concept import FormalConcept
 
 
 def close_by_one(context: FormalContext):

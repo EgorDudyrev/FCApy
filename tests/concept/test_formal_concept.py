@@ -1,5 +1,5 @@
 import pytest
-from fcapy.lattice.concept import FormalConcept
+from fcapy.concept.formal_concept import FormalConcept
 
 
 def test_formal_concept_init():
