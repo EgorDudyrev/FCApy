@@ -1,8 +1,7 @@
-import pytest
 import json
 from fcapy.context import read_json
-from fcapy.concept import algorithms
-from fcapy.concept.formal_concept import FormalConcept
+from fcapy.lattice import algorithms
+from fcapy.lattice.formal_concept import FormalConcept
 
 
 def test_close_by_one():
