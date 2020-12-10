@@ -45,4 +45,5 @@ def close_by_one(context: FormalContext, output_as_concepts=True):
             concepts.append(FormalConcept(extent_i, extent, intent_i, intent))
         return concepts
 
-    return extents_i, intents_i
+    data = {'extents_i': extents_i, 'intents_i': intents_i}
+    return data
