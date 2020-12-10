@@ -37,12 +37,12 @@ def close_by_one(context: FormalContext, output_as_concepts=True):
         object_names = context.object_names
         attribute_names = context.attribute_names
 
-        concepts = set()
+        concepts = []
         for concept_data in zip(extents_i, intents_i):
             extent_i, intent_i = concept_data
             extent = [object_names[g_i] for g_i in extent_i]
             intent = [attribute_names[m_i] for m_i in intent_i]
-            concepts.add(FormalConcept(extent_i, extent, intent_i, intent))
+            concepts.append(FormalConcept(extent_i, extent, intent_i, intent))
         return concepts
 
     return extents_i, intents_i
