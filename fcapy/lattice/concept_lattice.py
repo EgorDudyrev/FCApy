@@ -41,7 +41,7 @@ class ConceptLattice:
 
     @property
     def top_concept(self):
-        return self._concepts[self._top_concept_i] if self._top_concept_i else None
+        return self._concepts[self._top_concept_i] if self._top_concept_i is not None else None
 
     @property
     def bottom_concept_i(self):
@@ -49,7 +49,7 @@ class ConceptLattice:
 
     @property
     def bottom_concept(self):
-        return self._concepts[self._bottom_concept_i] if self._bottom_concept_i else None
+        return self._concepts[self._bottom_concept_i] if self._bottom_concept_i is not None else None
 
     @classmethod
     def from_context(cls, context):
@@ -105,7 +105,7 @@ class ConceptLattice:
         if path is None:
             return json_data
 
-        with open(path, "r") as f:
+        with open(path, "w") as f:
             f.write(json_data)
 
     @staticmethod
