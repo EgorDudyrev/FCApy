@@ -9,7 +9,8 @@ def run_install(**kwargs):
         'context': [
             'pandas'
         ],
-        'visualizer':[
+        'visualizer': [
+            'matplotlib',
             'networkx'
         ],
         'docs': [
