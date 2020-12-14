@@ -9,6 +9,9 @@ def run_install(**kwargs):
         'context': [
             'pandas'
         ],
+        'visualizer':[
+            'networkx'
+        ],
         'docs': [
             'numpydoc',
             'sphinx_rtd_theme',
