@@ -21,6 +21,8 @@ class FormalConcept:
         assert len(self._intent_i) == len(self._intent), \
             "FormalConcept.__init__ error. intent and intent_i are of different sizes"
 
+        self._support = len(self._extent_i)
+
     @property
     def extent_i(self):
         return self._extent_i
@@ -37,17 +39,40 @@ class FormalConcept:
     def intent(self):
         return self._intent
 
+    @property
+    def support(self):
+        return self._support
+
     def __eq__(self, other):
-        return set(self.extent) == set(other.extent)
+        if self._support != other.support:
+            return False
+
+        return self <= other
 
     def __hash__(self):
         return hash(self._extent_i)
+
+    def __le__(self, other):
+        if self._support > other.support:
+            return False
+
+        extent_other = set(other.extent_i)
+        for g_i in self._extent_i:
+            if g_i not in extent_other:
+                return False
+        return True
+
+    def __lt__(self, other):
+        if self._support >= other.support:
+            return False
+
+        return self <= other
 
     def to_dict(self):
         concept_info = dict()
         concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
         concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i)}
-        concept_info['Supp'] = len(self._extent_i)
+        concept_info['Supp'] = self.support
         return concept_info
 
     @staticmethod

@@ -1,5 +1,5 @@
 import pytest
-from fcapy.concept.formal_concept import FormalConcept
+from fcapy.lattice.formal_concept import FormalConcept
 
 
 def test_formal_concept_init():
@@ -37,6 +37,25 @@ def test__eq__ne__():
     assert not c1 != c2, "FormalConcept.__neq__ failed. Two same concepts are classified as different"
 
     assert c1 != c3, "FormalConcept.__eq__ failed. Two different concepts are classified as the same"
+
+    c4 = FormalConcept([1, 3, 4], ['a', 'c', 'd'], [4, 5, 6], ['d', 'e', 'f'])
+    assert not c1 == c4, "FormalConcept.__eq__ failed. Two concept with different support are classified as the same"
+
+
+def test__le__lt__():
+    c1 = FormalConcept([1, 2, 3], ['a', 'b', 'c'], [4], ['d'])
+    c2 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
+    c3 = FormalConcept([1], ['a'], [4, 5, 6], ['d', 'e', 'f'])
+
+    c4 = FormalConcept([2, 3], ['b', 'c'], [5], ['e'])
+
+    assert c1 <= c1, "FormalConcept.__le__ failed. The same concept is classified as not <="
+    assert c2 <= c1, "FormalConcept.__le__ failed. The bigger concept is classified as smaller"
+    assert not c1 <= c2, "FormalConcept.__le__ failed. The bigger concept is classified as smaller"
+
+    assert not c1 < c1, "FormalConcept.__lt__ failed. The same concept is classified as not <"
+    assert c2 < c1, "FormalConcept.__lt__ failed. The bigger concept is classified as smaller"
+    assert not c1 < c2, "FormalConcept.__lt__ failed. The bigger concept is classified as smaller"
 
 
 def test__hash__():
