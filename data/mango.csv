@@ -1,0 +1,9 @@
+title,color,firm,smooth,form,fruit
+apple,yellow,False,True,round,True
+grapefruit,yellow,False,False,round,True
+kiwi,green,False,False,oval,True
+plum,blue,False,True,oval,True
+toy cube,green,True,True,cubic,False
+egg,white,True,True,oval,False
+tennis ball,white,False,False,round,False
+mango,green,False,True,oval,True
