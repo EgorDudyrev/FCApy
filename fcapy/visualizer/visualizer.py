@@ -39,11 +39,13 @@ class Visualizer:
             levels_dict[c_levels[c_i]].append(c_i)
         return c_levels, levels_dict
 
-    def draw_networkx(self):
+    def draw_networkx(self, draw_node_labels=False):
         graph = nx.from_dict_of_lists(self._lattice.subconcepts_dict)
+        nx.draw_networkx_edges(graph, self._pos)
         nx.draw_networkx_nodes(
             graph, self._pos,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
-            linewidths=self.node_linewidth, edgecolors=self.node_edgecolor
+            linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
         )
-        nx.draw_networkx_edges(graph, self._pos)
+        if draw_node_labels:
+            nx.draw_networkx_labels(graph, self._pos)
