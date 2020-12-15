@@ -138,3 +138,27 @@ class ConceptLattice:
             if c not in concepts_other:
                 return False
         return True
+
+    def get_concept_new_extent_i(self, concept_i):
+        sbc_is = self.subconcepts_dict[concept_i]
+        sbc_extents_i = {g_i for sbc_i in sbc_is for g_i in self._concepts[sbc_i].extent_i}
+        new_extent_i = set(self._concepts[concept_i].extent_i) - sbc_extents_i
+        return new_extent_i
+
+    def get_concept_new_extent(self, concept_i):
+        sbc_is = self.subconcepts_dict[concept_i]
+        sbc_extents = {g for sbc_i in sbc_is for g in self._concepts[sbc_i].extent}
+        new_extent = set(self._concepts[concept_i].extent) - sbc_extents
+        return new_extent
+
+    def get_concept_new_intent_i(self, concept_i):
+        spc_is = self.superconcepts_dict[concept_i]
+        spc_intent_i = {m_i for spc_i in spc_is for m_i in self._concepts[spc_i].intent_i}
+        new_intent_i = set(self._concepts[concept_i].intent_i) - spc_intent_i
+        return new_intent_i
+
+    def get_concept_new_intent(self, concept_i):
+        spc_is = self.superconcepts_dict[concept_i]
+        spc_intent = {m for spc_i in spc_is for m in self._concepts[spc_i].intent}
+        new_intent = set(self._concepts[concept_i].intent) - spc_intent
+        return new_intent

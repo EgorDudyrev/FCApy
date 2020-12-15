@@ -90,3 +90,27 @@ def test__eq__():
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
 
+
+def test_concept_new_intent_extent():
+    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
+    ltc = ConceptLattice.from_context(ctx)
+
+    new_extent_i_true = [set(), {0}, set(), {1}]
+    new_extent_true = [set(), {'a'}, set(), {'b'}]
+    new_intent_i_true = [set(), {0}, set(), {1}]
+    new_intent_true = [set(), {'a'}, set(), {'b'}]
+
+    new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc.concepts))]
+    new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc.concepts))]
+    new_intent_i = [ltc.get_concept_new_intent_i(c_i) for c_i in range(len(ltc.concepts))]
+    new_intent = [ltc.get_concept_new_intent(c_i) for c_i in range(len(ltc.concepts))]
+
+    assert new_extent_i == new_extent_i_true,\
+        'ConceptLattice.get_concept_new_extent_i failed. The result is different from the expected'
+    assert new_extent == new_extent_true, \
+        'ConceptLattice.get_concept_new_extent failed. The result is different from the expected'
+    assert new_intent_i == new_intent_i_true, \
+        'ConceptLattice.get_concept_new_intent_i failed. The result is different from the expected'
+    assert new_intent == new_intent_true, \
+        'ConceptLattice.get_concept_new_intent failed. The result is different from the expected'
+
