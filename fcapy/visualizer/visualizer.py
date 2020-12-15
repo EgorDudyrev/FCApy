@@ -2,9 +2,16 @@ import networkx as nx
 
 
 class Visualizer:
-    def __init__(self, lattice=None):
+    def __init__(
+            self, lattice=None,
+            node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue'):
         self._lattice = lattice
         self._pos = self.get_nodes_position() if lattice is not None else None
+        self.node_color = node_color
+        self.cmap = cmap
+        self.node_alpha = node_alpha
+        self.node_linewidth = node_linewidth
+        self.node_edgecolor = node_edgecolor
 
     def get_nodes_position(self, lattice=None):
         lattice = self._lattice if lattice is None else lattice
@@ -34,4 +41,9 @@ class Visualizer:
 
     def draw_networkx(self):
         graph = nx.from_dict_of_lists(self._lattice.subconcepts_dict)
-        nx.draw_networkx(graph, self._pos)
+        nx.draw_networkx_nodes(
+            graph, self._pos,
+            node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
+            linewidths=self.node_linewidth, edgecolors=self.node_edgecolor
+        )
+        nx.draw_networkx_edges(graph, self._pos)
