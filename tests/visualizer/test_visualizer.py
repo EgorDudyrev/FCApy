@@ -40,4 +40,4 @@ def test_draw_networkx():
     ltc = ConceptLattice.from_context(ctx)
 
     vsl = visualizer.Visualizer(ltc)
-    vsl.draw_networkx()
+    vsl.draw_networkx(draw_node_indices=True)
