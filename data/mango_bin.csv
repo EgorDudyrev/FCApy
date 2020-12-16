@@ -1,0 +1,9 @@
+title,firm,smooth,fruit,color_is_yellow,color_is_green,color_is_blue,color_is_white,form_is_round,form_is_oval,form_is_cubic
+apple,False,True,True,True,False,False,False,True,False,False
+grapefruit,False,False,True,True,False,False,False,True,False,False
+kiwi,False,False,True,False,True,False,False,False,True,False
+plum,False,True,True,False,False,True,False,False,True,False
+toy cube,True,True,False,False,True,False,False,False,False,True
+egg,True,True,False,False,False,False,True,False,True,False
+tennis ball,False,False,False,False,False,False,True,True,False,False
+mango,False,True,True,False,True,False,False,False,True,False

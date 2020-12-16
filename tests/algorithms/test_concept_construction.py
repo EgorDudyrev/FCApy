@@ -1,5 +1,5 @@
 import json
-from fcapy.context import read_json
+from fcapy.context import read_json, read_csv
 from fcapy.algorithms import concept_construction as cca
 from fcapy.lattice.formal_concept import FormalConcept
 
@@ -21,3 +21,7 @@ def test_close_by_one():
         return set(c.extent_i) == set(extents_i[idx]) and set(c.intent_i) == set(intents_i[idx])
     assert all([is_equal(c_i, c) for c_i, c in enumerate(concepts_constructed)]),\
         'Close_by_one failed. Output concepts as dict do not match output concepts as concepts'
+
+    context = read_csv("data/mango_bin.csv")
+    concepts_constructed = cca.close_by_one(context, output_as_concepts=True)
+    assert len(concepts_constructed) == 22, "Close_by_one failed. Binary mango dataset should have 22 concepts"
