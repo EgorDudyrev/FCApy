@@ -1,7 +1,7 @@
 from fcapy.context import FormalContext
 
 
-def read_cxt(path):
+def read_cxt(path=None, data=None):
     """Read FormalContext from .cxt file
 
     Parameters
@@ -15,8 +15,12 @@ def read_cxt(path):
         The loaded FormalContext object
 
     """
-    with open(path, 'r') as f:
-        data = f.read()
+    # TODO: Modify the docstring
+    assert path is not None or data is not None, 'converters.read_cxt error. Either path or data should be given'
+
+    if data is None:
+        with open(path, 'r') as f:
+            data = f.read()
 
     _, ns, data = data.split('\n\n')
     n_objs, n_attrs = [int(x) for x in ns.split('\n')]
@@ -60,7 +64,7 @@ def write_cxt(context, path=None):
         f.write(file_data)
 
 
-def read_json(path):
+def read_json(path=None, data=None):
     """Read FormalContext from .json file
 
     Parameters
@@ -74,10 +78,15 @@ def read_json(path):
         The loaded FormalContext object
 
     """
+    # TODO: Modify docstring
+    assert path is not None or data is not None, 'converters.read_json error. Either path or data should be given'
+
     import json
 
-    with open(path, 'r') as f:
-        file_data = json.load(f)
+    if data is None:
+        with open(path, 'r') as f:
+            data = f.read()
+    file_data = json.loads(data)
 
     ctx_metadata = file_data[0]
     object_info = file_data[1]
@@ -144,6 +153,7 @@ def read_csv(path, sep=',', word_true='True', word_false='False'):
         The loaded FormalContext object
 
     """
+    # TODO: add `data` parameter
     with open(path, 'r') as f:
         file_data = f.read().strip().split('\n')
     header, file_data = file_data[0], file_data[1:]

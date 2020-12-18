@@ -347,6 +347,12 @@ class FormalContext:
         from fcapy.context.converters import to_pandas
         return to_pandas(self)
 
+    @staticmethod
+    def from_pandas(dataframe):
+        # TODO: add docstring
+        from fcapy.context.converters import from_pandas
+        return from_pandas(dataframe)
+
     def __repr__(self):
         data_to_print = f'FormalContext ' +\
                         f'({self.n_objects} objects, {self.n_attributes} attributes, ' +\
