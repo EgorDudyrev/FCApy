@@ -1,6 +1,7 @@
 import json
 from ..algorithms import concept_construction as cca, lattice_construction as lca
 from .formal_concept import FormalConcept
+import warnings
 
 
 class ConceptLattice:
@@ -123,8 +124,9 @@ class ConceptLattice:
 
         concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
         subconcepts_dict = {}
-        for s_i, d_i in arcs_data['Arcs']:
-            subconcepts_dict[s_i] = subconcepts_dict.get(s_i, []) + [d_i]
+        for arc in arcs_data['Arcs']:
+            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], []) + [arc['D']]
+        subconcepts_dict[bottom_concept_i] = []
 
         ltc = ConceptLattice(
             concepts=concepts, subconcepts_dict=subconcepts_dict,
@@ -162,3 +164,24 @@ class ConceptLattice:
         spc_intent = {m for spc_i in spc_is for m in self._concepts[spc_i].intent}
         new_intent = set(self._concepts[concept_i].intent) - spc_intent
         return new_intent
+
+    def calc_concepts_measures(self, measure, context=None):
+        from . import concept_measures as cms
+
+        if measure == 'stability_bounds':
+            for c_i, c in enumerate(self._concepts):
+                lb, ub = cms.stability_bounds(c_i, self)
+                c.measures['LStab'] = lb
+                c.measures['UStab'] = ub
+        elif measure == 'stability':
+            warnings.warn("Calculation of concept stability index takes exponential time. "
+                          "One better use its approximate measure `stability_bounds`")
+            assert context is not None, 'ConceptLattice.calc_concepts_measures failed. ' \
+                                        'Please specify `context` parameter to calculate the stability'
+            for c_i, c in enumerate(self._concepts):
+                s = cms.stability(c_i, self, context)
+                c.measures['Stab'] = s
+        else:
+            possible_measures = ['stability_bounds', 'stability']
+            raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
+                             f'Possible measure values are: {",".join(possible_measures)}')

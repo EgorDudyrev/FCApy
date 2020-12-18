@@ -133,13 +133,16 @@ def test_to_funcs(animal_movement_data):
             f'FormalContext.{fnc_name} failed. Result context file does not math the initial one'
 
 
-def test_to_pandas(animal_movement_data):
+def test_to_from_pandas(animal_movement_data):
     data, obj_names, attr_names = \
         itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
 
     ctx = FormalContext(data=data, object_names=obj_names, attribute_names=attr_names)
     assert from_pandas(ctx.to_pandas()) == ctx,\
-        'FormalContext.to_pandas failed. Double converted FormalContext does not match the inital one'
+        'FormalContext.to_pandas failed. Double converted FormalContext does not match the initial one'
+
+    assert FormalContext.from_pandas(ctx.to_pandas()),\
+        'FormalContext.from_pandas failed. Double converted FormalContext does not match initial one'
 
 
 def test_print_data(animal_movement_data):

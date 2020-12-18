@@ -73,6 +73,11 @@ def test_dict_converter():
     c = FormalConcept([], [], [], [])
     assert FormalConcept.from_dict(dct) == c, "FormalConcept.from_dict. Can not load bottom concept"
 
+    c1.measures['LStab'] = 0.5
+    c1_dict = c1.to_dict()
+    assert FormalConcept.from_dict(c1_dict).to_dict() == c1_dict,\
+        "FormalConcept.to/from_dict failed. Dict does not contain concept measures"
+
 
 def test_json_converter():
     c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
