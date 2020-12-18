@@ -3,7 +3,7 @@ import json
 
 
 class FormalConcept:
-    def __init__(self, extent_i, extent, intent_i, intent):
+    def __init__(self, extent_i, extent, intent_i, intent, measures=None):
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"FormalConcept.__init__. Given {name} value should be an iterable but not a string"
@@ -22,6 +22,7 @@ class FormalConcept:
             "FormalConcept.__init__ error. intent and intent_i are of different sizes"
 
         self._support = len(self._extent_i)
+        self.measures = measures if measures is not None else {}
 
     @property
     def extent_i(self):
@@ -73,6 +74,8 @@ class FormalConcept:
         concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
         concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i)}
         concept_info['Supp'] = self.support
+        for k, v in self.measures.items():
+            concept_info[k] = v
         return concept_info
 
     @staticmethod
@@ -84,6 +87,11 @@ class FormalConcept:
             data['Ext']['Inds'], data['Ext'].get('Names', []),
             data['Int']['Inds'], data['Int'].get('Names', [])
         )
+
+        for k, v in data.items():
+            if k in ['Int', 'Ext']:
+                continue
+            c.measures[k] = v
         return c
 
     def to_json(self, path=None):

@@ -114,3 +114,10 @@ def test_concept_new_intent_extent():
     assert new_intent == new_intent_true, \
         'ConceptLattice.get_concept_new_intent failed. The result is different from the expected'
 
+
+def test_concept_lattice_unknown_measure():
+    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
+    ltc = ConceptLattice.from_context(ctx)
+
+    with pytest.raises(ValueError):
+        ltc.calc_concepts_measures('unknown measure')
