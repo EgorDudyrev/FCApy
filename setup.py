@@ -11,7 +11,8 @@ def run_install(**kwargs):
         ],
         'visualizer': [
             'matplotlib',
-            'networkx>=2.5'
+            'networkx>=2.5',
+            'plotly',
         ],
         'docs': [
             'numpydoc',

@@ -1,4 +1,5 @@
 import networkx as nx
+from collections.abc import Iterable
 
 
 class Visualizer:
@@ -70,3 +71,94 @@ class Visualizer:
 
         if draw_node_indices:
             nx.draw_networkx_labels(graph, self._pos)
+
+    def get_plotly_figure(self, **kwargs):
+        from plotly import graph_objects as go
+
+        digraph = nx.DiGraph(self._lattice.subconcepts_dict)
+        pos = self._pos
+        nx.set_node_attributes(digraph, pos, 'pos')
+
+        # Convert edges of the graph to the plotly format
+        edge_x = [y for edge in digraph.edges() for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
+        edge_y = [y for edge in digraph.edges() for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
+
+        edge_trace = go.Scatter(
+            x=edge_x, y=edge_y,
+            line=dict(width=0.5, color='#888'),
+            hoverinfo='none',
+            mode='lines'
+        )
+
+        # Convert nodes of the graph to the plotly format
+        node_x = [pos[node][0] for node in digraph.nodes()]
+        node_y = [pos[node][1] for node in digraph.nodes()]
+
+        node_trace = go.Scatter(
+            x=node_x, y=node_y,
+            mode='markers+text',
+            hoverinfo='text',
+            textposition='middle right',
+            marker=dict(
+                showscale=True,
+                # colorscale options
+                # 'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
+                # 'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
+                # 'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
+                colorscale=self.cmap,
+                reversescale=True,
+                color=[],
+                size=10,
+                colorbar=dict(
+                    thickness=15,
+                    title=kwargs.get('colorbar_title', ''),
+                    xanchor='left',
+                    titleside='right'
+                ),
+                line_width=2)
+        )
+
+        # Add color and text to nodes
+        node_trace.marker.color = [self.node_color[n] for n in digraph.nodes()] \
+            if type(self.node_color) != str else self.node_color
+        node_trace.marker.opacity = [self.node_alpha[n] for n in digraph.nodes()] \
+            if isinstance(self.node_alpha, Iterable) else self.node_alpha
+
+        node_labels = []
+        node_hovertext = []
+        for n in digraph.nodes():
+            new_extent = list(self._lattice.get_concept_new_extent(n))
+            new_intent = list(self._lattice.get_concept_new_intent(n))
+            if len(new_extent) > 0:
+                new_extent_str = f"{len(new_extent)}: " + ', '.join(new_extent[:kwargs.get('max_new_extent_count', 3)])
+                new_extent_str += '...' if kwargs.get('max_new_extent_count') is not None and len(
+                    new_extent) > kwargs.get('max_new_extent_count', 3) else ''
+            else:
+                new_extent_str = ''
+            if len(new_intent) > 0:
+                new_intent_str = f"{len(new_intent)}: " + ', '.join(new_intent[:kwargs.get('max_new_intent_count', 3)])
+                new_intent_str += '...' if kwargs.get('max_new_intent_count') is not None and len(
+                    new_intent) > kwargs.get('max_new_intent_count', 3) else ''
+            else:
+                new_intent_str = ''
+
+            node_labels.append('<br><br>'.join([new_intent_str, new_extent_str]))
+            node_hovertext.append(f'id: {n}<br><br>' + node_labels[-1])
+        node_trace.text = node_labels
+        node_trace.hovertext = node_hovertext
+
+        fig = go.Figure(
+            data=[edge_trace, node_trace],
+            layout=go.Layout(
+                title=kwargs.get('title', 'Concept Lattice'),
+                titlefont_size=16,
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(range=kwargs.get('xlim', (-1, 1)), showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                width=kwargs.get('figsize', [1000, 500])[0],
+                height=kwargs.get('figsize', [1000, 500])[1]
+            )
+        )
+        return fig
