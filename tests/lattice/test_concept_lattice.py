@@ -41,7 +41,8 @@ def test_from_context():
     c4 = FormalConcept((1,), ('b',), (1,), ('b',))
     concepts = [c1, c2, c3, c4]
 
-    assert ltc.concepts == concepts, 'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
+    assert set(ltc.concepts) == set(concepts),\
+        'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
 
 def test_get_top_bottom_concepts_i():
@@ -95,10 +96,10 @@ def test_concept_new_intent_extent():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
 
-    new_extent_i_true = [set(), {0}, set(), {1}]
-    new_extent_true = [set(), {'a'}, set(), {'b'}]
-    new_intent_i_true = [set(), {0}, set(), {1}]
-    new_intent_true = [set(), {'a'}, set(), {'b'}]
+    new_extent_i_true = [set(), {0}, {1}, set()]
+    new_extent_true = [set(), {'a'}, {'b'}, set()]
+    new_intent_i_true = [set(), {0}, {1}, set()]
+    new_intent_true = [set(), {'a'}, {'b'}, set()]
 
     new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc.concepts))]
     new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc.concepts))]
@@ -121,3 +122,9 @@ def test_concept_lattice_unknown_measure():
 
     with pytest.raises(ValueError):
         ltc.calc_concepts_measures('unknown measure')
+
+
+def test_sort_concepts():
+    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
+    ltc = ConceptLattice.from_context(ctx)
+    assert ltc.sort_concepts(ltc.concepts) == ltc.sort_concepts(), 'ConceptLattice.sort_concepts failed'
