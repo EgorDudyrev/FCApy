@@ -1,5 +1,6 @@
 from fcapy.context import FormalContext
 from fcapy.lattice.formal_concept import FormalConcept
+import random
 
 
 def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None, initial_combinations=None):
@@ -61,7 +62,7 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
     return data
 
 
-def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab'):
+def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', projection_sorting=None):
     assert not (iterate_attributes and type(context) != FormalContext),\
         "Sofia_binary error. " +\
         "Cannot iterate_attributes if given context is of type FormalContext"
@@ -70,14 +71,29 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab'):
     from fcapy.lattice import ConceptLattice
 
     max_projection = context.n_attributes if iterate_attributes else context.n_objects
+    projections_order = list(range(max_projection))
+
+    if projection_sorting in {'ascending', 'descending'}:
+        def key_fnc(i):
+            v = len(context.extension_i([i]) if iterate_attributes else context.intention_i([i]))
+            if projection_sorting == 'descending':
+                v = -v
+            return v
+        projections_order = sorted(projections_order, key=key_fnc)
+    elif projection_sorting == 'random':
+        projections_order = random.sample(range(max_projection), k=max_projection)
+    elif projection_sorting is not None:
+        raise ValueError(f'Sofia_binary error. Unknown projection_sorting is given: {projection_sorting}. ' +
+                         'Possible ones are "ascending", "descending", "random"')
+
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
     itersets = [[]]
 
     for projection_num in range(2, max_projection + 1):
         if iterate_attributes:
-            ctx_projected = context.from_pandas(context.to_pandas().iloc[:, :projection_num])
+            ctx_projected = context.from_pandas(context.to_pandas().iloc[:, projections_order[:projection_num]])
         else:
-            ctx_projected = context.from_pandas(context.to_pandas().iloc[:projection_num])
+            ctx_projected = context.from_pandas(context.to_pandas().iloc[projections_order[:projection_num]])
 
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,

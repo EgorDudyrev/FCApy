@@ -58,6 +58,11 @@ def test_sofia_binary():
     assert stabilities_sofia_mean > stabilities_all_mean,\
         'sofia_binary failed. Sofia algorithm does not produce the subset of stable concepts'
 
+    for projection_sorting in ['ascending', 'descending', 'random']:
+        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting=projection_sorting)
+    with pytest.raises(ValueError):
+        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting="UnKnOwN OrDeR")
+
 
 def test_sofia_general():
     ctx = read_cxt('data/digits.cxt')
