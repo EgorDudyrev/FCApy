@@ -1,8 +1,5 @@
 from fcapy.context import FormalContext
 from fcapy.lattice.formal_concept import FormalConcept
-from fcapy.lattice import concept_measures as cms
-from fcapy.algorithms import lattice_construction as lca
-from fcapy.lattice import ConceptLattice
 
 
 def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None, initial_combinations=None):
@@ -64,28 +61,43 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
     return data
 
 
-def sofia_binary(context: FormalContext, L_max=100,
-                 metric=lambda c_i, ltc: cms.stability_bounds(c_i, ltc)[0]
-                 ):
-    max_projection = context.n_attributes
-    intents = [[]]
+def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab'):
+    assert not (iterate_attributes and type(context) != FormalContext),\
+        "Sofia_binary error. " +\
+        "Cannot iterate_attributes if given context is of type FormalContext"
+
+    from fcapy.algorithms import lattice_construction as lca
+    from fcapy.lattice import ConceptLattice
+
+    max_projection = context.n_attributes if iterate_attributes else context.n_objects
+    # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
+    itersets = [[]]
 
     for projection_num in range(2, max_projection + 1):
-        ctx_projected = context.from_pandas(context.to_pandas().iloc[:, :projection_num])
+        if iterate_attributes:
+            ctx_projected = context.from_pandas(context.to_pandas().iloc[:, :projection_num])
+        else:
+            ctx_projected = context.from_pandas(context.to_pandas().iloc[:projection_num])
 
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,
-            iterate_extents=False, initial_combinations=intents)
+            iterate_extents=not iterate_attributes, initial_combinations=itersets
+        )
         if len(new_concepts) > L_max:
             subconcepts_dict = lca.complete_comparison(new_concepts)
             ltc_projected = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
-            metrics = [metric(c_i, ltc_projected)
-                       for c_i, c in enumerate(ltc_projected.concepts)]
+            ltc_projected.calc_concepts_measures(measure)
+            metrics = [c.measures[measure] for c_i, c in enumerate(ltc_projected.concepts)]
             metrics_lim = sorted(metrics)[-L_max]
             concepts = [c for c, m in zip(ltc_projected.concepts, metrics) if m >= metrics_lim]
-            intents = [c.intent_i for c in concepts]
+            itersets = [c.intent_i if iterate_attributes else c.extent_i for c in concepts]
         else:
             concepts = new_concepts
-            intents = [c.intent_i for c in new_concepts]
+            itersets = [c.intent_i if iterate_attributes else c.extent_i for c in new_concepts]
 
+    return concepts
+
+
+def sofia_general(context, L_max=100, measure='LStab'):
+    concepts = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
     return concepts

@@ -57,3 +57,25 @@ def test_sofia_binary():
 
     assert stabilities_sofia_mean > stabilities_all_mean,\
         'sofia_binary failed. Sofia algorithm does not produce the subset of stable concepts'
+
+
+def test_sofia_general():
+    ctx = read_cxt('data/digits.cxt')
+    concepts_all = cca.close_by_one(ctx)
+    subconcepts_dict_all = lca.complete_comparison(concepts_all)
+    ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
+    with pytest.warns(UserWarning):
+        ltc_all.calc_concepts_measures('stability', ctx)
+    stabilities_all = [c.measures['Stab'] for c in ltc_all.concepts]
+    stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
+
+    concepts_sofia = cca.sofia_general(ctx, len(concepts_all)//2)
+    subconcepts_dict_sofia = lca.complete_comparison(concepts_sofia)
+    ltc_sofia = ConceptLattice(concepts_sofia, subconcepts_dict=subconcepts_dict_sofia)
+    with pytest.warns(UserWarning):
+        ltc_sofia.calc_concepts_measures('stability', ctx)
+    stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia.concepts]
+    stabilities_sofia_mean = sum(stabilities_sofia) / len(stabilities_sofia)
+
+    assert stabilities_sofia_mean > stabilities_all_mean,\
+        'sofia_general failed. Sofia algorithm does not produce the subset of stable concepts'

@@ -168,7 +168,7 @@ class ConceptLattice:
     def calc_concepts_measures(self, measure, context=None):
         from . import concept_measures as cms
 
-        if measure == 'stability_bounds':
+        if measure in ('stability_bounds', 'LStab', 'UStab'):
             for c_i, c in enumerate(self._concepts):
                 lb, ub = cms.stability_bounds(c_i, self)
                 c.measures['LStab'] = lb
@@ -182,7 +182,7 @@ class ConceptLattice:
                 s = cms.stability(c_i, self, context)
                 c.measures['Stab'] = s
         else:
-            possible_measures = ['stability_bounds', 'stability']
+            possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability']
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
                              f'Possible measure values are: {",".join(possible_measures)}')
 
