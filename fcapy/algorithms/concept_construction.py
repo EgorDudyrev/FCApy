@@ -1,15 +1,22 @@
 from fcapy.context import FormalContext
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice import concept_measures as cms
+from fcapy.algorithms import lattice_construction as lca
+from fcapy.lattice import ConceptLattice
 
 
-def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None):
+def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None, initial_combinations=None):
     if iterate_extents is None:
         iterate_extents = context.n_objects < context.n_attributes
     n_iters = context.n_objects if iterate_extents else context.n_attributes
 
-    itersets_i_dict = {}  # extents dict if iterate over objects, intents dict if iterate over attributes
-    sidesets_i = []  # intents if iterate over objects, extents if iterate over attributes
-    combinations_to_check = [[]]  # subsets of objects if iterate over objects, subsets of attributes otherwise
+    # <iterset> - iterating set - the set of object if one construct construct concepts while iterating over objects,
+    #   the set of attributes otherwise
+    # <sideset> - the other set, "sided" with <iterset>.
+    #   If <iterset> is the set of objects then <sideset> is the set of attributes and vice versa
+    itersets_i_dict = {}
+    sidesets_i = []
+    combinations_to_check = initial_combinations if initial_combinations is not None else [[]]
 
     iterset_fnc, sideset_fnc = context.extension_i, context.intention_i
     if not iterate_extents:
@@ -56,3 +63,29 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
     data = {'extents_i': extents_i, 'intents_i': intents_i}
     return data
 
+
+def sofia_binary(context: FormalContext, L_max=100,
+                 metric=lambda c_i, ltc: cms.stability_bounds(c_i, ltc)[0]
+                 ):
+    max_projection = context.n_attributes
+    intents = [[]]
+
+    for projection_num in range(2, max_projection + 1):
+        ctx_projected = context.from_pandas(context.to_pandas().iloc[:, :projection_num])
+
+        new_concepts = close_by_one(
+            ctx_projected, output_as_concepts=True,
+            iterate_extents=False, initial_combinations=intents)
+        if len(new_concepts) > L_max:
+            subconcepts_dict = lca.complete_comparison(new_concepts)
+            ltc_projected = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
+            metrics = [metric(c_i, ltc_projected)
+                       for c_i, c in enumerate(ltc_projected.concepts)]
+            metrics_lim = sorted(metrics)[-L_max]
+            concepts = [c for c, m in zip(ltc_projected.concepts, metrics) if m >= metrics_lim]
+            intents = [c.intent_i for c in concepts]
+        else:
+            concepts = new_concepts
+            intents = [c.intent_i for c in new_concepts]
+
+    return concepts
