@@ -54,7 +54,7 @@ class ConceptLattice:
 
     @classmethod
     def from_context(cls, context):
-        concepts = cca.close_by_one(context)
+        concepts = cls.sort_concepts(None, concepts=cca.close_by_one(context))
         subconcepts_dict = lca.complete_comparison(concepts)
         top_concept_i, bottom_concept_i = cls.get_top_bottom_concepts_i(concepts)
 
@@ -185,3 +185,8 @@ class ConceptLattice:
             possible_measures = ['stability_bounds', 'stability']
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
                              f'Possible measure values are: {",".join(possible_measures)}')
+
+    def sort_concepts(self, concepts=None):
+        if concepts is None:
+            concepts = self._concepts
+        return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
