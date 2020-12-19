@@ -106,10 +106,9 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
             metrics = [c.measures[measure] for c_i, c in enumerate(ltc_projected.concepts)]
             metrics_lim = sorted(metrics)[-L_max]
             concepts = [c for c, m in zip(ltc_projected.concepts, metrics) if m >= metrics_lim]
-            itersets = [c.intent_i if iterate_attributes else c.extent_i for c in concepts]
         else:
             concepts = new_concepts
-            itersets = [c.intent_i if iterate_attributes else c.extent_i for c in new_concepts]
+        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in concepts]
 
     return concepts
 
