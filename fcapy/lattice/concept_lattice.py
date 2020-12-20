@@ -189,3 +189,30 @@ class ConceptLattice:
     @staticmethod
     def sort_concepts(concepts):
         return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
+
+    def get_chains(self):
+        chains = []
+        visited_concepts = set()
+
+        n_concepts = len(self._concepts)
+
+        sorted_concepts_map = {c: c_i for c_i, c in enumerate(self.sort_concepts(self._concepts))}
+        concepts_sorted_is = [sorted_concepts_map[c] for c in self._concepts]
+
+        while len(visited_concepts) < n_concepts:
+            c_sort_i = n_concepts-1
+            c_i = concepts_sorted_is[c_sort_i]
+            while c_i in visited_concepts:
+                c_sort_i -= 1
+                c_i = concepts_sorted_is[c_sort_i]
+
+            chain = []
+            while True:
+                chain.append(c_i)
+                visited_concepts.add(c_i)
+                if c_i == 0:
+                    break
+                c_i = self.superconcepts_dict[c_i][0]
+            chains.append(chain)
+        chains = [chain[::-1] for chain in chains]
+        return chains

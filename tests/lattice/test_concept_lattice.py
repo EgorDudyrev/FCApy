@@ -130,3 +130,12 @@ def test_sort_concepts():
     sorted_extents = [c.extent for c in ltc.sort_concepts(ltc.concepts)]
     extents_true = [('a', 'b'), ('a',), ('b',), ()]
     assert sorted_extents == extents_true, 'ConceptLattice.sort_concepts failed'
+
+
+def test_get_chains():
+    ctx = converters.read_cxt('data/animal_movement.cxt')
+    ltc = ConceptLattice.from_context(ctx)
+    chains = ltc.get_chains()
+    chains_true = [[0, 1, 4, 7], [0, 3, 6], [0, 1, 5], [0, 2]]
+
+    assert chains == chains_true, "ConceptLattice.get_chains failed. The result is different from the expected"
