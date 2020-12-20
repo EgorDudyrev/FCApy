@@ -54,7 +54,7 @@ class ConceptLattice:
 
     @classmethod
     def from_context(cls, context):
-        concepts = cls.sort_concepts(None, concepts=cca.close_by_one(context))
+        concepts = cls.sort_concepts(concepts=cca.close_by_one(context))
         subconcepts_dict = lca.complete_comparison(concepts)
         top_concept_i, bottom_concept_i = cls.get_top_bottom_concepts_i(concepts)
 
@@ -186,7 +186,39 @@ class ConceptLattice:
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
                              f'Possible measure values are: {",".join(possible_measures)}')
 
-    def sort_concepts(self, concepts=None):
-        if concepts is None:
-            concepts = self._concepts
+    @staticmethod
+    def sort_concepts(concepts):
         return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
+
+    def get_chains(self):
+        return self._get_chains(self._concepts, self._superconcepts_dict)
+
+    @classmethod
+    def _get_chains(cls, concepts, superconcepts_dict):
+        chains = []
+        visited_concepts = set()
+
+        n_concepts = len(concepts)
+        concepts_sorted = cls.sort_concepts(concepts)
+        map_concept_i_sort = {c: c_sort_i for c_sort_i, c in enumerate(concepts_sorted)}
+        map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
+        map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(n_concepts)]
+        map_i_isort = [map_concept_i_sort[concepts[c_i]] for c_i in range(n_concepts)]
+
+        while len(visited_concepts) < n_concepts:
+            c_sort_i = n_concepts-1
+            c_i = map_isort_i[c_sort_i]
+            while c_i in visited_concepts:
+                c_sort_i -= 1
+                c_i = map_isort_i[c_sort_i]
+
+            chain = []
+            while True:
+                chain.append(c_i)
+                visited_concepts.add(c_i)
+                if c_sort_i == 0:
+                    break
+                c_i = superconcepts_dict[c_i][0]
+                c_sort_i = map_i_isort[c_i]
+            chains.append(chain[::-1])
+        return chains
