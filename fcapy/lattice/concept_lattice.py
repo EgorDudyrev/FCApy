@@ -191,28 +191,34 @@ class ConceptLattice:
         return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
 
     def get_chains(self):
+        return self._get_chains(self._concepts, self._superconcepts_dict)
+
+    @classmethod
+    def _get_chains(cls, concepts, superconcepts_dict):
         chains = []
         visited_concepts = set()
 
-        n_concepts = len(self._concepts)
-
-        sorted_concepts_map = {c: c_i for c_i, c in enumerate(self.sort_concepts(self._concepts))}
-        concepts_sorted_is = [sorted_concepts_map[c] for c in self._concepts]
+        n_concepts = len(concepts)
+        concepts_sorted = cls.sort_concepts(concepts)
+        map_concept_i_sort = {c: c_sort_i for c_sort_i, c in enumerate(concepts_sorted)}
+        map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
+        map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(n_concepts)]
+        map_i_isort = [map_concept_i_sort[concepts[c_i]] for c_i in range(n_concepts)]
 
         while len(visited_concepts) < n_concepts:
             c_sort_i = n_concepts-1
-            c_i = concepts_sorted_is[c_sort_i]
+            c_i = map_isort_i[c_sort_i]
             while c_i in visited_concepts:
                 c_sort_i -= 1
-                c_i = concepts_sorted_is[c_sort_i]
+                c_i = map_isort_i[c_sort_i]
 
             chain = []
             while True:
                 chain.append(c_i)
                 visited_concepts.add(c_i)
-                if c_i == 0:
+                if c_sort_i == 0:
                     break
-                c_i = self.superconcepts_dict[c_i][0]
-            chains.append(chain)
-        chains = [chain[::-1] for chain in chains]
+                c_i = superconcepts_dict[c_i][0]
+                c_sort_i = map_i_isort[c_i]
+            chains.append(chain[::-1])
         return chains

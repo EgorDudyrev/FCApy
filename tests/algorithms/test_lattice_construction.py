@@ -3,6 +3,7 @@ from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.algorithms import lattice_construction as lca
 from fcapy.lattice import ConceptLattice
 from fcapy.context import read_cxt
+import numpy as np
 
 
 def test_complete_comparison():
@@ -19,11 +20,26 @@ def test_complete_comparison():
 def test_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')
     ltc = ConceptLattice.from_context(ctx)
-    sub_st, sup_st = lca.construct_spanning_tree(ltc.concepts)
+    concepts = ltc.concepts
+    np.random.seed(42)
+    np.random.shuffle(concepts)
+    sub_st, sup_st = lca.construct_spanning_tree(concepts)
+    sub_true = lca.complete_comparison(concepts)
+    sup_true = ConceptLattice.transpose_hierarchy(sub_true)
 
-    sub_st_true = {0: [1, 2, 3], 1: [4, 5], 2: [], 3: [6], 4: [7], 5: [], 6: [], 7: []}
-    sup_st_true = {0: [], 1: [0], 2: [0], 3: [0], 4: [1], 5: [1], 6: [3], 7: [4]}
-    assert sub_st == sub_st_true,\
-        'lattice_construction.construct_spanning_tree failed. The set of subconcepts differs from the expected'
-    assert sup_st == sup_st_true, \
-        'lattice_construction.construct_spanning_tree failed. The set of superconcepts differs from the expected'
+    for c_i in sup_true.keys():
+        assert set(sup_st[c_i]) & set(sup_true[c_i]) == set(sup_st[c_i]),\
+            'lattice_construction.construct_spanning_tree failed'
+
+
+def test_lattice_construction_by_spanning_tree():
+    ctx = read_cxt('data/animal_movement.cxt')
+    ltc = ConceptLattice.from_context(ctx)
+    concepts = ltc.concepts
+    np.random.seed(42)
+    np.random.shuffle(concepts)
+    sub_true = lca.complete_comparison(concepts)
+    sub_with_sptree = lca.construct_lattice_by_spanning_tree(concepts)
+    assert sub_true == sub_with_sptree,\
+        'lattice_construction.construct_lattice_by_spanning_tree failed. ' +\
+        'The result is different then the one of complete comparison'
