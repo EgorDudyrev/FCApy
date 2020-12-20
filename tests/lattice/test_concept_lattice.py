@@ -127,4 +127,6 @@ def test_concept_lattice_unknown_measure():
 def test_sort_concepts():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    assert ltc.sort_concepts(ltc.concepts) == ltc.sort_concepts(), 'ConceptLattice.sort_concepts failed'
+    sorted_extents = [c.extent for c in ltc.sort_concepts(ltc.concepts)]
+    extents_true = [('a', 'b'), ('a',), ('b',), ()]
+    assert sorted_extents == extents_true, 'ConceptLattice.sort_concepts failed'
