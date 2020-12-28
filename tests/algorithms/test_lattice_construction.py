@@ -16,6 +16,12 @@ def test_complete_comparison():
     assert subconcepts_dict == subconcepts_dict_true,\
         'lattice_construction.complete_comparison failed. Wrong subconcepts_dict is constructed'
 
+    concepts_sorted = [c4, c2, c3, c1]
+    subconcepts_dict_sorted = lca.complete_comparison(concepts_sorted, is_concepts_sorted=True)
+    subconcepts_dict_unsorted = lca.complete_comparison(concepts_sorted, is_concepts_sorted=False)
+    assert subconcepts_dict_sorted == subconcepts_dict_unsorted,\
+        'lattice_construction.complete_comparison failed. Output changes with is_concepts_sorted parameter'
+
 
 def test_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')

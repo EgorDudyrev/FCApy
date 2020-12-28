@@ -1,12 +1,17 @@
-def complete_comparison(concepts):
+def complete_comparison(concepts, is_concepts_sorted=False):
     all_subconcepts_dict = {i: [] for i in range(len(concepts))}
     for a_i, a in enumerate(concepts):
         for b_i, b in enumerate(concepts):
+            if is_concepts_sorted:
+                if b_i < a_i:
+                    continue
+
             if b < a:
                 all_subconcepts_dict[a_i].append(b_i)
 
     subconcepts_dict = {i: [] for i in range(len(concepts))}
     for a_i, b_is in all_subconcepts_dict.items():
+        b_is = b_is if not is_concepts_sorted else sorted(b_is)
         for b_i in b_is:
             for c_i in b_is:
                 if b_i == c_i:
