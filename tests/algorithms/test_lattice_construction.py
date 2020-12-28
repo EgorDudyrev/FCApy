@@ -31,6 +31,16 @@ def test_spanning_tree():
         assert set(sup_st[c_i]) & set(sup_true[c_i]) == set(sup_st[c_i]),\
             'lattice_construction.construct_spanning_tree failed'
 
+    concepts_sorted = ConceptLattice.sort_concepts(concepts)
+    sub_st_sort, sup_st_sort = lca.construct_spanning_tree(concepts_sorted, is_concepts_sorted=True)
+    sub_st_unsort, sup_st_unsort = lca.construct_spanning_tree(concepts_sorted, is_concepts_sorted=False)
+    assert sub_st_sort == sub_st_unsort,\
+        'lattice_construction.construct_spanning_tree failed.' \
+        'Spanning tree subconcepts dict changes with is_concepts_sorted parameter'
+    assert sup_st_sort == sup_st_unsort, \
+        'lattice_construction.construct_spanning_tree failed.' \
+        'Spanning tree superconcepts dict changes with is_concepts_sorted parameter'
+
 
 def test_lattice_construction_by_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')
@@ -43,3 +53,10 @@ def test_lattice_construction_by_spanning_tree():
     assert sub_true == sub_with_sptree,\
         'lattice_construction.construct_lattice_by_spanning_tree failed. ' +\
         'The result is different then the one of complete comparison'
+
+    concepts_sorted = ltc.sort_concepts(concepts)
+    sub_with_sptree_sort = lca.construct_lattice_by_spanning_tree(concepts_sorted, is_concepts_sorted=True)
+    sub_with_sptree_unsort = lca.construct_lattice_by_spanning_tree(concepts_sorted, is_concepts_sorted=False)
+    assert sub_with_sptree_sort == sub_with_sptree_unsort,\
+        'lattice_construction.construct_lattice_by_spanning_tree failed.' \
+        'The result changes with is_concepts_sorted parameter'

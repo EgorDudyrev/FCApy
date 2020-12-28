@@ -19,26 +19,36 @@ def complete_comparison(concepts):
     return subconcepts_dict
 
 
-def construct_spanning_tree(concepts):
+def construct_spanning_tree(concepts, is_concepts_sorted=False):
     from fcapy.lattice import ConceptLattice
 
-    concepts_sorted = ConceptLattice.sort_concepts(concepts)
-    map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
-    map_concept_i_sort = {c: c_i_sort for c_i_sort, c in enumerate(concepts_sorted)}
+    if not is_concepts_sorted:
+        concepts_sorted = ConceptLattice.sort_concepts(concepts)
+        map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
 
     subconcepts_st_dict = {}
     superconcepts_st_dict = {}
 
-    for c_sort_i, c in enumerate(concepts_sorted):
-        c_i = map_concept_i[c]
+    for c_sort_i in range(len(concepts)):
+        if is_concepts_sorted:
+            c = concepts[c_sort_i]
+            c_i = c_sort_i
+        else:
+            c = concepts_sorted[c_sort_i]
+            c_i = map_concept_i[c]
 
         subconcepts_st_dict[c_i] = set()
         if c_sort_i == 0:
             superconcepts_st_dict[c_i] = []
             continue
 
-        superconcept = concepts_sorted[0]
-        superconcept_i = map_concept_i[superconcept]
+        if is_concepts_sorted:
+            superconcept = concepts[0]
+            superconcept_i = 0
+        else:
+            superconcept = concepts_sorted[0]
+            superconcept_i = map_concept_i[superconcept]
+
         sifted = True
         while sifted:
             for subconcept_i in subconcepts_st_dict[superconcept_i]:
@@ -56,7 +66,7 @@ def construct_spanning_tree(concepts):
     return subconcepts_st_dict, superconcepts_st_dict
 
 
-def construct_lattice_from_spanning_tree(concepts, sptree_chains):
+def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False):
     from ..lattice import ConceptLattice
 
     # initialize the dictionaries
@@ -69,10 +79,11 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains):
         subconcepts_dict[c_i] = set()
 
     # Sort concepts by size of extent: from the more general to more specific
-    concepts_sorted = ConceptLattice.sort_concepts(concepts)
-    map_concept_i_sort = {c: c_i_sort for c_i_sort, c in enumerate(concepts_sorted)}
-    map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
-    map_i_isort = [map_concept_i_sort[concepts[c_i]] for c_i in range(len(concepts))]
+    if not is_concepts_sorted:
+        concepts_sorted = ConceptLattice.sort_concepts(concepts) if not is_concepts_sorted else concepts
+        map_concept_i_sort = {c: c_i_sort for c_i_sort, c in enumerate(concepts_sorted)}
+        map_concept_i = {c: c_i for c_i, c in enumerate(concepts)}
+        map_i_isort = [map_concept_i_sort[concepts[c_i]] for c_i in range(len(concepts))]
 
     # get the list of chains in the spanning tree. Each chain starts with a top concept index
     chains = sptree_chains
@@ -108,7 +119,9 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains):
                     c_comp = concepts[c_i_comp]
 
                     # if stepped on the concept in chain which is not subconcept
-                    is_superconcept = map_i_isort[c_i_comp] < map_i_isort[c_i_cur] and c_comp > c_cur
+                    is_superconcept = map_i_isort[c_i_comp] < map_i_isort[c_i_cur]\
+                        if not is_concepts_sorted else c_i_comp < c_i_cur
+                    is_superconcept &= c_comp > c_cur
                     # if at last concepts in the chain it is superconcept
                     last_in_chain = idx_comp == len(chain_comp)-1
 
@@ -128,7 +141,9 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains):
                     all_superconcepts[c_i_cur].add(c_i_comp)
 
     for c_i, c in enumerate(concepts):
-        superconcepts = sorted(superconcepts_dict[c_i], key=lambda sc_i: -map_i_isort[sc_i])
+        def sort_key(sc_i):
+            return -map_i_isort[sc_i] if not is_concepts_sorted else -sc_i
+        superconcepts = sorted(superconcepts_dict[c_i], key=lambda sc_i: sort_key(sc_i))
         for idx in range(len(superconcepts)):
             if idx >= len(superconcepts):
                 break
@@ -142,9 +157,10 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains):
     return subconcepts_dict
 
 
-def construct_lattice_by_spanning_tree(concepts):
+def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False):
     from ..lattice import ConceptLattice
-    subconcepts_st_dict, superconcepts_st_dict = construct_spanning_tree(concepts)
-    chains = ConceptLattice._get_chains(concepts, superconcepts_st_dict)
-    subconcepts_dict = construct_lattice_from_spanning_tree(concepts, chains)
+    subconcepts_st_dict, superconcepts_st_dict = \
+        construct_spanning_tree(concepts, is_concepts_sorted=is_concepts_sorted)
+    chains = ConceptLattice._get_chains(concepts, superconcepts_st_dict, is_concepts_sorted=is_concepts_sorted)
+    subconcepts_dict = construct_lattice_from_spanning_tree(concepts, chains, is_concepts_sorted=is_concepts_sorted)
     return subconcepts_dict
