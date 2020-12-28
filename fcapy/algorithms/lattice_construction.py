@@ -71,10 +71,12 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
 
     # initialize the dictionaries
     all_superconcepts = {}
+    incomparables = {}
     superconcepts_dict = {}
     subconcepts_dict = {}
     for c_i, c in enumerate(concepts):
         all_superconcepts[c_i] = set()
+        incomparables[c_i] = set()
         superconcepts_dict[c_i] = set()
         subconcepts_dict[c_i] = set()
 
@@ -116,14 +118,20 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
                     if c_i_comp in all_superconcepts[c_i_cur]:  # superconcepts_dict[c_i_cur]:
                         continue
 
-                    c_comp = concepts[c_i_comp]
+                    has_smaller_i = map_i_isort[c_i_comp] < map_i_isort[c_i_cur] \
+                        if not is_concepts_sorted else c_i_comp < c_i_cur
+
+                    # if at last concepts in the chain it is superconcept
+                    last_in_chain = idx_comp == len(chain_comp) - 1
 
                     # if stepped on the concept in chain which is not subconcept
-                    is_superconcept = map_i_isort[c_i_comp] < map_i_isort[c_i_cur]\
-                        if not is_concepts_sorted else c_i_comp < c_i_cur
-                    is_superconcept &= c_comp > c_cur
-                    # if at last concepts in the chain it is superconcept
-                    last_in_chain = idx_comp == len(chain_comp)-1
+                    if c_i_comp in incomparables[c_i_cur]:
+                        is_superconcept = False
+                    else:
+                        c_comp = concepts[c_i_comp]
+                        is_superconcept = c_comp > c_cur if has_smaller_i else False
+                        if has_smaller_i and not is_superconcept:
+                            incomparables[c_i_cur].add(c_i_comp)
 
                     if is_superconcept and last_in_chain:
                         superconcepts_dict[c_i_cur] |= {c_i_comp}
