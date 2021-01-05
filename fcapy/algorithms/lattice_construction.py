@@ -1,13 +1,26 @@
-def complete_comparison(concepts, is_concepts_sorted=False):
-    all_subconcepts_dict = {i: [] for i in range(len(concepts))}
-    for a_i, a in enumerate(concepts):
+def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
+    def get_subconcepts(a_i, a, concepts):
+        subconcepts = []
         for b_i, b in enumerate(concepts):
             if is_concepts_sorted:
                 if b_i < a_i:
                     continue
 
             if b < a:
-                all_subconcepts_dict[a_i].append(b_i)
+                subconcepts.append(b_i)
+        return subconcepts
+
+    if n_jobs == 1:
+        all_subconcepts = [get_subconcepts(a_i, a, concepts) for a_i, a in enumerate(concepts)]
+    else:
+        from joblib import Parallel, delayed
+
+        all_subconcepts = Parallel(n_jobs=n_jobs, require='sharedmem')(
+            delayed(get_subconcepts)(a_i, a, concepts)
+            for a_i, a in enumerate(concepts)
+        )
+
+    all_subconcepts_dict = {i: subconcepts for i, subconcepts in enumerate(all_subconcepts)}
 
     subconcepts_dict = {i: [] for i in range(len(concepts))}
     for a_i, b_is in all_subconcepts_dict.items():

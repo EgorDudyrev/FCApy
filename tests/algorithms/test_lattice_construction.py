@@ -22,6 +22,11 @@ def test_complete_comparison():
     assert subconcepts_dict_sorted == subconcepts_dict_unsorted,\
         'lattice_construction.complete_comparison failed. Output changes with is_concepts_sorted parameter'
 
+    subconcepts_dict = lca.complete_comparison([c1, c2, c3, c4])
+    subconcepts_dict_parallel = lca.complete_comparison([c1, c2, c3, c4], n_jobs=-1)
+    assert subconcepts_dict == subconcepts_dict_parallel,\
+        "Complete_comparison failed. Parallel constructed subconcepts differ from non parallel ones"
+
 
 def test_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')

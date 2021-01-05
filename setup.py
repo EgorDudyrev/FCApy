@@ -9,6 +9,9 @@ def run_install(**kwargs):
         'context': [
             'pandas'
         ],
+        'algorithms': [
+            'joblib',
+        ],
         'visualizer': [
             'matplotlib',
             'networkx>=2.5',
