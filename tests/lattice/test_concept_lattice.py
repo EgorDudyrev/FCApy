@@ -62,6 +62,15 @@ def test_get_top_bottom_concepts_i():
     assert bottom_concept_i == 1, \
         "ConceptLattice.get_top_bottom_concepts_i failed. Bottom concept index is wrongly assigned"
 
+    concepts_sorted = [c3, c1, c4, c2]
+    top_concept_i, bottom_concept_i = ltc.get_top_bottom_concepts_i(concepts_sorted, is_concepts_sorted=True)
+    assert top_concept_i == 0,\
+        "ConceptLattice.get_top_bottom_concepts_i failed. " \
+        "Top concept index is wrongly assigned when sorted concepts given"
+    assert bottom_concept_i == 3, \
+        "ConceptLattice.get_top_bottom_concepts_i failed. " \
+        "Bottom concept index is wrongly assigned when sorted concepts given"
+
 
 def test_to_from_json():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
@@ -139,3 +148,8 @@ def test_get_chains():
     chains_true = [[0, 1, 4, 7], [0, 3, 6], [0, 1, 5], [0, 2]]
 
     assert chains == chains_true, "ConceptLattice.get_chains failed. The result is different from the expected"
+
+    chains_sorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=True)
+    chains_unsorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=False)
+    assert chains_sorted == chains_unsorted,\
+        "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
