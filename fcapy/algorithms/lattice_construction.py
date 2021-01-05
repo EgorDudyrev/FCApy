@@ -246,10 +246,16 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
         return superconcepts_cur, all_superconcepts_cur, incomparables_cur, idx_comp_start
 
         # iterate through every chain. If new concept in the chain is found: select its superconcepts and subconcepts
-
     if n_jobs == 1:
-        from contextlib import nullcontext
-        parallel_manager = nullcontext(lambda x: x)
+        class NullContextManager(object):
+            def __init__(self, dummy_resource=None):
+                self.dummy_resource = dummy_resource
+            def __enter__(self):
+                return self.dummy_resource
+            def __exit__(self, *args):
+                pass
+
+        parallel_manager = NullContextManager(lambda x: x)
     else:
         from joblib import Parallel, delayed
         parallel_manager = Parallel(n_jobs=n_jobs, backend="threading", require='sharedmem')
