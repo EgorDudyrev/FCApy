@@ -53,6 +53,43 @@ def test_spanning_tree():
         'Spanning tree superconcepts dict changes with is_concepts_sorted parameter'
 
 
+def test_lattice_construction_from_spanning_tree_parallel():
+    ctx = read_cxt('data/animal_movement.cxt')
+    ltc = ConceptLattice.from_context(ctx)
+    concepts = ltc.concepts
+    np.random.seed(42)
+    np.random.shuffle(concepts)
+    sub_true = lca.complete_comparison(concepts)
+    sub_st, sup_st = lca.construct_spanning_tree(concepts)
+    chains = ConceptLattice._get_chains(concepts, sup_st)
+    sub_from_sptree = lca.construct_lattice_from_spanning_tree_parallel(concepts, chains)
+    assert sub_true == sub_from_sptree, \
+        'lattice_construction.construct_lattice_fromm_spanning_tree_parallel failed. ' + \
+        'The result is different then the one of complete comparison'
+
+    concepts_sorted = ltc.sort_concepts(concepts)
+    sup_st_sorted = lca.construct_spanning_tree(concepts_sorted, is_concepts_sorted=True)[1]
+    chains_sorted = ConceptLattice._get_chains(concepts_sorted, sup_st_sorted, is_concepts_sorted=True)
+    sub_with_sptree_sort = lca.construct_lattice_from_spanning_tree_parallel(
+        concepts_sorted, chains_sorted, is_concepts_sorted=True)
+    sub_with_sptree_unsort = lca.construct_lattice_from_spanning_tree_parallel(
+        concepts_sorted, chains_sorted, is_concepts_sorted=False)
+    assert sub_with_sptree_sort == sub_with_sptree_unsort, \
+        'lattice_construction.construct_lattice_fromm_spanning_tree_parallel failed.' \
+        'The result changes with is_concepts_sorted parameter'
+
+    sub_parallel_sort = lca.construct_lattice_from_spanning_tree_parallel(
+        concepts_sorted, chains_sorted, is_concepts_sorted=True, n_jobs=-1)
+    sub_parallel_unsort = lca.construct_lattice_from_spanning_tree_parallel(
+        concepts_sorted, chains_sorted, is_concepts_sorted=False, n_jobs=-1)
+    assert sub_with_sptree_sort == sub_parallel_sort, \
+        'lattice_construction.construct_lattice_fromm_spanning_tree_parallel failed.' \
+        'Parallel computing give wrong result when concepts are sorted'
+    assert sub_with_sptree_unsort == sub_parallel_unsort, \
+        'lattice_construction.construct_lattice_fromm_spanning_tree_parallel failed.' \
+        'Parallel computing give wrong result when concepts are not sorted'
+
+
 def test_lattice_construction_by_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')
     ltc = ConceptLattice.from_context(ctx)
@@ -71,3 +108,12 @@ def test_lattice_construction_by_spanning_tree():
     assert sub_with_sptree_sort == sub_with_sptree_unsort,\
         'lattice_construction.construct_lattice_by_spanning_tree failed.' \
         'The result changes with is_concepts_sorted parameter'
+
+    sub_parallel_sort = lca.construct_lattice_by_spanning_tree(concepts_sorted, is_concepts_sorted=True, n_jobs=-1)
+    sub_parallel_unsort = lca.construct_lattice_by_spanning_tree(concepts_sorted, is_concepts_sorted=False, n_jobs=-1)
+    assert sub_with_sptree_sort == sub_parallel_sort, \
+        'lattice_construction.construct_lattice_by_spanning_tree failed.' \
+        'Parallel computing give wrong result when concepts are sorted'
+    assert sub_with_sptree_unsort == sub_parallel_unsort, \
+        'lattice_construction.construct_lattice_by_spanning_tree failed.' \
+        'Parallel computing give wrong result when concepts are not sorted'
