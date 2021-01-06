@@ -40,6 +40,13 @@ def test_close_by_one():
 def test_sofia_binary():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
+    concepts_sofia = cca.sofia_binary(ctx, len(concepts_all))
+    assert len(concepts_all) == len(concepts_sofia),\
+        'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
+        f'({len(concepts_sofia)} against {len(concepts_all)})'
+    assert set(concepts_all) == set(concepts_sofia),\
+        'sofia_binary failed. Sofia algorithm produces the wrong set of all concepts'
+
     subconcepts_dict_all = lca.complete_comparison(concepts_all)
     ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
     with pytest.warns(UserWarning):
@@ -67,6 +74,13 @@ def test_sofia_binary():
 def test_sofia_general():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
+    concepts_sofia = cca.sofia_general(ctx, len(concepts_all))
+    assert len(concepts_all) == len(concepts_sofia),\
+        'sofia_general failed. Sofia algorithm produces wrong number of all concepts' \
+        f'({len(concepts_sofia)} against {len(concepts_all)})'
+    assert set(concepts_all) == set(concepts_sofia), \
+        'sofia_general failed. Sofia algorithm produces wrong set of all concepts. '
+
     subconcepts_dict_all = lca.complete_comparison(concepts_all)
     ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
     with pytest.warns(UserWarning):

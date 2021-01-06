@@ -3,7 +3,18 @@ from fcapy.lattice.formal_concept import FormalConcept
 import random
 
 
-def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None, initial_combinations=None):
+def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None,
+                 initial_combinations=None, iter_elements_to_check=None):
+    if initial_combinations is not None:
+        assert iterate_extents is not None,\
+            "`iterate_extents parameter should be specified if initial_combinations are given " \
+            "(`True if initial_combinations are extents, `False if inital_combinations are intents)"
+
+    if iter_elements_to_check is not None:
+        assert iterate_extents is not None, \
+            "`iterate_extents parameter should be specified if iter_elements_to_check are given " \
+            "(`True if iter_elements_to_check are objects, `False if iter_elements_to_check are attributes)"
+
     if iterate_extents is None:
         iterate_extents = context.n_objects < context.n_attributes
     n_iters = context.n_objects if iterate_extents else context.n_attributes
@@ -12,13 +23,15 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
     #   the set of attributes otherwise
     # <sideset> - the other set, "sided" with <iterset>.
     #   If <iterset> is the set of objects then <sideset> is the set of attributes and vice versa
-    itersets_i_dict = {}
-    sidesets_i = []
-    combinations_to_check = initial_combinations if initial_combinations is not None else [[]]
-
     iterset_fnc, sideset_fnc = context.extension_i, context.intention_i
     if not iterate_extents:
         iterset_fnc, sideset_fnc = sideset_fnc, iterset_fnc
+
+    iter_elements_to_check = list(range(n_iters)) if iter_elements_to_check is None else iter_elements_to_check
+
+    itersets_i_dict = {}
+    sidesets_i = []
+    combinations_to_check = [[]] if initial_combinations is None else initial_combinations
 
     while len(combinations_to_check) > 0:
         comb_i = combinations_to_check.pop(0)
@@ -35,9 +48,12 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
         sidesets_i.append(sideset_i)
 
         iterset_i = list(iterset_i)
-        new_combs = [iterset_i + [g_i]
-                     for g_i in range(comb_i[-1]+1 if len(comb_i) > 0 else 0, n_iters)
-                     if g_i not in iterset_i]
+
+        new_combs = []
+        for g_i in iter_elements_to_check:
+            if g_i not in iterset_i \
+                    and (len(comb_i) == 0 or g_i > comb_i[-1]):
+                new_combs.append(iterset_i+[g_i])
         combinations_to_check = new_combs + combinations_to_check
 
     itersets_i = list({idx: x_i for x_i, idx in itersets_i_dict.items()}.values())
@@ -90,7 +106,7 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
     itersets = [[]]
     ds = context.to_pandas()
 
-    for projection_num in range(2, max_projection + 1):
+    for projection_num in range(1, max_projection + 1):
         if iterate_attributes:
             ctx_projected = context.from_pandas(ds.iloc[:, projections_order[:projection_num]])
         else:
@@ -98,7 +114,9 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
 
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,
-            iterate_extents=not iterate_attributes, initial_combinations=itersets
+            iterate_extents=not iterate_attributes,
+            initial_combinations=itersets.copy(),
+            iter_elements_to_check=[projection_num-1]
         )
         if len(new_concepts) > L_max:
             subconcepts_dict = lca.complete_comparison(new_concepts)
