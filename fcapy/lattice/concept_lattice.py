@@ -72,9 +72,9 @@ class ConceptLattice:
         new_dict = {}
         for k, vs in hierarchy_dict.items():
             if k not in new_dict:
-                new_dict[k] = []
+                new_dict[k] = set()
             for v in vs:
-                new_dict[v] = new_dict.get(v, []) + [k]
+                new_dict[v] = new_dict.get(v, set()) | {k}
         return new_dict
 
     @staticmethod
@@ -131,8 +131,8 @@ class ConceptLattice:
         concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
         subconcepts_dict = {}
         for arc in arcs_data['Arcs']:
-            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], []) + [arc['D']]
-        subconcepts_dict[bottom_concept_i] = []
+            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], set()) | {arc['D']}
+        subconcepts_dict[bottom_concept_i] = set()
 
         ltc = ConceptLattice(
             concepts=concepts, subconcepts_dict=subconcepts_dict,
@@ -228,7 +228,7 @@ class ConceptLattice:
                 visited_concepts.add(c_i)
                 if c_sort_i == 0:
                     break
-                c_i = superconcepts_dict[c_i][0]
+                c_i = sorted(superconcepts_dict[c_i])[0]
                 c_sort_i = map_i_isort[c_i] if not is_concepts_sorted else c_i
             chains.append(chain[::-1])
         return chains

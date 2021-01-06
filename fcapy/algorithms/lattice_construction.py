@@ -1,13 +1,13 @@
 def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
     def get_subconcepts(a_i, a, concepts):
-        subconcepts = []
+        subconcepts = set()
         for b_i, b in enumerate(concepts):
             if is_concepts_sorted:
                 if b_i < a_i:
                     continue
 
             if b < a:
-                subconcepts.append(b_i)
+                subconcepts.add(b_i)
         return subconcepts
 
     if n_jobs == 1:
@@ -22,17 +22,13 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
 
     all_subconcepts_dict = {i: subconcepts for i, subconcepts in enumerate(all_subconcepts)}
 
-    subconcepts_dict = {i: [] for i in range(len(concepts))}
+    subconcepts_dict = {i: None for i in range(len(concepts))}
     for a_i, b_is in all_subconcepts_dict.items():
-        b_is = b_is if not is_concepts_sorted else sorted(b_is)
+        subconcepts_dict[a_i] = b_is
+
+        b_is = b_is.copy() if not is_concepts_sorted else sorted(b_is)
         for b_i in b_is:
-            for c_i in b_is:
-                if b_i == c_i:
-                    continue
-                if b_i in all_subconcepts_dict[c_i]:
-                    break
-            else:
-                subconcepts_dict[a_i].append(b_i)
+            subconcepts_dict[a_i] -= all_subconcepts_dict[b_i]
 
     return subconcepts_dict
 
@@ -78,9 +74,8 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False):
                 sifted = False
 
         subconcepts_st_dict[superconcept_i].add(c_i)
-        superconcepts_st_dict[c_i] = [superconcept_i]
+        superconcepts_st_dict[c_i] = {superconcept_i}
 
-    subconcepts_st_dict = {k: list(v) for k, v in subconcepts_st_dict.items()}
     return subconcepts_st_dict, superconcepts_st_dict
 
 
@@ -183,7 +178,6 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
         superconcepts_dict[c_i] = superconcepts
         for superconcept_i in superconcepts_dict[c_i]:
             subconcepts_dict[superconcept_i].add(c_i)
-    subconcepts_dict = {k: sorted(v) for k, v in subconcepts_dict.items()}
     return subconcepts_dict
 
 
@@ -310,7 +304,6 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
         superconcepts_dict[c_i] = superconcepts
         for superconcept_i in superconcepts_dict[c_i]:
             subconcepts_dict[superconcept_i].add(c_i)
-    subconcepts_dict = {k: sorted(v) for k, v in subconcepts_dict.items()}
     return subconcepts_dict
 
 

@@ -12,8 +12,8 @@ def test_concept_lattice_init():
     concepts = [c1, c2, c3, c4]
     ltc = ConceptLattice(concepts)
 
-    superconcepts_dict = {0: [1, 3], 1: [2], 2: [], 3: [2]}
-    subconcepts_dict = {0: [], 1: [0], 2: [1, 3], 3: [0]}
+    superconcepts_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
+    subconcepts_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
     ltc = ConceptLattice(concepts, superconcepts_dict=superconcepts_dict)
     assert ltc.subconcepts_dict == subconcepts_dict,\
         'ConceptLattice.__init__ failed. The calculation of subconcepts based on superconcepts is wrong'
