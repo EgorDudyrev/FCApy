@@ -83,15 +83,30 @@ class ConceptLattice:
             return None, None
 
         if is_concepts_sorted:
-            return 0, len(concepts)-1
+            top_concept_i, bottom_concept_i = 0, len(concepts) - 1
+            multiple_top = concepts[1].support == concepts[top_concept_i].support
+            multiple_bottom = concepts[-2].support == concepts[bottom_concept_i].support
+        else:
+            top_concept_i, bottom_concept_i = 0, 0
+            multiple_top, multiple_bottom = False, False
+            for i, c in enumerate(concepts[1:]):
+                i += 1
+                if c.support == concepts[top_concept_i].support:
+                    multiple_top = True
+                if c.support == concepts[bottom_concept_i].support:
+                    multiple_bottom = True
 
-        top_concept_i, bottom_concept_i = 0, 0
-        for i, c in enumerate(concepts):
-            if c.support > concepts[top_concept_i].support:
-                top_concept_i = i
+                if c.support > concepts[top_concept_i].support:
+                    top_concept_i = i
+                    multiple_top = False
 
-            if c.support < concepts[bottom_concept_i].support:
-                bottom_concept_i = i
+                if c.support < concepts[bottom_concept_i].support:
+                    bottom_concept_i = i
+                    multiple_bottom = False
+
+        top_concept_i = None if multiple_top else top_concept_i
+        bottom_concept_i = None if multiple_bottom else bottom_concept_i
+
         return top_concept_i, bottom_concept_i
 
     def to_json(self, path=None):
