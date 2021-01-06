@@ -338,6 +338,9 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
         from ..lattice import ConceptLattice
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
 
+    assert top_concept_i is not None and bottom_concept_i is not None,\
+        "add_concept error. Concepts list should always have one single top concept and one single bottom concept"
+
     if new_concept > concepts[top_concept_i]:
         direct_superconcepts = set()
         direct_subconcepts = {top_concept_i}
@@ -388,5 +391,5 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
     concepts.append(new_concept)
     superconcepts_dict[new_concept_i] = direct_superconcepts
     subconcepts_dict[new_concept_i] = direct_subconcepts
-    if not inplace:
-        return concepts, subconcepts_dict, superconcepts_dict
+
+    return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i

@@ -149,7 +149,7 @@ def test_add_concept():
     subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
     for c_i, c in enumerate(concepts_true[2:]):
         c_i += 2
-        concepts, subconcepts_dict, superconcepts_dict = lca.add_concept(
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.add_concept(
             c, concepts[:c_i], subconcepts_dict, superconcepts_dict,
             top_concept_i=0, bottom_concept_i=1, inplace=False)
 
@@ -159,3 +159,24 @@ def test_add_concept():
         'lattice_construction.add_concept failed. Subconcepts dict differs when run not inplace'
     assert superconcepts_dict == superconcepts_dict_true, \
         'lattice_construction.add_concept failed. Superconcepts dict differs when run not inplace'
+
+    c_newbottom = FormalConcept((), (), (0, 1, 2, 3), ('a', 'b', 'c', 'd'))
+    c1 = FormalConcept((2,), ('c',), (0, 1, 2), ('a', 'b', 'c'))
+    c2 = FormalConcept((0, 2), ('a', 'c'), (0, 2), ('a', 'c'))
+    c3 = FormalConcept((1, 2), ('b', 'c'), (1, 2), ('b', 'c'))
+    c4 = FormalConcept((0, 1, 2), ('a', 'b', 'c'), (2,), ('c',))
+    c_newtop = FormalConcept((0, 1, 2, 3), ('a', 'b', 'c', 'd'), (), ())
+
+    concepts_true = [c1, c2, c3, c4, c_newbottom, c_newtop]
+    subconcepts_dict_true = {4: set(), 0: {4}, 1: {0}, 2: {0}, 3: {1, 2}, 5: {3}}
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+
+    concepts = [c1, c2, c3, c4]
+    subconcepts_dict = lca.complete_comparison(concepts)
+    superconcepts_dict = ConceptLattice.transpose_hierarchy(subconcepts_dict)
+    for c in [c_newbottom, c_newtop]:
+        lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict, inplace=True)
+    error_msg = 'lattice_construction.add_concept failed. Error when adding new top_concept or bottom_concept'
+    assert set(concepts) == set(concepts_true), error_msg
+    assert subconcepts_dict == subconcepts_dict_true, error_msg
+    assert superconcepts_dict == superconcepts_dict_true, error_msg

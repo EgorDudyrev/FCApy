@@ -106,6 +106,8 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
     itersets = [[]]
     ds = context.to_pandas()
 
+    lattice = None
+
     for projection_num in range(1, max_projection + 1):
         if iterate_attributes:
             ctx_projected = context.from_pandas(ds.iloc[:, projections_order[:projection_num]])
@@ -119,12 +121,33 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
             iter_elements_to_check=[projection_num-1]
         )
         if len(new_concepts) > L_max:
-            subconcepts_dict = lca.complete_comparison(new_concepts)
-            ltc_projected = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
-            ltc_projected.calc_concepts_measures(measure)
-            metrics = [c.measures[measure] for c_i, c in enumerate(ltc_projected.concepts)]
+            if lattice is None:
+                subconcepts_dict = lca.complete_comparison(new_concepts)
+                lattice = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
+            else:
+                # concepts that were changed during projection iteration
+                concepts_delta = set(new_concepts) - set(concepts)
+                # find concepts which were just 'expanded' to the new projection
+                old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
+                                for c_i, c in enumerate(concepts)}
+                concepts_delta_same_sidesets = {
+                    c for c in concepts_delta
+                    if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
+                for c in concepts_delta_same_sidesets:
+                    sideset = c.extent_i if iterate_attributes else c.intent_i
+                    lattice._concepts[old_sidesets[sideset]] = c
+
+                # find completely new concepts created while projection iteration
+                # sort concepts to ensure there will be no moment with multiple top or bottom concepts
+                concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+                concepts_to_add = [concepts_to_add[0], concepts_to_add[-1]] + concepts_to_add[1:-1]
+                for c in concepts_to_add:
+                    lattice.add_concept(c)
+
+            lattice.calc_concepts_measures(measure)
+            metrics = [c.measures[measure] for c_i, c in enumerate(lattice.concepts)]
             metrics_lim = sorted(metrics)[-L_max]
-            concepts = [c for c, m in zip(ltc_projected.concepts, metrics) if m >= metrics_lim]
+            concepts = [c for c, m in zip(lattice.concepts, metrics) if m > metrics_lim]
         else:
             concepts = new_concepts
         itersets = [c.intent_i if iterate_attributes else c.extent_i for c in concepts]

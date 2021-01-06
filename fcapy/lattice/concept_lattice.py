@@ -257,5 +257,6 @@ class ConceptLattice:
         return chains
 
     def add_concept(self, new_concept):
-        lca.add_concept(new_concept, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
-                        self._top_concept_i, self._bottom_concept_i, inplace=True)
+        _, _, _, self._top_concept_i, self._bottom_concept_i = lca.add_concept(
+            new_concept, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
+            self._top_concept_i, self._bottom_concept_i, inplace=True)
