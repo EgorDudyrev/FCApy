@@ -141,10 +141,18 @@ class ConceptLattice:
         return ltc
 
     def __eq__(self, other):
+        if self._concepts is None or other.concepts is None:
+            return self._concepts == other.concepts
+
         concepts_other = set(other.concepts)
         for c in self._concepts:
             if c not in concepts_other:
                 return False
+        if self._subconcepts_dict != other.subconcepts_dict:
+            return False
+        if self._superconcepts_dict != other.superconcepts_dict:
+            return False
+
         return True
 
     def get_concept_new_extent_i(self, concept_i):

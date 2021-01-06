@@ -100,6 +100,17 @@ def test__eq__():
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
 
+    ltc_none = ConceptLattice()
+    assert ltc1 != ltc_none, "ConceptLattice.__eq__ failed. The lattice should not be equal to none lattice"
+    ltc3 = ConceptLattice([c1, c2, c4], subconcepts_dict={0: {1}, 1: {2}, 2: set()})
+    ltc3._superconcepts_dict = None
+    assert ltc1 != ltc3,\
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their subconcept_dicts are different"
+    ltc4 = ConceptLattice([c1, c2, c4], subconcepts_dict=None, superconcepts_dict={0: set(), 1: {0}, 2: {1}})
+    ltc4._subconcepts_dict = None
+    assert ltc1 != ltc4, \
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their superconcept_dicts are different"
+
 
 def test_concept_new_intent_extent():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
