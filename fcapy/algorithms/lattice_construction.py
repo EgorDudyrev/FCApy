@@ -318,3 +318,67 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
         subconcepts_dict = construct_lattice_from_spanning_tree_parallel(
             concepts, chains, is_concepts_sorted=is_concepts_sorted, n_jobs=n_jobs)
     return subconcepts_dict
+
+
+def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
+                top_concept_i=None, bottom_concept_i=None,
+                inplace=True):
+    assert new_concept not in concepts, "add_concept error. New concept is already in the concepts list"
+    assert len(concepts) >= 2, 'add_concept error. Concepts list should contain both top and bottom concepts'
+    assert new_concept < concepts[top_concept_i], \
+        'add_concept error. New concept is bigger than the top concept. Try updating the top concept first'
+    assert new_concept > concepts[bottom_concept_i], \
+        'add_concept.error. New concept is smaller than the bottom concept. Try updating the bottom concept first'
+
+    if not inplace:
+        concepts = concepts.copy()
+        subconcepts_dict = subconcepts_dict.copy()
+        superconcepts_dict = superconcepts_dict.copy()
+
+    new_concept_i = len(concepts)
+
+    # find direct superconcepts
+    concepts_to_visit = [top_concept_i]
+    visited_concepts = set()
+    direct_superconcepts = set()
+    while len(concepts_to_visit) > 0:
+        c_i = concepts_to_visit.pop(0)
+        visited_concepts.add(c_i)
+
+        subconcepts = {subc_i for subc_i in subconcepts_dict[c_i]
+                       if new_concept < concepts[subc_i]}
+        if len(subconcepts) > 0:
+            concepts_to_visit += list(subconcepts - visited_concepts)
+        else:
+            direct_superconcepts.add(c_i)
+
+    # find direct subconcepts
+    concepts_to_visit = [bottom_concept_i]
+    visited_concepts = set()
+    direct_subconcepts = set()
+    while len(concepts_to_visit) > 0:
+        c_i = concepts_to_visit.pop(0)
+        visited_concepts.add(c_i)
+
+        superconcepts = {supc_i for supc_i in superconcepts_dict[c_i]
+                         if new_concept > concepts[supc_i]}
+        if len(superconcepts) > 0:
+            concepts_to_visit += list(superconcepts - visited_concepts)
+        else:
+            direct_subconcepts.add(c_i)
+
+    # for every pair of superconcept-subconcept put new concept in a line
+    for supc_i in direct_superconcepts:
+        subconcepts_dict[supc_i] = {subc_i for subc_i in subconcepts_dict[supc_i]
+                                             if subc_i not in direct_subconcepts}
+        subconcepts_dict[supc_i].add(new_concept_i)
+    for subc_i in direct_subconcepts:
+        superconcepts_dict[subc_i] = {supc_i for supc_i in superconcepts_dict[subc_i]
+                                               if supc_i not in direct_superconcepts}
+        superconcepts_dict[subc_i].add(new_concept_i)
+
+    concepts.append(new_concept)
+    superconcepts_dict[new_concept_i] = direct_superconcepts
+    subconcepts_dict[new_concept_i] = direct_subconcepts
+    if not inplace:
+        return concepts, subconcepts_dict, superconcepts_dict

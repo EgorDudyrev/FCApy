@@ -240,3 +240,7 @@ class ConceptLattice:
                 c_sort_i = map_i_isort[c_i] if not is_concepts_sorted else c_i
             chains.append(chain[::-1])
         return chains
+
+    def add_concept(self, new_concept):
+        lca.add_concept(new_concept, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
+                        self._top_concept_i, self._bottom_concept_i, inplace=True)

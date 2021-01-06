@@ -1,8 +1,8 @@
 import pytest
 from fcapy.lattice.formal_concept import FormalConcept
-from fcapy.algorithms import lattice_construction as lca
+from fcapy.algorithms import lattice_construction as lca, concept_construction as cca
 from fcapy.lattice import ConceptLattice
-from fcapy.context import read_cxt
+from fcapy.context import read_cxt, read_csv
 import numpy as np
 
 
@@ -117,3 +117,45 @@ def test_lattice_construction_by_spanning_tree():
     assert sub_with_sptree_unsort == sub_parallel_unsort, \
         'lattice_construction.construct_lattice_by_spanning_tree failed.' \
         'Parallel computing give wrong result when concepts are not sorted'
+
+
+def test_add_concept():
+    ctx = read_csv('data/mango_bin.csv')
+    np.random.seed(13)
+    concepts_true = cca.close_by_one(ctx)
+    np.random.shuffle(concepts_true)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
+    concepts_true = [concepts_true[top_concept_i], concepts_true[bottom_concept_i]] + \
+               [c for c_i, c in enumerate(concepts_true) if c_i not in [top_concept_i, bottom_concept_i]]
+
+    subconcepts_dict_true = lca.complete_comparison(concepts_true)
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+
+    concepts = concepts_true[:2]
+    subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
+    for c_i, c in enumerate(concepts_true[2:]):
+        c_i += 2
+        lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict,
+                        top_concept_i=0, bottom_concept_i=1, inplace=True)
+
+    assert concepts == concepts_true,\
+        'lattice_construction.add_concept failed. Concepts list dict differs when run inplace'
+    assert subconcepts_dict == subconcepts_dict_true,\
+        'lattice_construction.add_concept failed. Subconcepts dict differs when run inplace'
+    assert superconcepts_dict == superconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Superconcepts dict differs when run inplace'
+
+    concepts = concepts_true[:2]
+    subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
+    for c_i, c in enumerate(concepts_true[2:]):
+        c_i += 2
+        concepts, subconcepts_dict, superconcepts_dict = lca.add_concept(
+            c, concepts[:c_i], subconcepts_dict, superconcepts_dict,
+            top_concept_i=0, bottom_concept_i=1, inplace=False)
+
+    assert concepts == concepts_true, \
+        'lattice_construction.add_concept failed. Concepts list dict differs when run not inplace'
+    assert subconcepts_dict == subconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Subconcepts dict differs when run not inplace'
+    assert superconcepts_dict == superconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Superconcepts dict differs when run not inplace'

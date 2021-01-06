@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from fcapy.context import converters, FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.lattice.formal_concept import FormalConcept
@@ -164,3 +165,23 @@ def test_get_chains():
     chains_unsorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=False)
     assert chains_sorted == chains_unsorted,\
         "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
+
+
+def test_add_concept():
+    ctx = converters.read_csv('data/mango_bin.csv')
+    from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
+
+    concepts = cca.close_by_one(ctx)
+    np.random.shuffle(concepts)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
+    concepts = [concepts[top_concept_i], concepts[bottom_concept_i]] + \
+               [c for c_i, c in enumerate(concepts) if c_i not in [top_concept_i, bottom_concept_i]]
+    ltc = ConceptLattice(concepts[:2],
+                         subconcepts_dict={0: {1}, 1: set()})
+
+    for c in concepts[2:]:
+        ltc.add_concept(c)
+
+    ltc_true = ConceptLattice(concepts, subconcepts_dict=lca.complete_comparison(concepts))
+
+    assert ltc == ltc_true, 'lattice_construction.add_concept failed'
