@@ -260,3 +260,28 @@ class ConceptLattice:
         _, _, _, self._top_concept_i, self._bottom_concept_i = lca.add_concept(
             new_concept, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
             self._top_concept_i, self._bottom_concept_i, inplace=True)
+
+    def remove_concept(self, concept_i):
+        _, _, _, self._top_concept_i, self._bottom_concept_i = lca.remove_concept(
+            concept_i, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
+            self._top_concept_i, self._bottom_concept_i, inplace=True)
+
+    @classmethod
+    def get_all_superconcepts_dict(cls, concepts, superconcepts_dict):
+        all_superconcepts = {}
+        concepts_to_visit = sorted(range(len(concepts)), key=lambda c_i: -concepts[c_i].support)
+        for c_i in concepts_to_visit:
+            all_superconcepts[c_i] = superconcepts_dict[c_i].copy()
+            for supc_i in superconcepts_dict[c_i]:
+                all_superconcepts[c_i] |= all_superconcepts[supc_i]
+        return all_superconcepts
+
+    @classmethod
+    def get_all_subconcepts_dict(cls, concepts, subconcepts_dict):
+        all_subconcepts = {}
+        concepts_to_visit = sorted(list(range(len(concepts))), key=lambda c_i: concepts[c_i].support)
+        for c_i in concepts_to_visit:
+            all_subconcepts[c_i] = subconcepts_dict[c_i].copy()
+            for subc_i in subconcepts_dict[c_i]:
+                all_subconcepts[c_i] |= all_subconcepts[subc_i]
+        return all_subconcepts
