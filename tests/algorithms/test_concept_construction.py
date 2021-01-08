@@ -10,11 +10,16 @@ from fcapy.lattice import ConceptLattice
 def test_close_by_one():
     with open('data/animal_movement_concepts.json', 'r') as f:
         file_data = json.load(f)
-    concepts_loaded = {FormalConcept.from_dict(c_json) for c_json in file_data}
-
     context = read_json("data/animal_movement.json")
+    concepts_loaded = [FormalConcept.from_dict(c_json) for c_json in file_data]
+    for c in concepts_loaded:
+        c._context_hash = hash(context)
+        if c.intent == FormalConcept.JSON_BOTTOM_PLACEHOLDER['Names']:
+            c._intent_i = tuple(context.intention_i(c.extent_i))
+            c._intent = tuple(context.intention(c.extent))
+
     concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
-    assert set(concepts_constructed) == concepts_loaded,\
+    assert set(concepts_constructed) == set(concepts_loaded),\
         "Close_by_one error. Constructed concepts do not match the true ones"
 
     data = cca.close_by_one(context, output_as_concepts=False, iterate_extents=True)
@@ -36,11 +41,12 @@ def test_close_by_one():
     assert set(concepts_constructed) == set(concepts_constructed_iterauto), \
         "Close_by_one failed. Iterations over extents and automatically chosen set give different set of concepts"
 
-
+#@pytest.mark.skip('Should test unit function before')
 def test_sofia_binary():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
-    concepts_sofia = cca.sofia_binary(ctx, len(concepts_all))
+    lattice_sofia = cca.sofia_binary(ctx, len(concepts_all))
+    concepts_sofia = lattice_sofia.concepts
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
@@ -54,9 +60,8 @@ def test_sofia_binary():
     stabilities_all = [c.measures['Stab'] for c in ltc_all.concepts]
     stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
 
-    concepts_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
-    subconcepts_dict_sofia = lca.complete_comparison(concepts_sofia)
-    ltc_sofia = ConceptLattice(concepts_sofia, subconcepts_dict=subconcepts_dict_sofia)
+    ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
+    concepts_sofia = ltc_sofia.concepts
     with pytest.warns(UserWarning):
         ltc_sofia.calc_concepts_measures('stability', ctx)
     stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia.concepts]
@@ -70,11 +75,12 @@ def test_sofia_binary():
     with pytest.raises(ValueError):
         concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting="UnKnOwN OrDeR")
 
-
+#@pytest.mark.skip('Should test unit functions before')
 def test_sofia_general():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
-    concepts_sofia = cca.sofia_general(ctx, len(concepts_all))
+    lattice_sofia = cca.sofia_general(ctx, len(concepts_all))
+    concepts_sofia = lattice_sofia.concepts
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_general failed. Sofia algorithm produces wrong number of all concepts' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
@@ -88,7 +94,8 @@ def test_sofia_general():
     stabilities_all = [c.measures['Stab'] for c in ltc_all.concepts]
     stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
 
-    concepts_sofia = cca.sofia_general(ctx, len(concepts_all)//2)
+    lattice_sofia = cca.sofia_general(ctx, len(concepts_all)//2)
+    concepts_sofia = lattice_sofia.concepts
     subconcepts_dict_sofia = lca.complete_comparison(concepts_sofia)
     ltc_sofia = ConceptLattice(concepts_sofia, subconcepts_dict=subconcepts_dict_sofia)
     with pytest.warns(UserWarning):

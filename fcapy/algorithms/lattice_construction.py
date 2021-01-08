@@ -326,7 +326,7 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
 
 def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
                 top_concept_i=None, bottom_concept_i=None,
-                inplace=True):
+                inplace=True, verbose=False):
     assert new_concept not in concepts, "add_concept error. New concept is already in the concepts list"
     assert len(concepts) >= 2, 'add_concept error. Concepts list should contain both top and bottom concepts'
 
@@ -337,38 +337,56 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
 
     new_concept_i = len(concepts)
 
-    if top_concept_i is None or bottom_concept_i is None \
-            or new_concept > concepts[top_concept_i] or new_concept < concepts[bottom_concept_i]:
+    # top/bottom indices are considered weird
+    # if new concept is bigger than top concept or smaller than the bottom concept
+    # in this situation it is better to double check these indices
+    def are_top_bottom_indices_weird():
+        return new_concept > concepts[top_concept_i] or new_concept < concepts[bottom_concept_i]
+    if top_concept_i is None or bottom_concept_i is None or are_top_bottom_indices_weird():
         from ..lattice import ConceptLattice
-        print(f'Fix top bottom concepts from {top_concept_i}, {bottom_concept_i}')
+        if verbose:
+            print(f'Fix top bottom concepts from {top_concept_i}, {bottom_concept_i}')
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
-        print(f'To {top_concept_i}, {bottom_concept_i}')
-        assert top_concept_i is None or top_concept_i == new_concept_i or concepts[top_concept_i] > new_concept,\
-            f'Top concept is ill defined. ' \
-            f'Concepts extents are: {[c.extent_i for c in concepts]}\n' \
-            f'Concepts intents are: {[c.intent_i for c in concepts]}\n' \
-            f'New concept: {new_concept.extent_i}; {new_concept.intent_i}'
-        assert bottom_concept_i is None or bottom_concept_i == new_concept_i \
-               or concepts[bottom_concept_i] < new_concept,\
-            f'Bottom concept is ill defined.\n' \
-            f'Concepts extents are: {[c.extent_i for c in concepts]}\n' \
-            f'Concepts intents are: {[c.intent_i for c in concepts]}\n' \
-            f'New concept: {new_concept.extent_i}; {new_concept.intent_i}'
-
+        if verbose:
+            print(f'To {top_concept_i}, {bottom_concept_i}')
+            if top_concept_i is None or concepts[top_concept_i] > new_concept:
+                print(
+                    f'WARNING. Top concept is ill defined. '
+                    f'Concepts extents are: {[c.extent_i for c in concepts]}\n'
+                    f'Concepts intents are: {[c.intent_i for c in concepts]}\n'
+                    f'New concept: {new_concept.extent_i}; {new_concept.intent_i}'
+                )
+            if bottom_concept_i is None or concepts[bottom_concept_i] < new_concept:
+                print(
+                    f'WARNING. Bottom concept is ill defined.\n'
+                    f'Concepts extents are: {[c.extent_i for c in concepts]}\n'
+                    f'Concepts intents are: {[c.intent_i for c in concepts]}\n'
+                    f'New concept: {new_concept.extent_i}; {new_concept.intent_i}'
+                )
 
     assert top_concept_i is not None and bottom_concept_i is not None,\
         "add_concept error. Concepts list should always have one single top concept and one single bottom concept"
 
+    if verbose:
+        print(f'Top concept idx: {top_concept_i}, bottom concept idx: {bottom_concept_i}')
+
     if new_concept > concepts[top_concept_i]:
+        if verbose:
+            print('INFO. New concept is bigger than the top one')
         direct_superconcepts = set()
         direct_subconcepts = {top_concept_i}
+        top_concept_i = new_concept_i
     elif new_concept < concepts[bottom_concept_i]:
+        if verbose:
+            print('INFO. New concept is smaller than the bottom one')
         direct_superconcepts = {bottom_concept_i}
         direct_subconcepts = set()
+        bottom_concept_i = new_concept_i
     else:
         # find direct superconcepts
-        print('n concepts:', len(concepts))
-        print('Top concept:', top_concept_i)
+        if verbose:
+            print('n concepts:', len(concepts))
+            print('Top concept:', top_concept_i)
         concepts_to_visit = [top_concept_i]
         visited_concepts = set()
         direct_superconcepts = set()
@@ -382,24 +400,35 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
                 concepts_to_visit += list(subconcepts - visited_concepts)
             else:
                 direct_superconcepts.add(c_i)
-        print('Direct superconcepts:', direct_superconcepts)
+        if verbose:
+            print('Direct superconcepts:', direct_superconcepts)
 
         # find direct subconcepts
+        if verbose:
+            print("Start looking for subconcepts")
         concepts_to_visit = [bottom_concept_i]
+        if verbose:
+            print(f'Concepts_to_visit: {concepts_to_visit}')
         visited_concepts = set()
         direct_subconcepts = set()
         while len(concepts_to_visit) > 0:
             c_i = concepts_to_visit.pop(0)
             visited_concepts.add(c_i)
-
+            if verbose:
+                print(f'Looking at concepts {c_i}')
             superconcepts = {supc_i for supc_i in superconcepts_dict[c_i]
                              if new_concept > concepts[supc_i]}
+            if verbose:
+                print(f'Superconcepts are: {superconcepts}')
             if len(superconcepts) > 0:
                 concepts_to_visit += list(superconcepts - visited_concepts)
             else:
                 direct_subconcepts.add(c_i)
-        print('Direct subconcepts:', direct_subconcepts)
-        print('Bottom concept:', bottom_concept_i)
+            if verbose:
+                print(f'Concepts to visit: {concepts_to_visit}')
+        if verbose:
+            print('Direct subconcepts:', direct_subconcepts)
+            print('Bottom concept:', bottom_concept_i)
 
     # for every pair of superconcept-subconcept put new concept in a line
     for supc_i in direct_superconcepts:
@@ -413,12 +442,16 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
     superconcepts_dict[new_concept_i] = direct_superconcepts
     subconcepts_dict[new_concept_i] = direct_subconcepts
 
+    if verbose:
+        print(f'NEW Top concept idx: {top_concept_i}, bottom concept idx: {bottom_concept_i}')
+        print('INFO. New concept is successfully added\n')
+
     return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i
 
 
 def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
                    top_concept_i=None, bottom_concept_i=None,
-                   inplace=True):
+                   inplace=True, verbose=True):
     from ..lattice import ConceptLattice
 
     assert concept_i < len(concepts), f"remove_concept error. There is no concept {concept_i} in a concepts list"
@@ -441,14 +474,20 @@ def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
 
     if concept_i == top_concept_i:
         top_concept_i = list(subconcepts)[0] if len(subconcepts) == 1 else None
+        assert top_concept_i is not None, "Cannot remove the top concept of the lattice"
     elif concept_i == bottom_concept_i:
         bottom_concept_i = list(superconcepts)[0] if len(superconcepts) == 1 else None
+        assert bottom_concept_i is not None, "Cannot remove the bottom concept of the lattice"
     else:
         pass
     # find all subconcepts of current superconcepts to drop transitive relations
     all_superconcepts = ConceptLattice.get_all_superconcepts_dict(concepts, superconcepts_dict)
     all_subconcepts = ConceptLattice.get_all_subconcepts_dict(concepts, subconcepts_dict)
 
+    if verbose:
+        print(f'START removing concept {concept_i}')
+        print(f'INFO. Superconcepts are: {superconcepts}')
+        print(f'INFO. Subconcepts are: {subconcepts}')
     for supc_i in superconcepts:
         subconcepts_dict[supc_i] -= {concept_i}
         subconcepts_dict[supc_i] |= subconcepts
@@ -482,5 +521,8 @@ def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
         if new_c_i != c_i:
             del superconcepts_dict[c_i]
             del subconcepts_dict[c_i]
+
+    top_concept_i = decrement(top_concept_i, concept_i) if top_concept_i is not None else None
+    bottom_concept_i = decrement(bottom_concept_i, concept_i) if bottom_concept_i is not None else None
 
     return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i

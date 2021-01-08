@@ -180,3 +180,74 @@ def test_add_concept():
     assert set(concepts) == set(concepts_true), error_msg
     assert subconcepts_dict == subconcepts_dict_true, error_msg
     assert superconcepts_dict == superconcepts_dict_true, error_msg
+
+
+def test_remove_concept():
+    ctx = read_csv('data/mango_bin.csv')
+    concepts_true = cca.close_by_one(ctx)
+    concepts_true1 = cca.close_by_one(ctx)
+    np.random.seed(13)
+    np.random.shuffle(concepts_true)
+    np.random.seed(13)
+    np.random.shuffle(concepts_true1)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
+
+    subconcepts_dict_true = lca.complete_comparison(concepts_true)
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+    subconcepts_dict_true1 = lca.complete_comparison(concepts_true1)
+    superconcepts_dict_true1 = ConceptLattice.transpose_hierarchy(subconcepts_dict_true1)
+
+    with pytest.raises(AssertionError, match='Cannot remove the top concept of the lattice'):
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            top_concept_i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+
+    with pytest.raises(AssertionError, match='Cannot remove the bottom concept of the lattice'):
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            bottom_concept_i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+
+    for i in range(len(concepts_true)):
+        if i in {top_concept_i, bottom_concept_i}:
+            continue
+
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+        subconcepts_dict_true_new = lca.complete_comparison(concepts)
+        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        assert concepts_true[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
+        assert concepts_true == concepts_true1,\
+            'remove_concept failed. The original concepts list has been changed during non inplace function call'
+        assert subconcepts_dict_true == subconcepts_dict_true1,\
+            'remove_concept failed. The original subconcepts_dict has been changed during non inplace function call'
+        assert superconcepts_dict_true == superconcepts_dict_true1, \
+            'remove_concept failed. The original superconcepts_dict has been changed during non inplace function call'
+
+        assert subconcepts_dict == subconcepts_dict_true_new,\
+            'remove_concept failed. Subconcept_dict is calculated wrong'
+        assert superconcepts_dict == superconcepts_dict_true_new, \
+            'remove_concept failed. Superconcept_dict is calculated wrong'
+
+    for i in range(len(concepts_true)):
+        if i in {top_concept_i, bottom_concept_i}:
+            continue
+
+        from copy import deepcopy
+        concepts_true = deepcopy(concepts_true1)
+        subconcepts_dict_true = deepcopy(subconcepts_dict_true1)
+        superconcepts_dict_true = deepcopy(superconcepts_dict_true1)
+
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=True)
+        subconcepts_dict_true_new = lca.complete_comparison(concepts)
+        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        assert concepts_true1[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
+        assert concepts_true != concepts_true1,\
+            'remove_concept failed. The original concepts list should been changed during inplace function call'
+        assert subconcepts_dict_true != subconcepts_dict_true1,\
+            'remove_concept failed. The original subconcepts_dict should been changed during inplace function call'
+        assert superconcepts_dict_true != superconcepts_dict_true1, \
+            'remove_concept failed. The original superconcepts_dict should been changed during inplace function call'
+
+        assert subconcepts_dict == subconcepts_dict_true_new,\
+            'remove_concept failed. Subconcept_dict is calculated wrong'
+        assert superconcepts_dict == superconcepts_dict_true_new, \
+            'remove_concept failed. Superconcept_dict is calculated wrong'

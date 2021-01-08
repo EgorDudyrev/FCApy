@@ -1,6 +1,7 @@
 from fcapy.context import FormalContext
 from fcapy.lattice.formal_concept import FormalConcept
 import random
+from copy import deepcopy
 
 
 def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None,
@@ -65,13 +66,14 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
     if output_as_concepts:
         object_names = context.object_names
         attribute_names = context.attribute_names
+        context_hash = hash(context)
 
         concepts = []
         for concept_data in zip(extents_i, intents_i):
             extent_i, intent_i = concept_data
             extent = [object_names[g_i] for g_i in extent_i]
             intent = [attribute_names[m_i] for m_i in intent_i]
-            concepts.append(FormalConcept(extent_i, extent, intent_i, intent))
+            concepts.append(FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash))
         return concepts
 
     data = {'extents_i': extents_i, 'intents_i': intents_i}
@@ -117,44 +119,88 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,
             iterate_extents=not iterate_attributes,
-            initial_combinations=itersets.copy(),
+            initial_combinations=deepcopy(itersets),
             iter_elements_to_check=[projection_num-1]
         )
-        if len(new_concepts) > L_max:
-            if lattice is None:
-                subconcepts_dict = lca.complete_comparison(new_concepts)
-                lattice = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
-            else:
-                # concepts that were changed during projection iteration
-                concepts_delta = set(new_concepts) - set(concepts)
-                # find concepts which were just 'expanded' to the new projection
-                old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
-                                for c_i, c in enumerate(concepts)}
-                concepts_delta_same_sidesets = {
-                    c for c in concepts_delta
-                    if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
-                for c in concepts_delta_same_sidesets:
-                    sideset = c.extent_i if iterate_attributes else c.intent_i
-                    lattice._concepts[old_sidesets[sideset]] = c
+        top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(new_concepts)
+        assert top_concept_i is not None and bottom_concept_i is not None,\
+            "Sofia_binary error. " \
+            f"Concepts constructed at projection {projection_num} does not have one single top and bottom concept"
 
-                # find completely new concepts created while projection iteration
-                # sort concepts to ensure there will be no moment with multiple top or bottom concepts
-                concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+        if lattice is None:
+            subconcepts_dict = lca.complete_comparison(new_concepts)
+            lattice = ConceptLattice(new_concepts, subconcepts_dict=subconcepts_dict)
+        else:
+            # make the concepts comparable
+            ctx_projected_hash = hash(ctx_projected)
+            for c in lattice._concepts:
+                c._context_hash = ctx_projected_hash
+
+            # concepts that were changed during projection iteration
+            concepts_delta = set(new_concepts) - set(lattice._concepts)
+            # find concepts which were just 'expanded' to the new projection:
+            # their "iterset" is changed but "sideset" is the same (see the notation described in close_by_one)
+            old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
+                            for c_i, c in enumerate(lattice._concepts)}
+            concepts_delta_same_sidesets = {
+                c for c in concepts_delta
+                if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
+            for c in concepts_delta_same_sidesets:
+                sideset = c.extent_i if iterate_attributes else c.intent_i
+                c_i = old_sidesets[sideset]
+                lattice._concepts[c_i] = c
+
+            top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice._concepts)
+            assert top_concept_i is not None and bottom_concept_i is not None, \
+                "Sofia_binary error. " \
+                f"Concepts modernized at projection {projection_num} does not have one single top and bottom concept"
+
+            # find completely new concepts created while projection iteration
+            # sort concepts to ensure there will be no moment with multiple top or bottom concepts
+            concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)[::-1]
+            if len(concepts_to_add) > 2:
                 concepts_to_add = [concepts_to_add[0], concepts_to_add[-1]] + concepts_to_add[1:-1]
-                for c in concepts_to_add:
+            for c_i, c in enumerate(concepts_to_add):
+                try:
                     lattice.add_concept(c)
+                except AssertionError as e:
+                    raise AssertionError(
+                        f'Sofia_binary error. '
+                        f'Assertion raised when adding concept {c_i}/{len(concepts_to_add)} '
+                        f'into lattice at projection {projection_num}.\n'
+                        f'Assertion is: {e}')
 
+        if len(lattice.concepts) > L_max:
             lattice.calc_concepts_measures(measure)
             metrics = [c.measures[measure] for c_i, c in enumerate(lattice.concepts)]
-            metrics_lim = sorted(metrics)[-L_max]
-            concepts = [c for c, m in zip(lattice.concepts, metrics) if m > metrics_lim]
-        else:
-            concepts = new_concepts
-        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in concepts]
+            metrics_lim = sorted(metrics)[-L_max-1]
+            concepts_to_remove = [i for i in range(len(lattice.concepts)) if metrics[i] <= metrics_lim][::-1]
+            concepts_to_remove = [i for i in concepts_to_remove
+                                  if i not in [lattice.top_concept_i, lattice.bottom_concept_i]]
+            for c_i in concepts_to_remove:
+                try:
+                    lattice.remove_concept(c_i)
+                except KeyError as e:
+                    raise AssertionError(
+                        f'Sofia_binary error. '
+                        f'Key error raised when removing concept {c_i} from lattice at projection {projection_num}.\n'
+                        f'Concepts to be removed: {concepts_to_remove}.\n'
+                        f'Key error is: {e}'
+                    )
+#            concepts = [c for c, m in zip(lattice.concepts, metrics) if m > metrics_lim]
+#        else:
+#            concepts = new_concepts
+        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
 
-    return concepts
+        for c_i, c in enumerate(lattice.concepts):
+            assert c.extent_i == tuple(ctx_projected.extension_i(c.intent_i)), \
+                f'sofia_binary error. Concept {c_i} is not closed at projection {projection_num}'
+            assert c.intent_i == tuple(ctx_projected.intention_i(c.extent_i)), \
+                f'sofia_binary error. Concept {c_i} is not closed at projection {projection_num}'
+
+    return lattice
 
 
 def sofia_general(context, L_max=100, measure='LStab'):
-    concepts = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
-    return concepts
+    lattice = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
+    return lattice
