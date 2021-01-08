@@ -52,6 +52,9 @@ class FormalConcept:
         return self._context_hash
 
     def __eq__(self, other):
+        if self._context_hash != other.context_hash:
+            raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
+
         if self._support != other.support:
             return False
 
@@ -74,6 +77,9 @@ class FormalConcept:
         return True
 
     def __lt__(self, other):
+        if self._context_hash != other.context_hash:
+            raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
+
         if self._support >= other.support:
             return False
 
