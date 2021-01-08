@@ -123,9 +123,6 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
             iter_elements_to_check=[projection_num-1]
         )
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(new_concepts)
-        assert top_concept_i is not None and bottom_concept_i is not None,\
-            "Sofia_binary error. " \
-            f"Concepts constructed at projection {projection_num} does not have one single top and bottom concept"
 
         if lattice is None:
             subconcepts_dict = lca.complete_comparison(new_concepts)
@@ -151,9 +148,6 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
                 lattice._concepts[c_i] = c
 
             top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice._concepts)
-            assert top_concept_i is not None and bottom_concept_i is not None, \
-                "Sofia_binary error. " \
-                f"Concepts modernized at projection {projection_num} does not have one single top and bottom concept"
 
             # find completely new concepts created while projection iteration
             # sort concepts to ensure there will be no moment with multiple top or bottom concepts
@@ -161,14 +155,7 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
             if len(concepts_to_add) > 2:
                 concepts_to_add = [concepts_to_add[0], concepts_to_add[-1]] + concepts_to_add[1:-1]
             for c_i, c in enumerate(concepts_to_add):
-                try:
-                    lattice.add_concept(c)
-                except AssertionError as e:
-                    raise AssertionError(
-                        f'Sofia_binary error. '
-                        f'Assertion raised when adding concept {c_i}/{len(concepts_to_add)} '
-                        f'into lattice at projection {projection_num}.\n'
-                        f'Assertion is: {e}')
+                lattice.add_concept(c)
 
         if len(lattice.concepts) > L_max:
             lattice.calc_concepts_measures(measure)
@@ -178,25 +165,9 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
             concepts_to_remove = [i for i in concepts_to_remove
                                   if i not in [lattice.top_concept_i, lattice.bottom_concept_i]]
             for c_i in concepts_to_remove:
-                try:
-                    lattice.remove_concept(c_i)
-                except KeyError as e:
-                    raise AssertionError(
-                        f'Sofia_binary error. '
-                        f'Key error raised when removing concept {c_i} from lattice at projection {projection_num}.\n'
-                        f'Concepts to be removed: {concepts_to_remove}.\n'
-                        f'Key error is: {e}'
-                    )
-#            concepts = [c for c, m in zip(lattice.concepts, metrics) if m > metrics_lim]
-#        else:
-#            concepts = new_concepts
-        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
+                lattice.remove_concept(c_i)
 
-        for c_i, c in enumerate(lattice.concepts):
-            assert c.extent_i == tuple(ctx_projected.extension_i(c.intent_i)), \
-                f'sofia_binary error. Concept {c_i} is not closed at projection {projection_num}'
-            assert c.intent_i == tuple(ctx_projected.intention_i(c.extent_i)), \
-                f'sofia_binary error. Concept {c_i} is not closed at projection {projection_num}'
+        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
 
     return lattice
 
