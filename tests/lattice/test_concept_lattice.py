@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from fcapy.context import converters, FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.lattice.formal_concept import FormalConcept
@@ -12,8 +13,8 @@ def test_concept_lattice_init():
     concepts = [c1, c2, c3, c4]
     ltc = ConceptLattice(concepts)
 
-    superconcepts_dict = {0: [1, 3], 1: [2], 2: [], 3: [2]}
-    subconcepts_dict = {0: [], 1: [0], 2: [1, 3], 3: [0]}
+    superconcepts_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
+    subconcepts_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
     ltc = ConceptLattice(concepts, superconcepts_dict=superconcepts_dict)
     assert ltc.subconcepts_dict == subconcepts_dict,\
         'ConceptLattice.__init__ failed. The calculation of subconcepts based on superconcepts is wrong'
@@ -35,10 +36,10 @@ def test_from_context():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
 
-    c1 = FormalConcept((), (), (0, 1), ('a', 'b'))
-    c2 = FormalConcept((0,), ('a',), (0,), ('a',))
-    c3 = FormalConcept((0, 1), ('a', 'b'), (), ())
-    c4 = FormalConcept((1,), ('b',), (1,), ('b',))
+    c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=hash(ctx))
+    c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=hash(ctx))
+    c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=hash(ctx))
+    c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=hash(ctx))
     concepts = [c1, c2, c3, c4]
 
     assert set(ltc.concepts) == set(concepts),\
@@ -75,7 +76,8 @@ def test_get_top_bottom_concepts_i():
 def test_to_from_json():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    assert ltc == ltc.from_json(json_data=ltc.to_json()),\
+    ltc_json = ltc.from_json(json_data=ltc.to_json())
+    assert ltc == ltc_json,\
         'ConceptLattice.to/from_json failed. The lattice changed after 2 conversions.'
 
     path = 'test.json'
@@ -99,6 +101,17 @@ def test__eq__():
     assert ltc1 == ltc1, "ConceptLattice.__eq__ failed. The lattice does not equal to itself"
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
+
+    ltc_none = ConceptLattice()
+    assert ltc1 != ltc_none, "ConceptLattice.__eq__ failed. The lattice should not be equal to none lattice"
+    ltc3 = ConceptLattice([c1, c2, c4], subconcepts_dict={0: {1}, 1: {2}, 2: set()})
+    ltc3._superconcepts_dict = None
+    assert ltc1 != ltc3,\
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their subconcept_dicts are different"
+    ltc4 = ConceptLattice([c1, c2, c4], subconcepts_dict=None, superconcepts_dict={0: set(), 1: {0}, 2: {1}})
+    ltc4._subconcepts_dict = None
+    assert ltc1 != ltc4, \
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their superconcept_dicts are different"
 
 
 def test_concept_new_intent_extent():
@@ -153,3 +166,23 @@ def test_get_chains():
     chains_unsorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=False)
     assert chains_sorted == chains_unsorted,\
         "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
+
+
+def test_add_concept():
+    ctx = converters.read_csv('data/mango_bin.csv')
+    from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
+
+    concepts = cca.close_by_one(ctx)
+    np.random.shuffle(concepts)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
+    concepts = [concepts[top_concept_i], concepts[bottom_concept_i]] + \
+               [c for c_i, c in enumerate(concepts) if c_i not in [top_concept_i, bottom_concept_i]]
+    ltc = ConceptLattice(concepts[:2],
+                         subconcepts_dict={0: {1}, 1: set()})
+
+    for c in concepts[2:]:
+        ltc.add_concept(c)
+
+    ltc_true = ConceptLattice(concepts, subconcepts_dict=lca.complete_comparison(concepts))
+
+    assert ltc == ltc_true, 'lattice_construction.add_concept failed'

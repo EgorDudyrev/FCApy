@@ -1,13 +1,16 @@
+from copy import deepcopy
+
+
 def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
     def get_subconcepts(a_i, a, concepts):
-        subconcepts = []
+        subconcepts = set()
         for b_i, b in enumerate(concepts):
             if is_concepts_sorted:
                 if b_i < a_i:
                     continue
 
             if b < a:
-                subconcepts.append(b_i)
+                subconcepts.add(b_i)
         return subconcepts
 
     if n_jobs == 1:
@@ -22,17 +25,13 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
 
     all_subconcepts_dict = {i: subconcepts for i, subconcepts in enumerate(all_subconcepts)}
 
-    subconcepts_dict = {i: [] for i in range(len(concepts))}
+    subconcepts_dict = {i: None for i in range(len(concepts))}
     for a_i, b_is in all_subconcepts_dict.items():
-        b_is = b_is if not is_concepts_sorted else sorted(b_is)
+        subconcepts_dict[a_i] = b_is
+
+        b_is = b_is.copy() if not is_concepts_sorted else sorted(b_is)
         for b_i in b_is:
-            for c_i in b_is:
-                if b_i == c_i:
-                    continue
-                if b_i in all_subconcepts_dict[c_i]:
-                    break
-            else:
-                subconcepts_dict[a_i].append(b_i)
+            subconcepts_dict[a_i] -= all_subconcepts_dict[b_i]
 
     return subconcepts_dict
 
@@ -78,9 +77,8 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False):
                 sifted = False
 
         subconcepts_st_dict[superconcept_i].add(c_i)
-        superconcepts_st_dict[c_i] = [superconcept_i]
+        superconcepts_st_dict[c_i] = {superconcept_i}
 
-    subconcepts_st_dict = {k: list(v) for k, v in subconcepts_st_dict.items()}
     return subconcepts_st_dict, superconcepts_st_dict
 
 
@@ -183,7 +181,6 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
         superconcepts_dict[c_i] = superconcepts
         for superconcept_i in superconcepts_dict[c_i]:
             subconcepts_dict[superconcept_i].add(c_i)
-    subconcepts_dict = {k: sorted(v) for k, v in subconcepts_dict.items()}
     return subconcepts_dict
 
 
@@ -310,7 +307,6 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
         superconcepts_dict[c_i] = superconcepts
         for superconcept_i in superconcepts_dict[c_i]:
             subconcepts_dict[superconcept_i].add(c_i)
-    subconcepts_dict = {k: sorted(v) for k, v in subconcepts_dict.items()}
     return subconcepts_dict
 
 
@@ -325,3 +321,156 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
         subconcepts_dict = construct_lattice_from_spanning_tree_parallel(
             concepts, chains, is_concepts_sorted=is_concepts_sorted, n_jobs=n_jobs)
     return subconcepts_dict
+
+
+def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
+                top_concept_i=None, bottom_concept_i=None,
+                inplace=True):
+    assert new_concept not in concepts, "add_concept error. New concept is already in the concepts list"
+    assert len(concepts) >= 2, 'add_concept error. Concepts list should contain both top and bottom concepts'
+
+    if not inplace:
+        concepts = deepcopy(concepts)
+        subconcepts_dict = deepcopy(subconcepts_dict)
+        superconcepts_dict = deepcopy(superconcepts_dict)
+
+    new_concept_i = len(concepts)
+
+    # top/bottom indices are considered weird
+    # if new concept is bigger than top concept or smaller than the bottom concept
+    # in this situation it is better to double check these indices
+    def are_top_bottom_indices_weird():
+        return new_concept > concepts[top_concept_i] or new_concept < concepts[bottom_concept_i]
+    if top_concept_i is None or bottom_concept_i is None or are_top_bottom_indices_weird():
+        from ..lattice import ConceptLattice
+        top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
+
+    assert top_concept_i is not None and bottom_concept_i is not None,\
+        "add_concept error. Concepts list should always have one single top concept and one single bottom concept"
+
+    if new_concept > concepts[top_concept_i]:
+        direct_superconcepts = set()
+        direct_subconcepts = {top_concept_i}
+        top_concept_i = new_concept_i
+    elif new_concept < concepts[bottom_concept_i]:
+        direct_superconcepts = {bottom_concept_i}
+        direct_subconcepts = set()
+        bottom_concept_i = new_concept_i
+    else:
+        # find direct superconcepts
+        concepts_to_visit = [top_concept_i]
+        visited_concepts = set()
+        direct_superconcepts = set()
+        while len(concepts_to_visit) > 0:
+            c_i = concepts_to_visit.pop(0)
+            visited_concepts.add(c_i)
+
+            subconcepts = {subc_i for subc_i in subconcepts_dict[c_i]
+                           if new_concept < concepts[subc_i]}
+            if len(subconcepts) > 0:
+                concepts_to_visit += list(subconcepts - visited_concepts)
+            else:
+                direct_superconcepts.add(c_i)
+
+        # find direct subconcepts
+        concepts_to_visit = [bottom_concept_i]
+        visited_concepts = set()
+        direct_subconcepts = set()
+        while len(concepts_to_visit) > 0:
+            c_i = concepts_to_visit.pop(0)
+            visited_concepts.add(c_i)
+            superconcepts = {supc_i for supc_i in superconcepts_dict[c_i]
+                             if new_concept > concepts[supc_i]}
+
+            if len(superconcepts) > 0:
+                concepts_to_visit += list(superconcepts - visited_concepts)
+            else:
+                direct_subconcepts.add(c_i)
+
+    # for every pair of superconcept-subconcept put new concept in a line
+    for supc_i in direct_superconcepts:
+        subconcepts_dict[supc_i] -= direct_subconcepts
+        subconcepts_dict[supc_i] |= {new_concept_i}
+    for subc_i in direct_subconcepts:
+        superconcepts_dict[subc_i] -= direct_superconcepts
+        superconcepts_dict[subc_i] |= {new_concept_i}
+
+    concepts.append(new_concept)
+    superconcepts_dict[new_concept_i] = direct_superconcepts
+    subconcepts_dict[new_concept_i] = direct_subconcepts
+
+    return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i
+
+
+def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
+                   top_concept_i=None, bottom_concept_i=None,
+                   inplace=True):
+    from ..lattice import ConceptLattice
+
+    assert concept_i < len(concepts), f"remove_concept error. There is no concept {concept_i} in a concepts list"
+    assert len(concepts) >= 3,\
+        "remove_concept error. " \
+        "Concept list should be at least of size 3 (so there will still be top and bottom concepts)"
+
+    if not inplace:
+        concepts = deepcopy(concepts)
+        subconcepts_dict = deepcopy(subconcepts_dict)
+        superconcepts_dict = deepcopy(superconcepts_dict)
+
+    if top_concept_i is None or bottom_concept_i is None \
+            or concepts[concept_i] > concepts[top_concept_i] or concepts[concept_i] < concepts[bottom_concept_i]:
+        from ..lattice import ConceptLattice
+        top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
+
+    superconcepts = superconcepts_dict[concept_i]
+    subconcepts = subconcepts_dict[concept_i]
+
+    if concept_i == top_concept_i:
+        top_concept_i = list(subconcepts)[0] if len(subconcepts) == 1 else None
+        assert top_concept_i is not None, "Cannot remove the top concept of the lattice"
+    if concept_i == bottom_concept_i:
+        bottom_concept_i = list(superconcepts)[0] if len(superconcepts) == 1 else None
+        assert bottom_concept_i is not None, "Cannot remove the bottom concept of the lattice"
+
+    # find all subconcepts of current superconcepts to drop transitive relations
+    all_superconcepts = ConceptLattice.get_all_superconcepts_dict(concepts, superconcepts_dict)
+    all_subconcepts = ConceptLattice.get_all_subconcepts_dict(concepts, subconcepts_dict)
+
+    for supc_i in superconcepts:
+        subconcepts_dict[supc_i] -= {concept_i}
+        subconcepts_dict[supc_i] |= subconcepts
+        subconcepts_ = sorted(subconcepts_dict[supc_i], key=lambda c_i: -concepts[c_i].support)
+        for c_i in subconcepts_:
+            if c_i not in subconcepts_dict[supc_i]:
+                continue
+            subconcepts_dict[supc_i] -= all_subconcepts[c_i]
+    for subc_i in subconcepts:
+        superconcepts_dict[subc_i] -= {concept_i}
+        superconcepts_dict[subc_i] |= superconcepts - {subc_i}
+        superconcepts_ = sorted(superconcepts_dict[subc_i], key=lambda c_i: concepts[c_i].support)
+        for c_i in superconcepts_:
+            if c_i not in superconcepts_dict[subc_i]:
+                continue
+            superconcepts_dict[subc_i] -= all_superconcepts[c_i]
+
+    del concepts[concept_i]
+    del superconcepts_dict[concept_i]
+    del subconcepts_dict[concept_i]
+
+    # update concept indices
+    def decrement(c_i, threshold):
+        return c_i - 1 if c_i >= threshold else c_i
+    for c_i in range(len(concepts) + 1):
+        if c_i == concept_i:
+            continue
+        new_c_i = decrement(c_i, concept_i)
+        superconcepts_dict[new_c_i] = {decrement(supc_i, concept_i) for supc_i in superconcepts_dict[c_i]}
+        subconcepts_dict[new_c_i] = {decrement(subc_i, concept_i) for subc_i in subconcepts_dict[c_i]}
+        if new_c_i != c_i:
+            del superconcepts_dict[c_i]
+            del subconcepts_dict[c_i]
+
+    top_concept_i = decrement(top_concept_i, concept_i) if top_concept_i is not None else None
+    bottom_concept_i = decrement(bottom_concept_i, concept_i) if bottom_concept_i is not None else None
+
+    return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i

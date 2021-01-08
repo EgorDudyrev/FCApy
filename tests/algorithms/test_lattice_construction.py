@@ -1,8 +1,8 @@
 import pytest
 from fcapy.lattice.formal_concept import FormalConcept
-from fcapy.algorithms import lattice_construction as lca
+from fcapy.algorithms import lattice_construction as lca, concept_construction as cca
 from fcapy.lattice import ConceptLattice
-from fcapy.context import read_cxt
+from fcapy.context import read_cxt, read_csv
 import numpy as np
 
 
@@ -12,7 +12,7 @@ def test_complete_comparison():
     c3 = FormalConcept((1,), ('b',), (1,), ('b',))
     c4 = FormalConcept((0, 1), ('a', 'b'), (), ())
     subconcepts_dict = lca.complete_comparison([c1, c2, c3, c4])
-    subconcepts_dict_true = {0: [], 1: [0], 2: [0], 3: [1, 2]}
+    subconcepts_dict_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
     assert subconcepts_dict == subconcepts_dict_true,\
         'lattice_construction.complete_comparison failed. Wrong subconcepts_dict is constructed'
 
@@ -117,3 +117,137 @@ def test_lattice_construction_by_spanning_tree():
     assert sub_with_sptree_unsort == sub_parallel_unsort, \
         'lattice_construction.construct_lattice_by_spanning_tree failed.' \
         'Parallel computing give wrong result when concepts are not sorted'
+
+
+def test_add_concept():
+    ctx = read_csv('data/mango_bin.csv')
+    np.random.seed(13)
+    concepts_true = cca.close_by_one(ctx)
+    np.random.shuffle(concepts_true)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
+    concepts_true = [concepts_true[top_concept_i], concepts_true[bottom_concept_i]] + \
+               [c for c_i, c in enumerate(concepts_true) if c_i not in [top_concept_i, bottom_concept_i]]
+
+    subconcepts_dict_true = lca.complete_comparison(concepts_true)
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+
+    concepts = concepts_true[:2]
+    subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
+    for c_i, c in enumerate(concepts_true[2:]):
+        c_i += 2
+        lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict,
+                        top_concept_i=0, bottom_concept_i=1, inplace=True)
+
+    assert concepts == concepts_true,\
+        'lattice_construction.add_concept failed. Concepts list dict differs when run inplace'
+    assert subconcepts_dict == subconcepts_dict_true,\
+        'lattice_construction.add_concept failed. Subconcepts dict differs when run inplace'
+    assert superconcepts_dict == superconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Superconcepts dict differs when run inplace'
+
+    concepts = concepts_true[:2]
+    subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
+    for c_i, c in enumerate(concepts_true[2:]):
+        c_i += 2
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.add_concept(
+            c, concepts[:c_i], subconcepts_dict, superconcepts_dict,
+            top_concept_i=0, bottom_concept_i=1, inplace=False)
+
+    assert concepts == concepts_true, \
+        'lattice_construction.add_concept failed. Concepts list dict differs when run not inplace'
+    assert subconcepts_dict == subconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Subconcepts dict differs when run not inplace'
+    assert superconcepts_dict == superconcepts_dict_true, \
+        'lattice_construction.add_concept failed. Superconcepts dict differs when run not inplace'
+
+    c_newbottom = FormalConcept((), (), (0, 1, 2, 3), ('a', 'b', 'c', 'd'))
+    c1 = FormalConcept((2,), ('c',), (0, 1, 2), ('a', 'b', 'c'))
+    c2 = FormalConcept((0, 2), ('a', 'c'), (0, 2), ('a', 'c'))
+    c3 = FormalConcept((1, 2), ('b', 'c'), (1, 2), ('b', 'c'))
+    c4 = FormalConcept((0, 1, 2), ('a', 'b', 'c'), (2,), ('c',))
+    c_newtop = FormalConcept((0, 1, 2, 3), ('a', 'b', 'c', 'd'), (), ())
+
+    concepts_true = [c1, c2, c3, c4, c_newbottom, c_newtop]
+    subconcepts_dict_true = {4: set(), 0: {4}, 1: {0}, 2: {0}, 3: {1, 2}, 5: {3}}
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+
+    concepts = [c1, c2, c3, c4]
+    subconcepts_dict = lca.complete_comparison(concepts)
+    superconcepts_dict = ConceptLattice.transpose_hierarchy(subconcepts_dict)
+    for c in [c_newbottom, c_newtop]:
+        lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict, inplace=True)
+    error_msg = 'lattice_construction.add_concept failed. Error when adding new top_concept or bottom_concept'
+    assert set(concepts) == set(concepts_true), error_msg
+    assert subconcepts_dict == subconcepts_dict_true, error_msg
+    assert superconcepts_dict == superconcepts_dict_true, error_msg
+
+
+def test_remove_concept():
+    ctx = read_csv('data/mango_bin.csv')
+    concepts_true = cca.close_by_one(ctx)
+    concepts_true1 = cca.close_by_one(ctx)
+    np.random.seed(13)
+    np.random.shuffle(concepts_true)
+    np.random.seed(13)
+    np.random.shuffle(concepts_true1)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
+
+    subconcepts_dict_true = lca.complete_comparison(concepts_true)
+    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+    subconcepts_dict_true1 = lca.complete_comparison(concepts_true1)
+    superconcepts_dict_true1 = ConceptLattice.transpose_hierarchy(subconcepts_dict_true1)
+
+    with pytest.raises(AssertionError, match='Cannot remove the top concept of the lattice'):
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            top_concept_i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+
+    with pytest.raises(AssertionError, match='Cannot remove the bottom concept of the lattice'):
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            bottom_concept_i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+
+    for i in range(len(concepts_true)):
+        if i in {top_concept_i, bottom_concept_i}:
+            continue
+
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
+        subconcepts_dict_true_new = lca.complete_comparison(concepts)
+        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        assert concepts_true[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
+        assert concepts_true == concepts_true1,\
+            'remove_concept failed. The original concepts list has been changed during non inplace function call'
+        assert subconcepts_dict_true == subconcepts_dict_true1,\
+            'remove_concept failed. The original subconcepts_dict has been changed during non inplace function call'
+        assert superconcepts_dict_true == superconcepts_dict_true1, \
+            'remove_concept failed. The original superconcepts_dict has been changed during non inplace function call'
+
+        assert subconcepts_dict == subconcepts_dict_true_new,\
+            'remove_concept failed. Subconcept_dict is calculated wrong'
+        assert superconcepts_dict == superconcepts_dict_true_new, \
+            'remove_concept failed. Superconcept_dict is calculated wrong'
+
+    for i in range(len(concepts_true)):
+        if i in {top_concept_i, bottom_concept_i}:
+            continue
+
+        from copy import deepcopy
+        concepts_true = deepcopy(concepts_true1)
+        subconcepts_dict_true = deepcopy(subconcepts_dict_true1)
+        superconcepts_dict_true = deepcopy(superconcepts_dict_true1)
+
+        concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
+            i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=True)
+        subconcepts_dict_true_new = lca.complete_comparison(concepts)
+        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        assert concepts_true1[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
+        assert concepts_true != concepts_true1,\
+            'remove_concept failed. The original concepts list should been changed during inplace function call'
+        assert subconcepts_dict_true != subconcepts_dict_true1,\
+            'remove_concept failed. The original subconcepts_dict should been changed during inplace function call'
+        assert superconcepts_dict_true != superconcepts_dict_true1, \
+            'remove_concept failed. The original superconcepts_dict should been changed during inplace function call'
+
+        assert subconcepts_dict == subconcepts_dict_true_new,\
+            'remove_concept failed. Subconcept_dict is calculated wrong'
+        assert superconcepts_dict == superconcepts_dict_true_new, \
+            'remove_concept failed. Superconcept_dict is calculated wrong'

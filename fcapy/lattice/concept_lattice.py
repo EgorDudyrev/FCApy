@@ -72,9 +72,9 @@ class ConceptLattice:
         new_dict = {}
         for k, vs in hierarchy_dict.items():
             if k not in new_dict:
-                new_dict[k] = []
+                new_dict[k] = set()
             for v in vs:
-                new_dict[v] = new_dict.get(v, []) + [k]
+                new_dict[v] = new_dict.get(v, set()) | {k}
         return new_dict
 
     @staticmethod
@@ -83,15 +83,30 @@ class ConceptLattice:
             return None, None
 
         if is_concepts_sorted:
-            return 0, len(concepts)-1
+            top_concept_i, bottom_concept_i = 0, len(concepts) - 1
+            multiple_top = concepts[1].support == concepts[top_concept_i].support
+            multiple_bottom = concepts[-2].support == concepts[bottom_concept_i].support
+        else:
+            top_concept_i, bottom_concept_i = 0, 0
+            multiple_top, multiple_bottom = False, False
+            for i, c in enumerate(concepts[1:]):
+                i += 1
+                if c.support == concepts[top_concept_i].support:
+                    multiple_top = True
+                if c.support == concepts[bottom_concept_i].support:
+                    multiple_bottom = True
 
-        top_concept_i, bottom_concept_i = 0, 0
-        for i, c in enumerate(concepts):
-            if c.support > concepts[top_concept_i].support:
-                top_concept_i = i
+                if c.support > concepts[top_concept_i].support:
+                    top_concept_i = i
+                    multiple_top = False
 
-            if c.support < concepts[bottom_concept_i].support:
-                bottom_concept_i = i
+                if c.support < concepts[bottom_concept_i].support:
+                    bottom_concept_i = i
+                    multiple_bottom = False
+
+        top_concept_i = None if multiple_top else top_concept_i
+        bottom_concept_i = None if multiple_bottom else bottom_concept_i
+
         return top_concept_i, bottom_concept_i
 
     def to_json(self, path=None):
@@ -131,8 +146,8 @@ class ConceptLattice:
         concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
         subconcepts_dict = {}
         for arc in arcs_data['Arcs']:
-            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], []) + [arc['D']]
-        subconcepts_dict[bottom_concept_i] = []
+            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], set()) | {arc['D']}
+        subconcepts_dict[bottom_concept_i] = set()
 
         ltc = ConceptLattice(
             concepts=concepts, subconcepts_dict=subconcepts_dict,
@@ -141,10 +156,18 @@ class ConceptLattice:
         return ltc
 
     def __eq__(self, other):
+        if self._concepts is None or other.concepts is None:
+            return self._concepts == other.concepts
+
         concepts_other = set(other.concepts)
         for c in self._concepts:
             if c not in concepts_other:
                 return False
+        if self._subconcepts_dict != other.subconcepts_dict:
+            return False
+        if self._superconcepts_dict != other.superconcepts_dict:
+            return False
+
         return True
 
     def get_concept_new_extent_i(self, concept_i):
@@ -228,7 +251,37 @@ class ConceptLattice:
                 visited_concepts.add(c_i)
                 if c_sort_i == 0:
                     break
-                c_i = superconcepts_dict[c_i][0]
+                c_i = sorted(superconcepts_dict[c_i])[0]
                 c_sort_i = map_i_isort[c_i] if not is_concepts_sorted else c_i
             chains.append(chain[::-1])
         return chains
+
+    def add_concept(self, new_concept):
+        _, _, _, self._top_concept_i, self._bottom_concept_i = lca.add_concept(
+            new_concept, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
+            self._top_concept_i, self._bottom_concept_i, inplace=True)
+
+    def remove_concept(self, concept_i):
+        _, _, _, self._top_concept_i, self._bottom_concept_i = lca.remove_concept(
+            concept_i, self._concepts, self._subconcepts_dict, self._superconcepts_dict,
+            self._top_concept_i, self._bottom_concept_i, inplace=True)
+
+    @classmethod
+    def get_all_superconcepts_dict(cls, concepts, superconcepts_dict):
+        all_superconcepts = {}
+        concepts_to_visit = sorted(range(len(concepts)), key=lambda c_i: -concepts[c_i].support)
+        for c_i in concepts_to_visit:
+            all_superconcepts[c_i] = superconcepts_dict[c_i].copy()
+            for supc_i in superconcepts_dict[c_i]:
+                all_superconcepts[c_i] |= all_superconcepts[supc_i]
+        return all_superconcepts
+
+    @classmethod
+    def get_all_subconcepts_dict(cls, concepts, subconcepts_dict):
+        all_subconcepts = {}
+        concepts_to_visit = sorted(list(range(len(concepts))), key=lambda c_i: concepts[c_i].support)
+        for c_i in concepts_to_visit:
+            all_subconcepts[c_i] = subconcepts_dict[c_i].copy()
+            for subc_i in subconcepts_dict[c_i]:
+                all_subconcepts[c_i] |= all_subconcepts[subc_i]
+        return all_subconcepts

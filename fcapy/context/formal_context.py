@@ -438,3 +438,7 @@ class FormalContext:
 
         is_not_equal = self.data != other.data
         return is_not_equal
+
+    def __hash__(self):
+        return hash((tuple(self._object_names), tuple(self._attribute_names),
+                     tuple([tuple(row) for row in self._data])))
