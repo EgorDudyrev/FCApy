@@ -36,10 +36,10 @@ def test_from_context():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
 
-    c1 = FormalConcept((), (), (0, 1), ('a', 'b'))
-    c2 = FormalConcept((0,), ('a',), (0,), ('a',))
-    c3 = FormalConcept((0, 1), ('a', 'b'), (), ())
-    c4 = FormalConcept((1,), ('b',), (1,), ('b',))
+    c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=hash(ctx))
+    c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=hash(ctx))
+    c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=hash(ctx))
+    c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=hash(ctx))
     concepts = [c1, c2, c3, c4]
 
     assert set(ltc.concepts) == set(concepts),\
@@ -76,7 +76,8 @@ def test_get_top_bottom_concepts_i():
 def test_to_from_json():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    assert ltc == ltc.from_json(json_data=ltc.to_json()),\
+    ltc_json = ltc.from_json(json_data=ltc.to_json())
+    assert ltc == ltc_json,\
         'ConceptLattice.to/from_json failed. The lattice changed after 2 conversions.'
 
     path = 'test.json'

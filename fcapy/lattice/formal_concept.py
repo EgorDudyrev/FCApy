@@ -3,7 +3,9 @@ import json
 
 
 class FormalConcept:
-    def __init__(self, extent_i, extent, intent_i, intent, measures=None):
+    JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
+
+    def __init__(self, extent_i, extent, intent_i, intent, measures=None, context_hash=None):
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"FormalConcept.__init__. Given {name} value should be an iterable but not a string"
@@ -23,6 +25,7 @@ class FormalConcept:
 
         self._support = len(self._extent_i)
         self.measures = measures if measures is not None else {}
+        self._context_hash = context_hash
 
     @property
     def extent_i(self):
@@ -44,6 +47,10 @@ class FormalConcept:
     def support(self):
         return self._support
 
+    @property
+    def context_hash(self):
+        return self._context_hash
+
     def __eq__(self, other):
         if self._support != other.support:
             return False
@@ -51,9 +58,12 @@ class FormalConcept:
         return self <= other
 
     def __hash__(self):
-        return hash(self._extent_i)
+        return hash((tuple(sorted(self._extent_i)), tuple(sorted(self._intent_i))))
 
     def __le__(self, other):
+        if self._context_hash != other.context_hash:
+            raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
+
         if self._support > other.support:
             return False
 
@@ -76,16 +86,19 @@ class FormalConcept:
         concept_info['Supp'] = self.support
         for k, v in self.measures.items():
             concept_info[k] = v
+        concept_info['Context_Hash'] = self._context_hash
         return concept_info
 
-    @staticmethod
-    def from_dict(data):
+    @classmethod
+    def from_dict(cls, data):
         if data["Int"] == "BOTTOM":
-            data["Int"] = {'Inds': [], "Names": []}
+            data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
+            #data["Int"] = {'Inds': [], "Names": []}
 
         c = FormalConcept(
             data['Ext']['Inds'], data['Ext'].get('Names', []),
-            data['Int']['Inds'], data['Int'].get('Names', [])
+            data['Int']['Inds'], data['Int'].get('Names', []),
+            context_hash=data.get('Context_Hash')
         )
 
         for k, v in data.items():
