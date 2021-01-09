@@ -163,9 +163,9 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
             # find completely new concepts created while projection iteration
             # sort concepts to ensure there will be no moment with multiple top or bottom concepts
-            concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)[::-1]
-            if len(concepts_to_add) > 2:
-                concepts_to_add = [concepts_to_add[0], concepts_to_add[-1]] + concepts_to_add[1:-1]
+            concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+            if len(concepts_to_add) >= 2 and concepts_to_add[-1] < lattice._concepts[bottom_concept_i]:
+                concepts_to_add = [concepts_to_add[-1]] + concepts_to_add[:-1]
             for c_i, c in enumerate(concepts_to_add):
                 lattice.add_concept(c)
 

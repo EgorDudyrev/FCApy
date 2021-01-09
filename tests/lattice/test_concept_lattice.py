@@ -61,9 +61,10 @@ def test_from_context():
     pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
     ltc_cbo = ConceptLattice.from_context(mvctx, algo='CbO')
-    #ltc_sofia = ConceptLattice.from_context(mvctx, algo='Sofia')
-    #assert ltc_cbo == ltc_sofia, \
-    #    "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms for MVContext"
+    ltc_sofia = ConceptLattice.from_context(mvctx, algo='Sofia')
+    assert ltc_cbo == ltc_sofia, \
+        "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms for MVContext"
+
 
 def test_get_top_bottom_concepts_i():
     ltc = ConceptLattice()
