@@ -2,7 +2,12 @@ import pytest
 from fcapy.mvcontext import pattern_structure
 
 
-def test_abstact_ps_properties():
+def test_abstract_ps_repr():
+    aps = pattern_structure.AbstractPS([1, 2, 'c', None], 'abstract_structure')
+    assert aps.__repr__() == "AbstractPS 'abstract_structure'"
+
+
+def test_abstract_ps_properties():
     aps = pattern_structure.AbstractPS([1, 2, 'c', None], 'abstract_structure')
     assert aps.name == 'abstract_structure', 'AbstractPS.name failed'
     assert aps.data == [1, 2, 'c', None], 'AbstractPS.data failed'

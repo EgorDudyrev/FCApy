@@ -22,6 +22,13 @@ class AbstractPS:
     def name(self):
         return self._name
 
+    def __repr__(self):
+        str_ = f"{self.__class__.__name__} '{self._name}'"
+        return str_
+
+    def __eq__(self, other):
+        return self._data == other.data and self._name == other.name
+
 
 class IntervalPS(AbstractPS):
     def intention_i(self, object_indexes):
