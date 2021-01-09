@@ -3,6 +3,7 @@ import numpy as np
 from fcapy.context import converters, FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.mvcontext import pattern_structure as ps, mvcontext
 
 
 def test_concept_lattice_init():
@@ -45,6 +46,24 @@ def test_from_context():
     assert set(ltc.concepts) == set(concepts),\
         'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
+    ctx = converters.read_csv('data/mango_bin.csv')
+    ltc_cbo = ConceptLattice.from_context(ctx, algo='CbO')
+    ltc_sofia = ConceptLattice.from_context(ctx, algo='Sofia')
+    assert ltc_cbo == ltc_sofia,\
+        "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms"
+
+    data = [[1, 10],
+            [2, 22],
+            [3, 100],
+            [4, 60]]
+    object_names = ['a', 'b', 'c', 'd']
+    attribute_names = ['M1', 'M2']
+    pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
+    mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
+    ltc_cbo = ConceptLattice.from_context(mvctx, algo='CbO')
+    #ltc_sofia = ConceptLattice.from_context(mvctx, algo='Sofia')
+    #assert ltc_cbo == ltc_sofia, \
+    #    "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms for MVContext"
 
 def test_get_top_bottom_concepts_i():
     ltc = ConceptLattice()
@@ -185,4 +204,26 @@ def test_add_concept():
 
     ltc_true = ConceptLattice(concepts, subconcepts_dict=lca.complete_comparison(concepts))
 
-    assert ltc == ltc_true, 'lattice_construction.add_concept failed'
+    assert ltc == ltc_true, 'ConceptLattice.add_concept failed'
+
+
+def test_trace_context():
+    ctx = converters.read_csv('data/mango_bin.csv')
+    ctx_train = converters.from_pandas(ctx.to_pandas().drop('mango'))
+    ltc = ConceptLattice.from_context(ctx_train)
+    bottom_concepts, traced_concepts = ltc.trace_context(ctx_train)
+    all_superconcepts_dict = ltc.get_all_superconcepts_dict(ltc.concepts, ltc.superconcepts_dict)
+    for g in ctx_train.object_names:
+        bottom_concept_i = list(bottom_concepts[g])[0]
+        assert traced_concepts[g] - {bottom_concept_i} == all_superconcepts_dict[bottom_concept_i],\
+            f'ConceptLattice.trace_context failed. Traced concepts are calculated wrong for object {g}'
+
+    ctx_test = converters.from_pandas(ctx.to_pandas().loc[['mango']])
+    bottom_concepts, traced_concepts = ltc.trace_context(ctx_test)
+    assert bottom_concepts['mango'] == {6, 9, 13},\
+        'ConceptLattice.trace_context failed. Test context traced concepts are calculated wrong'
+    traced_concepts_true = {6, 9, 13}
+    for c_i in [6, 9, 13]:
+        traced_concepts_true |= all_superconcepts_dict[c_i]
+    assert traced_concepts['mango'] == traced_concepts_true,\
+        "ConceptLattice.trace_context failed. Traced concepts for test context are calculated wrong"

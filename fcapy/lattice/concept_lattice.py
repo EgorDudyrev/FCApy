@@ -1,7 +1,9 @@
 import json
 from ..algorithms import concept_construction as cca, lattice_construction as lca
 from .formal_concept import FormalConcept
+from ..mvcontext.mvcontext import MVContext
 import warnings
+import inspect
 
 
 class ConceptLattice:
@@ -55,16 +57,49 @@ class ConceptLattice:
         return self._concepts[self._bottom_concept_i] if self._bottom_concept_i is not None else None
 
     @classmethod
-    def from_context(cls, context):
-        concepts = cls.sort_concepts(concepts=cca.close_by_one(context))
-        concepts = cls.sort_concepts(concepts)
-        subconcepts_dict = lca.complete_comparison(concepts)
-        top_concept_i, bottom_concept_i = cls.get_top_bottom_concepts_i(concepts)
+    def from_context(cls, context, algo=None, **kwargs):
+        def get_kwargs_used(kwargs, func):
+            possible_kwargs = inspect.signature(func).parameters
+            kwargs_used = {k: v for k, v in kwargs.items() if k in possible_kwargs}
+            return kwargs_used
 
-        ltc = ConceptLattice(
-            concepts=concepts, subconcepts_dict=subconcepts_dict,
-            top_concept_i=top_concept_i, bottom_concept_i=bottom_concept_i
-        )
+        if algo is None:
+            algo = 'Sofia' if type(context) == MVContext else 'CbO'
+
+        if algo == 'CbO':
+            kwargs_used = get_kwargs_used(kwargs, cca.close_by_one)
+            concepts = cls.sort_concepts(concepts=cca.close_by_one(context, **kwargs_used))
+            subconcepts_dict = lca.complete_comparison(concepts)
+            top_concept_i, bottom_concept_i = cls.get_top_bottom_concepts_i(concepts)
+
+            ltc = ConceptLattice(
+                concepts=concepts, subconcepts_dict=subconcepts_dict,
+                top_concept_i=top_concept_i, bottom_concept_i=bottom_concept_i
+            )
+        elif algo == 'Sofia':
+            if type(context) == MVContext:
+                kwargs_used = get_kwargs_used(kwargs, cca.sofia_general)
+                ltc = cca.sofia_general(context, **kwargs_used)
+            else:
+                kwargs_used = get_kwargs_used(kwargs, cca.sofia_binary)
+                ltc = cca.sofia_binary(context, **kwargs_used)
+            # sort concepts in the same order as they have been created by CbO algorithm
+            concepts_sorted = cls.sort_concepts(ltc.concepts)
+            map_concept_i_sort = {c: c_sort_i for c_sort_i, c in enumerate(concepts_sorted)}
+            map_i_isort = [map_concept_i_sort[ltc.concepts[c_i]] for c_i in range(len(ltc.concepts))]
+            map_concept_i = {c: c_i for c_i, c in enumerate(ltc.concepts)}
+            map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(len(ltc.concepts))]
+
+            ltc._concepts = concepts_sorted
+            ltc._subconcepts_dict = {map_i_isort[c_i]: {map_i_isort[subc_i] for subc_i in ltc._subconcepts_dict[c_i]}
+                                     for c_i in map_isort_i}
+            ltc._superconcepts_dict = {map_i_isort[c_i]: {map_i_isort[supc_i] for supc_i in ltc._superconcepts_dict[c_i]}
+                                       for c_i in map_isort_i}
+            ltc._top_concept_i = map_i_isort[ltc._top_concept_i]
+            ltc._bottom_concept_i = map_i_isort[ltc._bottom_concept_i]
+        else:
+            raise ValueError('ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
+                             'Possible values are: "CbO" (stands for CloseByOne), "Sofia"')
         return ltc
 
     @staticmethod
@@ -285,3 +320,47 @@ class ConceptLattice:
             for subc_i in subconcepts_dict[c_i]:
                 all_subconcepts[c_i] |= all_subconcepts[subc_i]
         return all_subconcepts
+
+    def trace_context(self, context: MVContext, use_object_indices=False):
+        concept_extents = {}
+
+        def stored_extension(concept_i):
+            if concept_i not in concept_extents:
+                concept_extents[concept_i] = set(context.extension_i(self._concepts[concept_i].intent_i))
+            return concept_extents[concept_i]
+
+        concepts_to_visit = [self._top_concept_i]
+        object_bottom_concepts = {idx: set() for idx in range(context.n_objects)}
+        object_traced_concepts = {idx: set() for idx in range(context.n_objects)}
+        visited_concepts = set()
+
+        for i in range(len(self._concepts)):
+            if len(concepts_to_visit) == 0:
+                break
+
+            c_i = concepts_to_visit.pop(0)
+            extent = stored_extension(c_i)
+            visited_concepts.add(c_i)
+
+            subconcept_extents = set()
+            for subconcept_i in self._subconcepts_dict[c_i]:
+                subconcept_extents |= stored_extension(subconcept_i)
+            stopped_objects = extent - subconcept_extents
+
+            for g_i in stopped_objects:
+                object_bottom_concepts[g_i].add(c_i)
+            for g_i in extent:
+                object_traced_concepts[g_i].add(c_i)
+
+            new_concepts = [subconcept_i for subconcept_i in self._subconcepts_dict[c_i]
+                            if len(stored_extension(subconcept_i)) > 0
+                            and subconcept_i not in visited_concepts and subconcept_i not in concepts_to_visit]
+            new_concepts = sorted(new_concepts, key=lambda c_i: -self._concepts[c_i].support)
+            concepts_to_visit += new_concepts
+
+        if not use_object_indices:
+            object_bottom_concepts = {context.object_names[g_i]: concepts_i
+                                      for g_i, concepts_i in object_bottom_concepts.items()}
+            object_traced_concepts = {context.object_names[g_i]: concepts_i
+                                      for g_i, concepts_i in object_traced_concepts.items()}
+        return object_bottom_concepts, object_traced_concepts
