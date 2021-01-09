@@ -119,15 +119,14 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
     itersets = [[]]
-    ds = context.to_pandas()
 
     lattice = None
 
     for projection_num in range(1, max_projection + 1):
         if iterate_attributes:
-            ctx_projected = context.from_pandas(ds.iloc[:, projections_order[:projection_num]])
+            ctx_projected = context[:, projections_order[:projection_num]]
         else:
-            ctx_projected = context.from_pandas(ds.iloc[projections_order[:projection_num]])
+            ctx_projected = context[projections_order[:projection_num]]
 
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,

@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+
+
 class FormalContext:
     """
     A class used to represent Formal Context object from FCA theory.
@@ -442,3 +445,30 @@ class FormalContext:
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names),
                      tuple([tuple(row) for row in self._data])))
+
+    def __getitem__(self, item):
+        if type(item) != tuple:
+            item = (item, slice(0, self._n_attributes))
+
+        def slice_list(lst, slicer):
+            if isinstance(slicer, slice):
+                lst = lst[slicer]
+            elif isinstance(slicer, Iterable):
+                lst = [lst[x] for x in slicer]
+            else:
+                lst = [lst[slicer]]
+            return lst
+
+        data = slice_list(self._data, item[0])
+        data = [list(row) for row in zip(*data)]  # transpose data
+        data = slice_list(data, item[1])
+        data = [list(row) for row in zip(*data)]  # transpose data again
+
+        if any([isinstance(i, slice) for i in item]):
+            object_names = slice_list(self._object_names, item[0])
+            attribute_names = slice_list(self._attribute_names, item[1])
+            data = FormalContext(data, object_names, attribute_names)
+        else:
+            data = data[0][0]
+
+        return data

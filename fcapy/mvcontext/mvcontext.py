@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+
+
 class MVContext:
     """
     A class used to represent Multi Valued Context object from FCA theory.
@@ -9,6 +12,7 @@ class MVContext:
 
         self.object_names = object_names
         self.attribute_names = attribute_names
+        self._pattern_types = pattern_types
         self.pattern_structures = self.assemble_pattern_structures(data, pattern_types)
         self.description = kwargs.get('description')
 
@@ -52,6 +56,10 @@ class MVContext:
     @pattern_structures.setter
     def pattern_structures(self, value):
         self._pattern_structures = value
+
+    @property
+    def pattern_types(self):
+        return self._pattern_types
 
     def assemble_pattern_structures(self, data, pattern_types):
         if data is None:
@@ -217,3 +225,32 @@ class MVContext:
 
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names), tuple(self._pattern_structures)))
+
+    def __getitem__(self, item):
+        if type(item) != tuple:
+            item = (item, slice(0, self._n_attributes))
+
+        def slice_list(lst, slicer):
+            if isinstance(slicer, slice):
+                lst = lst[slicer]
+            elif isinstance(slicer, Iterable):
+                lst = [lst[x] for x in slicer]
+            else:
+                lst = [lst[slicer]]
+            return lst
+
+        pattern_structures = slice_list(self._pattern_structures, item[1])
+        data = [
+            ps[item[0]] if isinstance(item[0], (slice, Iterable)) else
+            [ps[item[0]]]
+            for ps in pattern_structures]
+        data = [list(row) for row in zip(*data)]
+
+        if any([isinstance(i, slice) for i in item]):
+            object_names = slice_list(self._object_names, item[0])
+            attribute_names = slice_list(self._attribute_names, item[1])
+            pattern_types = {k: v for k, v in self._pattern_types.items() if k in attribute_names}
+            data = MVContext(data, pattern_types, object_names, attribute_names)
+        else:
+            data = data[0][0]
+        return data

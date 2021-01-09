@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 class AbstractPS:
     def __init__(self, data, name=None):
         self._data = data
@@ -31,6 +33,13 @@ class AbstractPS:
 
     def __hash__(self):
         return hash((self._name, tuple(self._data)))
+
+    def __getitem__(self, item):
+        if isinstance(item, Iterable):
+            data = [self._data[g] for g in item]
+        else:
+            data = self._data[item]
+        return data
 
 
 class IntervalPS(AbstractPS):
