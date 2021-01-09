@@ -9,6 +9,9 @@ def run_install(**kwargs):
         'context': [
             'pandas'
         ],
+        'mvcontext': [
+            'frozendict'
+        ],
         'algorithms': [
             'joblib',
         ],

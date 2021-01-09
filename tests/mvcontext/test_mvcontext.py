@@ -105,5 +105,6 @@ def test_hash():
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
     pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types)
-    with pytest.raises(NotImplementedError):
-        hash(mvctx)
+    mvctx1 = mvcontext.MVContext(data, pattern_types)
+    assert len({mvctx, mvctx1}) == 1, "MVContext.__has__ failed"
+

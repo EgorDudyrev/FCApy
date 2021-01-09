@@ -4,7 +4,9 @@ from fcapy.context import read_json, read_csv, read_cxt
 from fcapy.algorithms import concept_construction as cca
 from fcapy.algorithms import lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.lattice import ConceptLattice
+from fcapy.mvcontext import pattern_structure as PS, mvcontext
 
 
 def test_close_by_one():
@@ -41,6 +43,19 @@ def test_close_by_one():
     assert set(concepts_constructed) == set(concepts_constructed_iterauto), \
         "Close_by_one failed. Iterations over extents and automatically chosen set give different set of concepts"
 
+    data = [[1], [2]]
+    object_names = ['a', 'b']
+    attribute_names = ['M1']
+    pattern_types = {'M1': PS.IntervalPS}
+    mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
+    concepts = cca.close_by_one(mvctx)
+    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, context_hash=hash(mvctx))
+    c1 = PatternConcept((0,), ('a',), {0: 1}, {'M1': 1}, context_hash=hash(mvctx))
+    c2 = PatternConcept((1,), ('b',), {0: 2}, {'M1': 2}, context_hash=hash(mvctx))
+    c3 = PatternConcept((), (), {0: None}, {'M1': None}, context_hash=hash(mvctx))
+    assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
+
+
 #@pytest.mark.skip('Should test unit function before')
 def test_sofia_binary():
     ctx = read_cxt('data/digits.cxt')
@@ -74,6 +89,7 @@ def test_sofia_binary():
         concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting=projection_sorting)
     with pytest.raises(ValueError):
         concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting="UnKnOwN OrDeR")
+
 
 #@pytest.mark.skip('Should test unit functions before')
 def test_sofia_general():

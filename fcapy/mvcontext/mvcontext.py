@@ -216,4 +216,4 @@ class MVContext:
         return is_not_equal
 
     def __hash__(self):
-        raise NotImplementedError
+        return hash((tuple(self._object_names), tuple(self._attribute_names), tuple(self._pattern_structures)))

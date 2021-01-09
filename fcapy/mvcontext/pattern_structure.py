@@ -29,9 +29,15 @@ class AbstractPS:
     def __eq__(self, other):
         return self._data == other.data and self._name == other.name
 
+    def __hash__(self):
+        return hash((self._name, tuple(self._data)))
+
 
 class IntervalPS(AbstractPS):
     def intention_i(self, object_indexes):
+        if len(object_indexes) == 0:
+            return None
+
         min_ = max_ = self._data[object_indexes[0]]
         for g_i in object_indexes[1:]:
             v = self._data[g_i]
@@ -43,6 +49,9 @@ class IntervalPS(AbstractPS):
         return min_, max_
 
     def extension_i(self, description):
+        if description is None:
+            return []
+
         try:
             min_, max_ = description[0], description[1]
         except TypeError:
