@@ -56,7 +56,6 @@ def test_close_by_one():
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 
-#@pytest.mark.skip('Should test unit function before')
 def test_sofia_binary():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
@@ -91,7 +90,6 @@ def test_sofia_binary():
         concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, projection_sorting="UnKnOwN OrDeR")
 
 
-#@pytest.mark.skip('Should test unit functions before')
 def test_sofia_general():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
