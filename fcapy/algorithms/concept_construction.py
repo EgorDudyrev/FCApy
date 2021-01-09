@@ -1,11 +1,16 @@
 from fcapy.context import FormalContext
+from fcapy.mvcontext.mvcontext import  MVContext
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice.pattern_concept import PatternConcept
 import random
 from copy import deepcopy
 
 
-def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extents=None,
+def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=None,
                  initial_combinations=None, iter_elements_to_check=None):
+    if iterate_extents is False:
+        assert type(context) == FormalContext, "Can set iterate_extents=False only if FormalContext is given"
+
     if initial_combinations is not None:
         assert iterate_extents is not None,\
             "`iterate_extents parameter should be specified if initial_combinations are given " \
@@ -17,7 +22,7 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
             "(`True if iter_elements_to_check are objects, `False if iter_elements_to_check are attributes)"
 
     if iterate_extents is None:
-        iterate_extents = context.n_objects < context.n_attributes
+        iterate_extents = context.n_objects < context.n_attributes if type(context) == FormalConcept else True
     n_iters = context.n_objects if iterate_extents else context.n_attributes
 
     # <iterset> - iterating set - the set of object if one construct construct concepts while iterating over objects,
@@ -72,18 +77,26 @@ def close_by_one(context: FormalContext, output_as_concepts=True, iterate_extent
         for concept_data in zip(extents_i, intents_i):
             extent_i, intent_i = concept_data
             extent = [object_names[g_i] for g_i in extent_i]
-            intent = [attribute_names[m_i] for m_i in intent_i]
-            concepts.append(FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash))
+            if type(context) == FormalContext:
+                intent = [attribute_names[m_i] for m_i in intent_i]
+                concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
+            else:
+                intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
+                concept = PatternConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
+            concepts.append(concept)
         return concepts
 
     data = {'extents_i': extents_i, 'intents_i': intents_i}
     return data
 
 
-def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', projection_sorting=None):
+def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure='LStab', projection_sorting=None):
     assert not (iterate_attributes and type(context) != FormalContext),\
         "Sofia_binary error. " +\
         "Cannot iterate_attributes if given context is of type FormalContext"
+
+    if iterate_attributes:
+        assert type(context) == FormalContext, "Can only iterate_attributes if FormalContext is given"
 
     from fcapy.algorithms import lattice_construction as lca
     from fcapy.lattice import ConceptLattice
@@ -172,6 +185,6 @@ def sofia_binary(context, L_max=100, iterate_attributes=True, measure='LStab', p
     return lattice
 
 
-def sofia_general(context, L_max=100, measure='LStab'):
+def sofia_general(context: MVContext, L_max=100, measure='LStab'):
     lattice = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
     return lattice
