@@ -65,6 +65,9 @@ def test_from_context():
     assert ltc_cbo == ltc_sofia, \
         "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms for MVContext"
 
+    with pytest.raises(ValueError):
+        ConceptLattice.from_context(mvctx, algo='OtHeR MeThOd')
+
 
 def test_get_top_bottom_concepts_i():
     ltc = ConceptLattice()
