@@ -215,3 +215,14 @@ def test_getitem():
     ctx_oneattribute = FormalContext([row[:1] for row in data])
     assert ctx[:, 0] == ctx_oneattribute, "FormalContext.__getitem__ failed"
     assert ctx[:, [0]] == ctx_oneattribute, "FormalContext.__getitem__ failed"
+
+
+def test_get_minimal_generators():
+    ctx = read_csv('data/mango_bin.csv')
+    int_ = ['fruit', 'color_is_yellow', 'form_is_round']
+    min_gens = ctx.get_minimal_generators(int_, use_indexes=False)
+    assert min_gens == [('color_is_yellow',)], "FormalContext.get_minimal_generators failed"
+
+    min_gens = ctx.get_minimal_generators(int_, base_generator=['form_is_round'], use_indexes=False)
+    assert min_gens == [('color_is_yellow', 'form_is_round'), ('fruit', 'form_is_round')],\
+        "FormalContext.get_minimal_generators failed"
