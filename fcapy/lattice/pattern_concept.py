@@ -4,7 +4,7 @@ from frozendict import frozendict
 
 
 class PatternConcept:
-    def __init__(self, extent_i, extent, intent_i, intent, measures=None, context_hash=None):
+    def __init__(self, extent_i, extent, intent_i, intent, pattern_types, measures=None, context_hash=None):
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"PatternConcept.__init__. Given {name} value should be an iterable but not a string"
@@ -21,6 +21,8 @@ class PatternConcept:
             "PatternConcept.__init__ error. extent and extent_i are of different sizes"
         assert len(self._intent_i) == len(self._intent), \
             "PatternConcept.__init__ error. intent and intent_i are of different sizes"
+
+        self._pattern_types = pattern_types
 
         self._support = len(self._extent_i)
         self.measures = measures if measures is not None else {}
@@ -41,6 +43,10 @@ class PatternConcept:
     @property
     def intent(self):
         return self._intent
+
+    @property
+    def pattern_types(self):
+        return self._pattern_types
 
     @property
     def support(self):

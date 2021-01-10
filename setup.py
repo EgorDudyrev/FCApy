@@ -20,6 +20,9 @@ def run_install(**kwargs):
             'networkx>=2.5',
             'plotly',
         ],
+        'tests': [
+            'scikit-learn'
+        ],
         'docs': [
             'numpydoc',
             'sphinx_rtd_theme',

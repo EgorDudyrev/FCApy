@@ -82,7 +82,8 @@ def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=No
                 concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
             else:
                 intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
-                concept = PatternConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
+                concept = PatternConcept(extent_i, extent, intent_i, intent, context.pattern_types,
+                                         context_hash=context_hash)
             concepts.append(concept)
         return concepts
 
@@ -119,15 +120,14 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
     itersets = [[]]
-    ds = context.to_pandas()
 
     lattice = None
 
     for projection_num in range(1, max_projection + 1):
         if iterate_attributes:
-            ctx_projected = context.from_pandas(ds.iloc[:, projections_order[:projection_num]])
+            ctx_projected = context[:, projections_order[:projection_num]]
         else:
-            ctx_projected = context.from_pandas(ds.iloc[projections_order[:projection_num]])
+            ctx_projected = context[projections_order[:projection_num]]
 
         new_concepts = close_by_one(
             ctx_projected, output_as_concepts=True,
@@ -164,9 +164,9 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
             # find completely new concepts created while projection iteration
             # sort concepts to ensure there will be no moment with multiple top or bottom concepts
-            concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)[::-1]
-            if len(concepts_to_add) > 2:
-                concepts_to_add = [concepts_to_add[0], concepts_to_add[-1]] + concepts_to_add[1:-1]
+            concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+            if len(concepts_to_add) >= 2 and concepts_to_add[-1] < lattice._concepts[bottom_concept_i]:
+                concepts_to_add = [concepts_to_add[-1]] + concepts_to_add[:-1]
             for c_i, c in enumerate(concepts_to_add):
                 lattice.add_concept(c)
 

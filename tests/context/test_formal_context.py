@@ -198,3 +198,20 @@ def test_eq_neq(animal_movement_data):
         'FormalContext.__ne__ failed. Two different FormalContext objects do not classified as different'
     assert not ctx != ctx_eq,\
         'FormalContext.__ne__ failed. The same FormalContext objects are classified as different'
+
+
+def test_getitem():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+    ctx = FormalContext(data)
+    assert ctx[0, 0] is False, "FormalContext.__getitem__ failed."
+
+    ctx_small = FormalContext([row[:2] for row in data[:2]])
+    assert ctx[:2, :2] == ctx_small, "FormalContext.__getitem__ failed"
+
+    ctx_oneobject = FormalContext(data[:1])
+    assert ctx[0] == ctx_oneobject, "FormalContext.__getitem__ failed"
+    assert ctx[[0]] == ctx_oneobject, "FormalContext.__getitem__ failed"
+
+    ctx_oneattribute = FormalContext([row[:1] for row in data])
+    assert ctx[:, 0] == ctx_oneattribute, "FormalContext.__getitem__ failed"
+    assert ctx[:, [0]] == ctx_oneattribute, "FormalContext.__getitem__ failed"

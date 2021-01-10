@@ -6,9 +6,10 @@ def test_init():
     mvctx = mvcontext.MVContext()
 
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
+    pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(
         data,
-        pattern_types={'0': PS.IntervalPS, '1': PS.IntervalPS},
+        pattern_types=pattern_types,
         description='description'
     )
     assert mvctx.n_objects == 4, "MVContext.__init__ failed"
@@ -16,6 +17,7 @@ def test_init():
     assert mvctx.object_names == ['0', '1', '2', '3'], 'MVContext.__init__ failed'
     assert mvctx.attribute_names == ['0', '1'], 'MVContext.__init__ failed'
     assert mvctx.description == 'description', 'MVContext.__init__ failed'
+    assert mvctx.pattern_types == pattern_types, 'MVContext.__init__ failed'
 
     ps = [PS.IntervalPS([1, 2, 3, 4], name='0'), PS.IntervalPS([10, 22, 100, 60], name='1')]
     assert mvctx.pattern_structures == ps, 'MVContext.__init__ failed'
@@ -108,3 +110,21 @@ def test_hash():
     mvctx1 = mvcontext.MVContext(data, pattern_types)
     assert len({mvctx, mvctx1}) == 1, "MVContext.__has__ failed"
 
+
+def test_getitem():
+    data = [[1, 10], [2, 22], [3, 100], [4, 60]]
+    pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
+
+    mvctx = mvcontext.MVContext(data, pattern_types)
+    assert mvctx[0, 0] == 1, "MVContext.__getitem__ failed."
+
+    mvctx_small = mvcontext.MVContext([row[:2] for row in data[:2]], pattern_types)
+    assert mvctx[:2, :2] == mvctx_small, "MVContext.__getitem__ failed"
+
+    mvctx_oneobject = mvcontext.MVContext(data[:1], pattern_types)
+    assert mvctx[0] == mvctx_oneobject, "MVContext.__getitem__ failed"
+    assert mvctx[[0]] == mvctx_oneobject, "MVContext.__getitem__ failed"
+
+    mvctx_oneattribute = mvcontext.MVContext([row[:1] for row in data], {'0': pattern_types['0']})
+    assert mvctx[:, 0] == mvctx_oneattribute, "MVContext.__getitem__ failed"
+    assert mvctx[:, [0]] == mvctx_oneattribute, "MVContext.__getitem__ failed"
