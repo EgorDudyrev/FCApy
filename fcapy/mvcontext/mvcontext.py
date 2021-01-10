@@ -1,4 +1,6 @@
 from collections.abc import Iterable
+from frozendict import frozendict
+from itertools import combinations
 
 
 class MVContext:
@@ -195,6 +197,46 @@ class MVContext:
     @staticmethod
     def from_pandas(dataframe):
         raise NotImplementedError
+
+    def get_minimal_generators(self, intent, base_generator=None, use_indexes=False):
+        intent_i = {
+            ps_i: intent[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
+            if ps.name in intent
+        } if not use_indexes else intent
+
+        if base_generator is not None:
+            if not use_indexes:
+                base_generator = {
+                    ps_i: base_generator[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
+                    if ps.name in base_generator}
+            base_generator = [(ps_name, descr) for ps_name, descr in base_generator.items()]
+        else:
+            base_generator = []
+
+        generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
+                                 for gen in self._pattern_structures[ps_i].description_to_generators(descr)]
+
+        min_gens = set()
+        for comb_size in range(1, len(generators_to_iterate)):
+            for comb in combinations(generators_to_iterate, comb_size):
+                comb = base_generator + list(comb)
+                pss_i = set([gen[0] for gen in comb])
+                gens = {ps_i: [gen[1] for gen in comb if gen[0] == ps_i] for ps_i in pss_i}
+                descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
+                         for ps_i, gen in gens.items()}
+
+                ext_ = self.extension_i(descr)
+                int_ = self.intention_i(ext_)
+                if int_ == intent_i:
+                    min_gens.add(frozendict(descr))
+            if len(min_gens) > 0:
+                break
+
+        if not use_indexes:
+            min_gens = {frozendict({self._pattern_structures[ps_i].name: descr for ps_i, descr in mg.items()})
+                        for mg in min_gens}
+        min_gens = list(min_gens)
+        return min_gens
 
     def __repr__(self):
         data_to_print = f'MultiValuedContext ' +\

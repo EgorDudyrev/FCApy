@@ -443,7 +443,8 @@ class FormalContext:
                 break
 
         if not use_indexes:
-            min_gens = [tuple([self.attribute_names[m_i] for m_i in mg]) for mg in min_gens]
+            min_gens = [[self.attribute_names[m_i] for m_i in mg] for mg in min_gens]
+        min_gens = [tuple(mg) for mg in min_gens]
         return min_gens
 
     def __eq__(self, other):
