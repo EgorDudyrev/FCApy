@@ -1,5 +1,6 @@
 import pytest
 from fcapy.mvcontext import pattern_structure
+import math
 
 
 def test_abstract_ps_repr():
@@ -26,6 +27,14 @@ def test_abstract_ps_extension_intention():
         aps.intention_i(None)
 
 
+def test_abstract_ps_descriptions_tofrom_generators():
+    aps = pattern_structure.AbstractPS([1, 2, 'c', None])
+    with pytest.raises(NotImplementedError):
+        aps.generators_to_description(None)
+    with pytest.raises(NotImplementedError):
+        aps.description_to_generators(None)
+
+
 def test_interval_ps_extension_intention():
     ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
     assert ips.extension_i(None) == [], "IntervalPS.extension_i failed"
@@ -35,3 +44,21 @@ def test_interval_ps_extension_intention():
     assert ips.intention_i([0, 1, 3]) == (0, 3), "IntervalPS.intention_i failed"
     assert ips.intention_i([2, 4]) == 2, "IntervalPS.intention_i failed"
     assert ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4], "IntervalPS.extension_i/intention_i failed"
+
+
+def test_interval_ps_descriptions_tofrom_generators():
+    ips = pattern_structure.IntervalPS([])
+    description_true = (1, 2)
+    generators_true = [(-math.inf, 2), (1, math.inf)]
+
+    assert ips.description_to_generators(description_true) == generators_true,\
+        "IntervalPS.description_to_generators failed"
+    assert ips.generators_to_description(generators_true) == description_true, \
+        "IntervalPS.generators_to_description failed"
+    assert ips.description_to_generators(ips.generators_to_description(generators_true)) == generators_true,\
+        "IntervalPS.generators_to_description pipe failed"
+
+    assert ips.description_to_generators(4) == [(-math.inf, 4), (4, math.inf)],\
+        "IntervalPS.description_to_generators failed"
+    assert ips.generators_to_description([(-math.inf, 4), (4, math.inf)]) == 4, \
+        "IntervalPS.generators_to_description failed"
