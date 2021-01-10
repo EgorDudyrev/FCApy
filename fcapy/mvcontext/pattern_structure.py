@@ -61,9 +61,9 @@ class IntervalPS(AbstractPS):
         if description is None:
             return []
 
-        try:
+        if isinstance(description, (tuple, )):
             min_, max_ = description[0], description[1]
-        except TypeError:
+        else:
             min_ = max_ = description
 
         g_is = [g_i for g_i, v in enumerate(self._data) if min_ <= v <= max_]
