@@ -49,10 +49,10 @@ def test_close_by_one():
     pattern_types = {'M1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
     concepts = cca.close_by_one(mvctx)
-    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, context_hash=hash(mvctx))
-    c1 = PatternConcept((0,), ('a',), {0: 1}, {'M1': 1}, context_hash=hash(mvctx))
-    c2 = PatternConcept((1,), ('b',), {0: 2}, {'M1': 2}, context_hash=hash(mvctx))
-    c3 = PatternConcept((), (), {0: None}, {'M1': None}, context_hash=hash(mvctx))
+    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, pattern_types, context_hash=hash(mvctx))
+    c1 = PatternConcept((0,), ('a',), {0: 1}, {'M1': 1}, pattern_types, context_hash=hash(mvctx))
+    c2 = PatternConcept((1,), ('b',), {0: 2}, {'M1': 2}, pattern_types, context_hash=hash(mvctx))
+    c3 = PatternConcept((), (), {0: None}, {'M1': None}, pattern_types, context_hash=hash(mvctx))
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 
