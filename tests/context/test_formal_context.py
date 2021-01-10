@@ -224,5 +224,5 @@ def test_get_minimal_generators():
     assert min_gens == [('color_is_yellow',)], "FormalContext.get_minimal_generators failed"
 
     min_gens = ctx.get_minimal_generators(int_, base_generator=['form_is_round'], use_indexes=False)
-    assert min_gens == [('color_is_yellow', 'form_is_round'), ('fruit', 'form_is_round')],\
+    assert set(min_gens) == {('color_is_yellow', 'form_is_round'), ('fruit', 'form_is_round')},\
         "FormalContext.get_minimal_generators failed"

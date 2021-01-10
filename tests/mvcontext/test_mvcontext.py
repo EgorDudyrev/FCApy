@@ -1,6 +1,7 @@
 import pytest
 from fcapy.mvcontext import mvcontext, pattern_structure as PS
 import math
+from frozendict import frozendict
 
 
 def test_init():
@@ -141,12 +142,13 @@ def test_get_minimal_generators():
     mvctx = mvcontext.MVContext(data=data, pattern_types=pattern_types, attribute_names=attribute_names)
 
     intent = {0: (4.6, 5.1), 1: (3.0, 3.5), 2: (1.4, 1.5), 3: 0.2}
-    mg_true = [{2: (1.4, math.inf)}]
-    assert mvctx.get_minimal_generators(intent, use_indexes=True) == mg_true, "MVContext.get_minimal_generators failed"
+    mg_true = {frozendict({2: (1.4, math.inf)})}
+    assert set(mvctx.get_minimal_generators(intent, use_indexes=True)) == mg_true,\
+        "MVContext.get_minimal_generators failed"
 
     # TODO: Find better example for usage of base_generator
     intent = {'sepal length (cm)': (4.6, 5.1), 'sepal width (cm)': (3.1, 3.5),
               'petal length (cm)': (1.4, 1.5), 'petal width (cm)': 0.2}
     mg_base = {'petal length (cm)': (1.4, math.inf)}
-    mg_true = [{'sepal width (cm)': (3.1, math.inf), 'petal length (cm)': (1.4, math.inf)}]
-    assert mvctx.get_minimal_generators(intent, mg_base) == mg_true, "MVContext.get_minimal_generators failed"
+    mg_true = {frozendict({'sepal width (cm)': (3.1, math.inf), 'petal length (cm)': (1.4, math.inf)})}
+    assert set(mvctx.get_minimal_generators(intent, mg_base)) == mg_true, "MVContext.get_minimal_generators failed"
