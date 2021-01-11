@@ -53,5 +53,6 @@ Provides-Extra: context
 Provides-Extra: mvcontext
 Provides-Extra: algorithms
 Provides-Extra: visualizer
+Provides-Extra: tests
 Provides-Extra: docs
 Provides-Extra: all

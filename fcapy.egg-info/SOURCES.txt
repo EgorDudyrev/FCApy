@@ -39,6 +39,8 @@ tests/lattice/test_concept_lattice.py
 tests/lattice/test_concept_measures.py
 tests/lattice/test_formal_concept.py
 tests/lattice/test_pattern_concept.py
+tests/ml/__init__.py
+tests/ml/test_decision_lattice.py
 tests/mvcontext/__init__.py
 tests/mvcontext/test_mvcontext.py
 tests/mvcontext/test_pattern_structure.py

@@ -231,3 +231,26 @@ def test_trace_context():
         traced_concepts_true |= all_superconcepts_dict[c_i]
     assert traced_concepts['mango'] == traced_concepts_true,\
         "ConceptLattice.trace_context failed. Traced concepts for test context are calculated wrong"
+
+
+def test_conditional_generators_dict():
+    ctx = converters.read_csv('data/mango_bin.csv')
+    ltc = ConceptLattice.from_context(ctx)
+    condgens_dict = ltc.get_conditional_generators_dict(ctx)
+    for c_i, condgens in condgens_dict.items():
+        ext_i = ltc.concepts[c_i].extent_i
+        for condgen in condgens:
+            assert tuple(ctx.extension_i(condgen)) == ext_i, "ConceptLattice.get_conditional_generators_dict failed"
+
+    data = [[5.1, 3.5, 1.4, 0.2],
+            [4.9, 3. , 1.4, 0.2],
+            [4.7, 3.2, 1.3, 0.2],
+            [4.6, 3.1, 1.5, 0.2]]
+    pattern_types = {'0': ps.IntervalPS, '1': ps.IntervalPS, '2': ps.IntervalPS, '3': ps.IntervalPS}
+    mvctx = mvcontext.MVContext(data, pattern_types)
+    ltc = ConceptLattice.from_context(mvctx)
+    condgens_dict = ltc.get_conditional_generators_dict(mvctx)
+    for c_i, condgens in condgens_dict.items():
+        ext_i = ltc.concepts[c_i].extent_i
+        for condgen in condgens:
+            assert tuple(mvctx.extension_i(condgen)) == ext_i, "ConceptLattice.get_conditional_generators_dict failed"

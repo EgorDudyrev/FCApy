@@ -425,13 +425,13 @@ class FormalContext:
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
         intent_i = set(intent_i)
 
-        base_generator = base_generator if base_generator is not None else []
+        base_generator = list(base_generator) if base_generator is not None else []
         if not use_indexes:
             base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
 
         attrs_to_iterate = [m_i for m_i in range(self.n_attributes) if m_i not in base_generator]
         min_gens = set()
-        for n_projection in range(1, len(attrs_to_iterate) + 1):
+        for n_projection in range(0, len(attrs_to_iterate) + 1):
             for comb in combinations(attrs_to_iterate, n_projection):
                 comb = base_generator + list(comb)
                 ext_i = self.extension_i(comb)
