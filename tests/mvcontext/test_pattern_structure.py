@@ -32,7 +32,7 @@ def test_abstract_ps_descriptions_tofrom_generators():
     with pytest.raises(NotImplementedError):
         aps.generators_to_description(None)
     with pytest.raises(NotImplementedError):
-        aps.description_to_generators(None)
+        aps.description_to_generators(None, None)
 
 
 def test_interval_ps_extension_intention():
@@ -51,14 +51,18 @@ def test_interval_ps_descriptions_tofrom_generators():
     description_true = (1, 2)
     generators_true = [(-math.inf, 2), (1, math.inf)]
 
-    assert ips.description_to_generators(description_true) == generators_true,\
+    assert ips.description_to_generators(description_true, projection_num=1) == generators_true,\
         "IntervalPS.description_to_generators failed"
     assert ips.generators_to_description(generators_true) == description_true, \
         "IntervalPS.generators_to_description failed"
-    assert ips.description_to_generators(ips.generators_to_description(generators_true)) == generators_true,\
+    assert ips.description_to_generators(
+        ips.generators_to_description(generators_true), projection_num=1) == generators_true,\
         "IntervalPS.generators_to_description pipe failed"
 
-    assert ips.description_to_generators(4) == [(-math.inf, 4), (4, math.inf)],\
+    assert ips.description_to_generators(4, projection_num=1) == [(-math.inf, 4), (4, math.inf)],\
         "IntervalPS.description_to_generators failed"
     assert ips.generators_to_description([(-math.inf, 4), (4, math.inf)]) == 4, \
+        "IntervalPS.generators_to_description failed"
+
+    assert ips.description_to_generators(description_true, projection_num=2)[0] == description_true,\
         "IntervalPS.generators_to_description failed"

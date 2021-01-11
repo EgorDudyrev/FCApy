@@ -204,6 +204,9 @@ class MVContext:
             if ps.name in intent
         } if not use_indexes else intent
 
+        #if len(self.extension_i(intent_i)) == 0:
+        #    return [None]
+
         if base_generator is not None:
             if not use_indexes:
                 base_generator = {
@@ -213,24 +216,35 @@ class MVContext:
         else:
             base_generator = []
 
-        generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
-                                 for gen in self._pattern_structures[ps_i].description_to_generators(descr)]
+        def get_generators(ps_i, descr, max_projection_num):
+            return [gen for proj_num in range(max_projection_num+1)
+                    for gen in self._pattern_structures[ps_i].description_to_generators(descr, proj_num)]
 
+        max_projection_num = -1
         min_gens = set()
-        for comb_size in range(1, len(generators_to_iterate)):
-            for comb in combinations(generators_to_iterate, comb_size):
-                comb = base_generator + list(comb)
-                pss_i = set([gen[0] for gen in comb])
-                gens = {ps_i: [gen[1] for gen in comb if gen[0] == ps_i] for ps_i in pss_i}
-                descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
-                         for ps_i, gen in gens.items()}
+        while len(min_gens) == 0:
+            max_projection_num += 1
 
-                ext_ = self.extension_i(descr)
-                int_ = self.intention_i(ext_)
-                if int_ == intent_i:
-                    min_gens.add(frozendict(descr))
-            if len(min_gens) > 0:
-                break
+            generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
+                                     for gen in get_generators(ps_i, descr, max_projection_num)]
+
+            for comb_size in range(1, len(generators_to_iterate)):
+                for comb in combinations(generators_to_iterate, comb_size):
+                    comb = base_generator + list(comb)
+                    pss_i = set([gen[0] for gen in comb])
+                    gens = {ps_i: [gen[1] for gen in comb if gen[0] == ps_i] for ps_i in pss_i}
+                    descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
+                             for ps_i, gen in gens.items()}
+                    ext_ = self.extension_i(descr)
+                    int_ = self.intention_i(ext_)
+
+                    #try:
+                    if int_ == intent_i:
+                        min_gens.add(frozendict(descr))
+                    #except ValueError:
+                    #    pass
+                if len(min_gens) > 0:
+                    break
 
         if not use_indexes:
             min_gens = {frozendict({self._pattern_structures[ps_i].name: descr for ps_i, descr in mg.items()})

@@ -1,5 +1,6 @@
 import pytest
 from fcapy.mvcontext import mvcontext, pattern_structure as PS
+from fcapy.lattice.concept_lattice import  ConceptLattice
 import math
 from frozendict import frozendict
 
@@ -152,3 +153,7 @@ def test_get_minimal_generators():
     mg_base = {'petal length (cm)': (1.4, math.inf)}
     mg_true = {frozendict({'sepal width (cm)': (3.1, math.inf), 'petal length (cm)': (1.4, math.inf)})}
     assert set(mvctx.get_minimal_generators(intent, mg_base)) == mg_true, "MVContext.get_minimal_generators failed"
+
+    ltc = ConceptLattice.from_context(mvctx)
+    for c in ltc.concepts:
+        mvctx.get_minimal_generators(c.intent)
