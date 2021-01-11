@@ -238,11 +238,9 @@ class MVContext:
                     ext_ = self.extension_i(descr)
                     int_ = self.intention_i(ext_)
 
-                    #try:
-                    if int_ == intent_i:
-                        min_gens.add(frozendict(descr))
-                    #except ValueError:
-                    #    pass
+                    if len(int_) == len(intent_i):
+                        if all([type(v) == type(intent_i[k]) and v == intent_i[k] for k, v in int_.items()]):
+                            min_gens.add(frozendict(descr))
                 if len(min_gens) > 0:
                     break
 

@@ -28,6 +28,8 @@ class ConceptLattice:
 
         self._is_concepts_sorted = self._concepts == self.sort_concepts(self._concepts)
 
+        self._generators_dict = None
+
     @property
     def concepts(self):
         return self._concepts
@@ -321,12 +323,18 @@ class ConceptLattice:
                 all_subconcepts[c_i] |= all_subconcepts[subc_i]
         return all_subconcepts
 
-    def trace_context(self, context: MVContext, use_object_indices=False):
+    def trace_context(self, context: MVContext, use_object_indices=False, use_generators=False):
         concept_extents = {}
 
         def stored_extension(concept_i):
             if concept_i not in concept_extents:
-                concept_extents[concept_i] = set(context.extension_i(self._concepts[concept_i].intent_i))
+                if not use_generators:
+                     ext_ = set(context.extension_i(self._concepts[concept_i].intent_i))
+                else:
+                    ext_ = set()
+                    for gen in self._generators_dict[concept_i]:
+                        ext_ |= set(context.extension_i(gen))
+                concept_extents[concept_i] = ext_
             return concept_extents[concept_i]
 
         concepts_to_visit = [self._top_concept_i]
