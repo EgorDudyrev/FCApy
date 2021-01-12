@@ -2,6 +2,7 @@ from fcapy.context import FormalContext
 from fcapy.mvcontext.mvcontext import  MVContext
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
+from ..utils import utils
 import random
 from copy import deepcopy
 
@@ -188,3 +189,69 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 def sofia_general(context: MVContext, L_max=100, measure='LStab'):
     lattice = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
     return lattice
+
+
+def parse_decision_tree_to_extents(tree, X, n_jobs=1):
+    from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+
+    if isinstance(tree, (RandomForestClassifier, RandomForestRegressor)):
+        paths = tree.decision_path(X)[0].tocsc()
+    else:
+        paths = tree.decision_path(X).tocsc()
+
+    def get_indices(i, paths):
+        return paths.indices[paths.indptr[i]:paths.indptr[i + 1]]
+    paths = utils.sparse_unique_columns(paths)[0]
+
+    if n_jobs == 1:
+        exts = [get_indices(i, paths) for i in range(paths.shape[1])]
+    else:
+        from joblib import Parallel, delayed
+        exts = Parallel(n_jobs)([delayed(get_indices)(i, paths) for i in range(paths.shape[1])])
+    return exts
+
+
+def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
+    from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+
+    rf_params = rf_params if rf_params is not None else {}
+
+    X = context.data.copy()
+    # TODO: Add support of categorical features
+    # if type(context) is MVContext:
+    #     for f_idx in context._cat_attrs_idxs:
+    #         if len(set(X[:, f_idx])) <= 10:
+    #             for v in np.unique(X[:, f_idx]):
+    #                 X = np.hstack((X, (X[:, f_idx] == v).reshape(-1, 1)))
+    #         else:
+    #             le = LabelEncoder()
+    #             X = np.hstack((X, le.fit_transform(X[:, f_idx]).reshape(-1, 1)))
+    # X = X[:, [idx for idx in range(X.shape[1]) if idx not in context._cat_attrs_idxs]]
+
+    Y = context.target
+
+    if rf_class is None:
+        rf_class = RandomForestClassifier if len(set(Y)) == 2 else RandomForestRegressor
+
+    rf = rf_class(**rf_params)
+    rf.fit(X, Y)
+    extents_i = parse_decision_tree_to_extents(rf, X)
+    extents_i.append(context.extension_i(context.intention_i([])))
+
+    concepts = []
+
+    object_names = context.object_names
+    context_hash = hash(context)
+    for extent_i in extents_i:
+        extent = [object_names[g_i] for g_i in extent_i]
+        intent_i = context.intention_i(extent_i)
+        if type(context) == FormalContext:
+            intent = [context.attribute_names[m_i] for m_i in intent_i]
+            concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
+        else:
+            intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
+            concept = PatternConcept(extent_i, extent, intent_i, intent, context.pattern_types,
+                                     context_hash=context_hash)
+        concepts.append(concept)
+
+    return concepts

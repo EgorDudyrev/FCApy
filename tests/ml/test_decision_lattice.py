@@ -9,8 +9,8 @@ from sklearn.metrics import accuracy_score, mean_squared_error
 
 
 def test_dlpredictor():
-    dlp = dl.DecisionLatticePredictor(L_max=100)
-    assert dlp._L_max == 100, "DecisionLatticePredictor.__init__ failed"
+    dlp = dl.DecisionLatticePredictor(algo_params={'L_max': 100})
+    assert dlp.algo_params['L_max'] == 100, "DecisionLatticePredictor.__init__ failed"
     assert dlp._algo == 'Sofia', "DecisionLatticePredictor.__init__ failed"
     assert dlp.lattice == ConceptLattice(), "DecisionLatticePredictor.__init__ failed"
     assert dlp.use_generators is False, "DecisionLatticePredictor.__init__ failed"
@@ -30,7 +30,7 @@ def test_dlclassifier():
     feature_names = iris_data['feature_names']
 
     pattern_types = {f: ps.IntervalPS for f in feature_names}
-    mvctx_full = MVContext(data=X, pattern_types=pattern_types, attribute_names=feature_names)
+    mvctx_full = MVContext(data=X, target=Y, pattern_types=pattern_types, attribute_names=feature_names)
 
     np.random.seed(42)
     train_idxs = np.random.choice(range(len(Y)), 100, replace=False)
@@ -38,8 +38,8 @@ def test_dlclassifier():
     mvctx_train, mvctx_test = mvctx_full[train_idxs], mvctx_full[test_idxs]
     y_train, y_test = Y[train_idxs], Y[test_idxs]
 
-    dlc = dl.DecisionLatticeClassifier(L_max=10, use_generators=True)
-    dlc.fit(mvctx_train, y_train)
+    dlc = dl.DecisionLatticeClassifier(algo='Sofia', algo_params={'L_max': 10}, use_generators=True)
+    dlc.fit(mvctx_train)
 
     assert dlc.class_names == sorted(set(Y)), "DecisionLatticeClassifier.class_names failed"
 
@@ -67,13 +67,13 @@ def test_dlregressor():
     test_idxs = sorted(set(range(len(X_boston))) - set(train_idxs))
 
     pattern_types = {f: ps.IntervalPS for f in features_boston}
-    mvctx_full = MVContext(X_boston, pattern_types, attribute_names=features_boston)
+    mvctx_full = MVContext(X_boston,  pattern_types, target=y_boston, attribute_names=features_boston)
     mvctx_train, mvctx_test = mvctx_full[train_idxs], mvctx_full[test_idxs]
 
     y_train, y_test = y_boston[train_idxs], y_boston[test_idxs]
 
-    dlc = dl.DecisionLatticeRegressor(L_max=10, use_generators=False)
-    dlc.fit(mvctx_train, y_train)
+    dlc = dl.DecisionLatticeRegressor(algo_params={'L_max': 10}, use_generators=False)
+    dlc.fit(mvctx_train)
 
     preds_train = dlc.predict(mvctx_train)
     preds_test = dlc.predict(mvctx_test)

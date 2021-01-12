@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 import json
+import numbers
 
 
 class FormalConcept:
@@ -9,13 +10,13 @@ class FormalConcept:
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"FormalConcept.__init__. Given {name} value should be an iterable but not a string"
-            assert all([type(v) == value_type for v in value]),\
+            assert all([isinstance(v, value_type) for v in value]),\
                 f"FormalConcept.__init__. Given {name} values should be of type {value_type}"
             return tuple(value)
 
-        self._extent_i = unify_iterable_type(extent_i, "extent_i", value_type=int)
+        self._extent_i = unify_iterable_type(extent_i, "extent_i", value_type=numbers.Integral)
         self._extent = unify_iterable_type(extent, "extent", value_type=str)
-        self._intent_i = unify_iterable_type(intent_i, "intent", value_type=int)
+        self._intent_i = unify_iterable_type(intent_i, "intent", value_type=numbers.Integral)
         self._intent = unify_iterable_type(intent, "intent", value_type=str)
 
         assert len(self._extent_i) == len(self._extent),\

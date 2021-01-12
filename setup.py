@@ -14,6 +14,7 @@ def run_install(**kwargs):
         ],
         'algorithms': [
             'joblib',
+            'scikit-learn',
         ],
         'visualizer': [
             'matplotlib',

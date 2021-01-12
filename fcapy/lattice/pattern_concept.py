@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 import json
 from frozendict import frozendict
+import numbers
 
 
 class PatternConcept:
@@ -8,11 +9,11 @@ class PatternConcept:
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"PatternConcept.__init__. Given {name} value should be an iterable but not a string"
-            assert all([type(v) == value_type for v in value]),\
+            assert all([isinstance(v, value_type) for v in value]),\
                 f"PatternConcept.__init__. Given {name} values should be of type {value_type}"
             return tuple(value)
 
-        self._extent_i = unify_iterable_type(extent_i, "extent_i", value_type=int)
+        self._extent_i = unify_iterable_type(extent_i, "extent_i", value_type=numbers.Integral)
         self._extent = unify_iterable_type(extent, "extent", value_type=str)
         self._intent_i = frozendict(intent_i)
         self._intent = frozendict(intent)

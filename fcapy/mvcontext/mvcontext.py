@@ -17,6 +17,13 @@ class MVContext:
         self._pattern_types = pattern_types
         self.pattern_structures = self.assemble_pattern_structures(data, pattern_types)
         self.description = kwargs.get('description')
+        self._target = kwargs.get('target')
+
+    @property
+    def data(self):
+        data = [ps.data for ps in self._pattern_structures]
+        data = [list(row) for row in zip(*data)]
+        return data
 
     @property
     def object_names(self):
@@ -62,6 +69,10 @@ class MVContext:
     @property
     def pattern_types(self):
         return self._pattern_types
+
+    @property
+    def target(self):
+        return self._target
 
     def assemble_pattern_structures(self, data, pattern_types):
         if data is None:
@@ -263,7 +274,7 @@ class MVContext:
         if not self.attribute_names == other.attribute_names:
             raise ValueError('Two MVContext objects can not be compared since they have different attribute_names')
 
-        is_equal = self.pattern_structures == other.pattern_structures
+        is_equal = self.pattern_structures == other.pattern_structures and self._target == other.target
         return is_equal
 
     def __ne__(self, other):
@@ -274,7 +285,7 @@ class MVContext:
         if not self.attribute_names == other.attribute_names:
             raise ValueError('Two MVContext objects can not be compared since they have different attribute_names')
 
-        is_not_equal = self.pattern_structures != other.pattern_structures
+        is_not_equal = self.pattern_structures != other.pattern_structures or self._target != other.target
         return is_not_equal
 
     def __hash__(self):
@@ -303,8 +314,9 @@ class MVContext:
         if any([isinstance(i, slice) for i in item]):
             object_names = slice_list(self._object_names, item[0])
             attribute_names = slice_list(self._attribute_names, item[1])
+            target = slice_list(self._target, item[0]) if self._target is not None else None
             pattern_types = {k: v for k, v in self._pattern_types.items() if k in attribute_names}
-            data = MVContext(data, pattern_types, object_names, attribute_names)
+            data = MVContext(data, pattern_types, object_names, attribute_names, target=target)
         else:
             data = data[0][0]
         return data
