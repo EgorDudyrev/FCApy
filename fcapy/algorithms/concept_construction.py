@@ -2,6 +2,7 @@ from fcapy.context import FormalContext
 from fcapy.mvcontext.mvcontext import  MVContext
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
+from ..utils import utils
 import random
 from copy import deepcopy
 
@@ -188,3 +189,23 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 def sofia_general(context: MVContext, L_max=100, measure='LStab'):
     lattice = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure)
     return lattice
+
+
+def parse_decision_tree_to_extents(tree, X, n_jobs=1):
+    from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+
+    if isinstance(tree, (RandomForestClassifier, RandomForestRegressor)):
+        paths = tree.decision_path(X)[0].tocsc()
+    else:
+        paths = tree.decision_path(X).tocsc()
+
+    def get_indices(i, paths):
+        return paths.indices[paths.indptr[i]:paths.indptr[i + 1]]
+    paths = utils.sparse_unique_columns(paths)[0]
+
+    if n_jobs == 1:
+        exts = [get_indices(i, paths) for i in range(paths.shape[1])]
+    else:
+        from joblib import Parallel, delayed
+        exts = Parallel(n_jobs)([delayed(get_indices)(i, paths) for i in range(paths.shape[1])])
+    return exts
