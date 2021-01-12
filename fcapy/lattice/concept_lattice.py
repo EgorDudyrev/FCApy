@@ -68,10 +68,12 @@ class ConceptLattice:
         if algo is None:
             algo = 'Sofia' if type(context) == MVContext else 'CbO'
 
-        if algo == 'CbO':
-            kwargs_used = get_kwargs_used(kwargs, cca.close_by_one)
-            concepts = cls.sort_concepts(concepts=cca.close_by_one(context, **kwargs_used))
-            subconcepts_dict = lca.complete_comparison(concepts)
+        if algo in {'CbO', 'RandomForest'}:
+            algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts}[algo]
+            kwargs_used = get_kwargs_used(kwargs, algo_func)
+            concepts = algo_func(context, **kwargs_used)
+            concepts = cls.sort_concepts(concepts)
+            subconcepts_dict = lca.construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=True)
             top_concept_i, bottom_concept_i = cls.get_top_bottom_concepts_i(concepts)
 
             ltc = ConceptLattice(
@@ -100,8 +102,8 @@ class ConceptLattice:
             ltc._top_concept_i = map_i_isort[ltc._top_concept_i]
             ltc._bottom_concept_i = map_i_isort[ltc._bottom_concept_i]
         else:
-            raise ValueError('ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
-                             'Possible values are: "CbO" (stands for CloseByOne), "Sofia"')
+            raise ValueError(f'ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
+                             f'Possible values are: "CbO" (stands for CloseByOne), "Sofia", "RandomForest')
         return ltc
 
     @staticmethod

@@ -56,6 +56,7 @@ class FormalContext:
         self.object_names = object_names
         self.attribute_names = attribute_names
         self.description = kwargs.get('description')
+        self._target = kwargs.get('target')
 
     @property
     def data(self):
@@ -158,6 +159,10 @@ class FormalContext:
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
+
+    @property
+    def target(self):
+        return self._target
 
     def extension_i(self, attribute_indexes):
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
@@ -455,7 +460,7 @@ class FormalContext:
         if not self.attribute_names == other.attribute_names:
             raise ValueError('Two FormalContext objects can not be compared since they have different attribute_names')
 
-        is_equal = self.data == other.data
+        is_equal = self.data == other.data and self._target == other.target
         return is_equal
 
     def __ne__(self, other):
@@ -466,7 +471,7 @@ class FormalContext:
         if not self.attribute_names == other.attribute_names:
             raise ValueError('Two FormalContext objects can not be compared since they have different attribute_names')
 
-        is_not_equal = self.data != other.data
+        is_not_equal = self.data != other.data or self._target != other.target
         return is_not_equal
 
     def __hash__(self):
@@ -494,7 +499,8 @@ class FormalContext:
         if any([isinstance(i, slice) for i in item]):
             object_names = slice_list(self._object_names, item[0])
             attribute_names = slice_list(self._attribute_names, item[1])
-            data = FormalContext(data, object_names, attribute_names)
+            target = slice_list(self._target, item[0]) if self._target is not None else None
+            data = FormalContext(data, object_names, attribute_names, target=target)
         else:
             data = data[0][0]
 
