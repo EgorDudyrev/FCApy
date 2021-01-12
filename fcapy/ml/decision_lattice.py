@@ -29,6 +29,10 @@ class DecisionLatticePredictor:
         return self._lattice
 
     @property
+    def algo_params(self):
+        return self._algo_params
+
+    @property
     def use_generators(self):
         return self._use_generators
 

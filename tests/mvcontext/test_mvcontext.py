@@ -21,6 +21,7 @@ def test_init():
     assert mvctx.attribute_names == ['0', '1'], 'MVContext.__init__ failed'
     assert mvctx.description == 'description', 'MVContext.__init__ failed'
     assert mvctx.pattern_types == pattern_types, 'MVContext.__init__ failed'
+    assert mvctx.data == data, "MVContext.__init__ failed"
 
     ps = [PS.IntervalPS([1, 2, 3, 4], name='0'), PS.IntervalPS([10, 22, 100, 60], name='1')]
     assert mvctx.pattern_structures == ps, 'MVContext.__init__ failed'

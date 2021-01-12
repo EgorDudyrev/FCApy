@@ -1,12 +1,18 @@
 import json
 import pytest
-from fcapy.context import read_json, read_csv, read_cxt
+from fcapy.context import read_json, read_csv, read_cxt, from_pandas
 from fcapy.algorithms import concept_construction as cca
 from fcapy.algorithms import lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.lattice import ConceptLattice
 from fcapy.mvcontext import pattern_structure as PS, mvcontext
+from fcapy.ml import decision_lattice as DL
+
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 
 
 def test_close_by_one():
@@ -119,3 +125,49 @@ def test_sofia_general():
 
     assert stabilities_sofia_mean > stabilities_all_mean,\
         'sofia_general failed. Sofia algorithm does not produce the subset of stable concepts'
+
+
+def test_parse_decision_tree_to_extents():
+    iris_data = load_iris()
+    X = iris_data['data']
+    Y = iris_data['target']
+
+    dt = DecisionTreeClassifier()
+    dt.fit(X, Y)
+    extents = cca.parse_decision_tree_to_extents(dt, X, n_jobs=1)
+    extents_par = cca.parse_decision_tree_to_extents(dt, X, n_jobs=2)
+    assert set([tuple(sorted(ext_)) for ext_ in extents]) == set([tuple(sorted(ext_)) for ext_ in extents_par])
+
+
+def test_random_forest_concepts():
+    ctx = read_csv('data/mango_bin.csv')
+    y_train = ctx.to_pandas().drop('mango')['fruit'].values
+    y_test = ctx.to_pandas().loc[['mango']]['fruit'].values
+
+    ctx = read_csv('data/mango_bin.csv')
+    ctx_full = from_pandas(ctx.to_pandas().drop('fruit', 1))
+
+    ctx_full._target = list(y_train) + list(y_test)
+    dlc = DL.DecisionLatticeClassifier(algo='RandomForest', algo_params={'random_state': 42})
+    dlc.fit(ctx_full)
+
+
+    iris_data = load_iris()
+    X = iris_data['data']
+    Y = iris_data['target']
+    feature_names = iris_data['feature_names']
+
+    np.random.seed(42)
+    train_idxs = np.random.choice(range(len(Y)), 100, replace=False)
+    test_idxs = sorted(set(range(len(Y))) - set(train_idxs))
+
+    pattern_types = {f: PS.IntervalPS for f in feature_names}
+    mvctx_full = mvcontext.MVContext(data=X, target=Y, pattern_types=pattern_types, attribute_names=feature_names)
+    mvctx_train, mvctx_test = mvctx_full[train_idxs], mvctx_full[test_idxs]
+
+    dlc = DL.DecisionLatticeClassifier(algo='RandomForest', algo_params={'random_state': 42})
+    dlc.fit(mvctx_train)
+    preds_train, preds_test = dlc.predict(mvctx_train), dlc.predict(mvctx_test)
+    acc_train, acc_test = accuracy_score(Y[train_idxs], preds_train), accuracy_score(Y[test_idxs], preds_test)
+    assert acc_train == 1, 'random_forest_concepts failed'
+    assert acc_test >= 0.88, 'random_forest_concepts failed'
