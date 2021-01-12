@@ -377,8 +377,9 @@ class ConceptLattice:
 
     def get_conditional_generators_dict(self, context: MVContext):
         condgen_dict = dict()
-        condgen_dict[self._top_concept_i] = context.get_minimal_generators(
-            self.top_concept.intent_i, use_indexes=True)
+        #condgen_dict[self._top_concept_i] =  context.get_minimal_generators(
+        #    self.top_concept.intent_i, use_indexes=True)
+        condgen_dict[self._top_concept_i] = [{}] if type(context) is MVContext else [[]]
 
         if not self._is_concepts_sorted:
             concepts_sorted = self.sort_concepts(self._concepts)
