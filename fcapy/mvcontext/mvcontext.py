@@ -314,7 +314,7 @@ class MVContext:
         if any([isinstance(i, slice) for i in item]):
             object_names = slice_list(self._object_names, item[0])
             attribute_names = slice_list(self._attribute_names, item[1])
-            target = slice_list(self._target, item[1]) if self._target is not None else None
+            target = slice_list(self._target, item[0]) if self._target is not None else None
             pattern_types = {k: v for k, v in self._pattern_types.items() if k in attribute_names}
             data = MVContext(data, pattern_types, object_names, attribute_names, target=target)
         else:
