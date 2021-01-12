@@ -3,26 +3,34 @@ from ..lattice import ConceptLattice
 
 
 class DecisionLatticePredictor:
-    def __init__(self, algo='Sofia', L_max=1000):
+    def __init__(self, algo='Sofia', L_max=1000, use_generators=False):
         self._algo = algo
         self._L_max = L_max
 
         self._lattice = ConceptLattice()
+        self._use_generators = use_generators
 
     def fit(self, X: MVContext, Y):
         self._lattice = ConceptLattice.from_context(X, algo=self._algo, L_max=self._L_max)
+        if self._use_generators:
+            self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(X)
         for c_i, c in enumerate(self._lattice.concepts):
             metrics = self.calc_concept_prediction_metrics(c_i, Y)
             c.measures = dict(metrics, **c.measures)
 
     def predict(self, X: MVContext):
-        bottom_concepts, _ = self._lattice.trace_context(X, use_object_indices=True)
+        bottom_concepts, _ = self._lattice.trace_context(
+            X, use_object_indices=True, use_generators=self._use_generators)
         predictions = [self.average_concepts_predictions(bottom_concepts[g_i]) for g_i in range(X.n_objects)]
         return predictions
 
     @property
     def lattice(self):
         return self._lattice
+
+    @property
+    def use_generators(self):
+        return self._use_generators
 
     def calc_concept_prediction_metrics(self, c_i, Y):
         raise NotImplementedError

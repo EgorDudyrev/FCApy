@@ -28,6 +28,8 @@ class ConceptLattice:
 
         self._is_concepts_sorted = self._concepts == self.sort_concepts(self._concepts)
 
+        self._generators_dict = None
+
     @property
     def concepts(self):
         return self._concepts
@@ -321,12 +323,18 @@ class ConceptLattice:
                 all_subconcepts[c_i] |= all_subconcepts[subc_i]
         return all_subconcepts
 
-    def trace_context(self, context: MVContext, use_object_indices=False):
+    def trace_context(self, context: MVContext, use_object_indices=False, use_generators=False):
         concept_extents = {}
 
         def stored_extension(concept_i):
             if concept_i not in concept_extents:
-                concept_extents[concept_i] = set(context.extension_i(self._concepts[concept_i].intent_i))
+                if not use_generators:
+                     ext_ = set(context.extension_i(self._concepts[concept_i].intent_i))
+                else:
+                    ext_ = set()
+                    for gen in self._generators_dict[concept_i]:
+                        ext_ |= set(context.extension_i(gen))
+                concept_extents[concept_i] = ext_
             return concept_extents[concept_i]
 
         concepts_to_visit = [self._top_concept_i]
@@ -364,3 +372,28 @@ class ConceptLattice:
             object_traced_concepts = {context.object_names[g_i]: concepts_i
                                       for g_i, concepts_i in object_traced_concepts.items()}
         return object_bottom_concepts, object_traced_concepts
+
+    def get_conditional_generators_dict(self, context: MVContext):
+        condgen_dict = dict()
+        condgen_dict[self._top_concept_i] = context.get_minimal_generators(
+            self.top_concept.intent_i, use_indexes=True)
+
+        if not self._is_concepts_sorted:
+            concepts_sorted = self.sort_concepts(self._concepts)
+            map_concept_i = {c: c_i for c_i, c in enumerate(self._concepts)}
+            map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(len(self._concepts))]
+            concepts_to_visit = map_isort_i
+        else:
+            concepts_to_visit = list(range(len(self._concepts)))
+
+        for c_i in concepts_to_visit[1:]:
+            intent_i = self._concepts[c_i].intent_i
+
+            superconcepts_i = self._superconcepts_dict[c_i]
+            condgens = set()
+            for supc_i in superconcepts_i:
+                for supc_condgen in condgen_dict[supc_i]:
+                    condgens |= set(context.get_minimal_generators(intent_i, supc_condgen, use_indexes=True))
+            condgen_dict[c_i] = list(condgens)
+
+        return condgen_dict

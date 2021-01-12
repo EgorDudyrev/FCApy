@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from itertools import combinations
 
 
 class FormalContext:
@@ -419,6 +420,32 @@ class FormalContext:
 
         data_to_print = '\n'.join([header] + lines)
         return data_to_print
+
+    def get_minimal_generators(self, intent, base_generator=None, use_indexes=False):
+        intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
+        intent_i = set(intent_i)
+
+        base_generator = list(base_generator) if base_generator is not None else []
+        if not use_indexes:
+            base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
+
+        attrs_to_iterate = [m_i for m_i in range(self.n_attributes) if m_i not in base_generator]
+        min_gens = set()
+        for n_projection in range(0, len(attrs_to_iterate) + 1):
+            for comb in combinations(attrs_to_iterate, n_projection):
+                comb = base_generator + list(comb)
+                ext_i = self.extension_i(comb)
+                int_i = self.intention_i(ext_i)
+                if set(int_i) == intent_i:
+                    min_gens.add(tuple(sorted(comb)))
+
+            if len(min_gens) > 0:
+                break
+
+        if not use_indexes:
+            min_gens = [[self.attribute_names[m_i] for m_i in mg] for mg in min_gens]
+        min_gens = [tuple(mg) for mg in min_gens]
+        return min_gens
 
     def __eq__(self, other):
         """Wrapper for the comparison method __eq__"""

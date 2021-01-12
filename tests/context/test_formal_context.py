@@ -1,5 +1,6 @@
 import pytest
 from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
+from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
 from operator import itemgetter
 
@@ -215,3 +216,18 @@ def test_getitem():
     ctx_oneattribute = FormalContext([row[:1] for row in data])
     assert ctx[:, 0] == ctx_oneattribute, "FormalContext.__getitem__ failed"
     assert ctx[:, [0]] == ctx_oneattribute, "FormalContext.__getitem__ failed"
+
+
+def test_get_minimal_generators():
+    ctx = read_csv('data/mango_bin.csv')
+    int_ = ['fruit', 'color_is_yellow', 'form_is_round']
+    min_gens = ctx.get_minimal_generators(int_, use_indexes=False)
+    assert min_gens == [('color_is_yellow',)], "FormalContext.get_minimal_generators failed"
+
+    min_gens = ctx.get_minimal_generators(int_, base_generator=['form_is_round'], use_indexes=False)
+    assert set(min_gens) == {('color_is_yellow', 'form_is_round'), ('fruit', 'form_is_round')},\
+        "FormalContext.get_minimal_generators failed"
+
+    ltc = ConceptLattice.from_context(ctx)
+    for c in ltc.concepts:
+        ctx.get_minimal_generators(c.intent)

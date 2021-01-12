@@ -1,4 +1,6 @@
 from collections.abc import Iterable
+import math
+
 
 class AbstractPS:
     def __init__(self, data, name=None):
@@ -23,6 +25,12 @@ class AbstractPS:
     @property
     def name(self):
         return self._name
+
+    def description_to_generators(self, description, projection_num):
+        raise NotImplementedError
+
+    def generators_to_description(self, generators):
+        raise NotImplementedError
 
     def __repr__(self):
         str_ = f"{self.__class__.__name__} '{self._name}'"
@@ -68,3 +76,33 @@ class IntervalPS(AbstractPS):
 
         g_is = [g_i for g_i, v in enumerate(self._data) if min_ <= v <= max_]
         return g_is
+
+    def description_to_generators(self, description, projection_num):
+        if description is None:
+            return [None]
+
+        if not isinstance(description, Iterable):
+            description = (description, description)
+        description = tuple(description)
+        if projection_num == 0:
+            generators = [(-math.inf, math.inf)]
+        elif projection_num == 1:
+            generators = [(-math.inf, description[1]), (description[0], math.inf)]
+        else:
+            generators = [(description[0], description[1])]
+        return generators
+
+    def generators_to_description(self, generators):
+        if any([gen is None for gen in generators]):
+            return None
+
+        generators = [tuple(gen) if isinstance(gen, Iterable) else (gen, gen) for gen in generators]
+        generators = [list(row)for row in zip(*generators)]
+        description = (max(generators[0]), min(generators[1]))
+        assert description[0] <= description[1],\
+            f"IntervalPS.generators_to_description error. Generators are wrongly defined. " \
+            f"Right border of result description interval is smaller than the left one: {description}"
+        if description[0] == description[1]:
+            description = description[0]
+        return description
+
