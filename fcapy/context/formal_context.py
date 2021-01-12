@@ -164,7 +164,7 @@ class FormalContext:
     def target(self):
         return self._target
 
-    def extension_i(self, attribute_indexes):
+    def extension_i(self, attribute_indexes, base_objects_i=None):
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
         Parameters
@@ -178,8 +178,10 @@ class FormalContext:
             Indexes of maximal set of objects which share ``attributes``
 
         """
-        return [g_idx for g_idx, g_ms in enumerate(self._data)
-                if all([g_ms[m] for m in attribute_indexes])]
+        # TODO: Update docstring
+        base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
+        return [g_idx for g_idx in base_objects
+                if all([self._data[g_idx][m] for m in attribute_indexes])]
 
     def intention_i(self, object_indexes):
         """Return indexes of maximal set of attributes which are shared by given ``object_indexes`
@@ -223,7 +225,7 @@ class FormalContext:
         intention = [self._attribute_names[m_idx] for m_idx in intention_i]
         return intention
 
-    def extension(self, attributes):
+    def extension(self, attributes, base_objects=None):
         """Return maximal set of objects which share given ``attributes``
 
         Parameters
@@ -245,7 +247,10 @@ class FormalContext:
             except KeyError as e:
                 raise KeyError(f'FormalContext.extension: Context does not have an attribute "{m}"')
 
-        extension_i = self.extension_i(attr_indices)
+        base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]\
+            if base_objects is not None else list(range(self._n_objects))
+
+        extension_i = self.extension_i(attr_indices, base_objects_i=base_objects_i)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
         return extension
 
@@ -426,7 +431,7 @@ class FormalContext:
         data_to_print = '\n'.join([header] + lines)
         return data_to_print
 
-    def get_minimal_generators(self, intent, base_generator=None, use_indexes=False):
+    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
         intent_i = set(intent_i)
 
@@ -434,12 +439,19 @@ class FormalContext:
         if not use_indexes:
             base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
 
+        if base_objects is None:
+            base_objects_i = list(range(self.n_objects))
+        else:
+            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if
+                              g in base_objects] if not use_indexes else base_objects
+        base_objects_i = frozenset(base_objects_i)
+
         attrs_to_iterate = [m_i for m_i in range(self.n_attributes) if m_i not in base_generator]
         min_gens = set()
         for n_projection in range(0, len(attrs_to_iterate) + 1):
             for comb in combinations(attrs_to_iterate, n_projection):
                 comb = base_generator + list(comb)
-                ext_i = self.extension_i(comb)
+                ext_i = self.extension_i(comb, base_objects_i=base_objects_i)
                 int_i = self.intention_i(ext_i)
                 if set(int_i) == intent_i:
                     min_gens.add(tuple(sorted(comb)))

@@ -399,3 +399,31 @@ class ConceptLattice:
             condgen_dict[c_i] = list(condgens)
 
         return condgen_dict
+
+    def get_conditional_generators_dict(self, context: MVContext):
+        condgen_dict = dict()
+        condgen_dict[self._top_concept_i] = context.get_minimal_generators(
+            self.top_concept.intent_i, use_indexes=True)
+
+        if not self._is_concepts_sorted:
+            concepts_sorted = self.sort_concepts(self._concepts)
+            map_concept_i = {c: c_i for c_i, c in enumerate(self._concepts)}
+            map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(len(self._concepts))]
+            concepts_to_visit = map_isort_i
+        else:
+            concepts_to_visit = list(range(len(self._concepts)))
+
+        supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
+        for c_i in concepts_to_visit[1:]:
+            intent_i = self._concepts[c_i].intent_i
+
+            superconcepts_i = self._superconcepts_dict[c_i]
+            condgens = set()
+            for supc_i in superconcepts_i:
+                supc_ext_i = supc_exts_i[supc_i]
+                for supc_condgen in condgen_dict[supc_i]:
+                    condgens |= set(context.get_minimal_generators(
+                        intent_i, supc_condgen, base_objects=supc_ext_i, use_indexes=True))
+            condgen_dict[c_i] = list(condgens)
+
+        return condgen_dict

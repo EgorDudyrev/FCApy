@@ -96,22 +96,24 @@ class MVContext:
             pattern_structures.append(ps)
         return pattern_structures
 
-    def extension_i(self, descriptions_i):
-        extent = set(range(self._n_objects))
+    def extension_i(self, descriptions_i, base_objects_i=None):
+        extent_i = set(range(self._n_objects)) if base_objects_i is None else base_objects_i
         for ps_i, description in descriptions_i.items():
             ps = self._pattern_structures[ps_i]
-            extent &= set(ps.extension_i(description))
-        extent = sorted(extent)
-        return extent
+            extent_i &= set(ps.extension_i(description, base_objects_i=extent_i))
+        extent_i = sorted(extent_i)
+        return extent_i
 
     def intention_i(self, object_indexes):
         description_i = {ps_i: ps.intention_i(object_indexes) for ps_i, ps in enumerate(self._pattern_structures)}
         return description_i
 
-    def extension(self, descriptions):
+    def extension(self, descriptions, base_objects=None):
         ps_names_map = {ps.name: ps_i for ps_i, ps in enumerate(self._pattern_structures)}
         descriptions_i = {ps_names_map[ps_name]: description for ps_name, description in descriptions.items()}
-        extension_i = self.extension_i(descriptions_i)
+        base_objects_i = {g_i for g_i, g in enumerate(self._object_names) if g in base_objects}\
+            if base_objects is not None else None
+        extension_i = self.extension_i(descriptions_i, base_objects_i=base_objects_i)
         objects = [self._object_names[g_i] for g_i in extension_i]
         return objects
 
@@ -209,14 +211,11 @@ class MVContext:
     def from_pandas(dataframe):
         raise NotImplementedError
 
-    def get_minimal_generators(self, intent, base_generator=None, use_indexes=False):
+    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
         intent_i = {
             ps_i: intent[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
             if ps.name in intent
         } if not use_indexes else intent
-
-        #if len(self.extension_i(intent_i)) == 0:
-        #    return [None]
 
         if base_generator is not None:
             if not use_indexes:
@@ -227,8 +226,17 @@ class MVContext:
         else:
             base_generator = []
 
+        if base_objects is None:
+            base_objects_i = list(range(self.n_objects))
+        else:
+            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if
+                              g in base_objects] if not use_indexes else base_objects
+        base_objects_i = frozenset(base_objects_i)
+
+        # base_objects_i = None
+
         def get_generators(ps_i, descr, max_projection_num):
-            return [gen for proj_num in range(max_projection_num+1)
+            return [gen for proj_num in range(max_projection_num + 1)
                     for gen in self._pattern_structures[ps_i].description_to_generators(descr, proj_num)]
 
         max_projection_num = -1
@@ -246,7 +254,7 @@ class MVContext:
                     gens = {ps_i: [gen[1] for gen in comb if gen[0] == ps_i] for ps_i in pss_i}
                     descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
                              for ps_i, gen in gens.items()}
-                    ext_ = self.extension_i(descr)
+                    ext_ = self.extension_i(descr, base_objects_i=base_objects_i)
                     int_ = self.intention_i(ext_)
 
                     if len(int_) == len(intent_i):
@@ -260,6 +268,7 @@ class MVContext:
                         for mg in min_gens}
         min_gens = list(min_gens)
         return min_gens
+
 
     def __repr__(self):
         data_to_print = f'MultiValuedContext ' +\

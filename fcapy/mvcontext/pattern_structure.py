@@ -10,7 +10,7 @@ class AbstractPS:
     def intention_i(self, object_indexes):
         raise NotImplementedError
 
-    def extension_i(self, description):
+    def extension_i(self, description, base_objects_i=None):
         raise NotImplementedError
 
     @property
@@ -65,7 +65,7 @@ class IntervalPS(AbstractPS):
             return min_
         return min_, max_
 
-    def extension_i(self, description):
+    def extension_i(self, description, base_objects_i=None):
         if description is None:
             return []
 
@@ -74,7 +74,8 @@ class IntervalPS(AbstractPS):
         else:
             min_ = max_ = description
 
-        g_is = [g_i for g_i, v in enumerate(self._data) if min_ <= v <= max_]
+        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+        g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
         return g_is
 
     def description_to_generators(self, description, projection_num):
