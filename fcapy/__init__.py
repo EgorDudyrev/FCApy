@@ -14,6 +14,7 @@ def check_installed_packages(package_descriptions):
 
 
 PACKAGE_DESCRIPTION = {
-    'pandas': "The package is used to create a FormalContext based on pandas.DataFrame and vice versa"
+    'pandas': "The package is used to create a FormalContext based on pandas.DataFrame and vice versa",
+    'tqdm': "The package helps to track the progress of looped functions and estimate their time to complete"
 }
 LIB_INSTALLED = check_installed_packages(PACKAGE_DESCRIPTION)
