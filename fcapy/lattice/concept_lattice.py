@@ -2,6 +2,7 @@ import json
 from ..algorithms import concept_construction as cca, lattice_construction as lca
 from .formal_concept import FormalConcept
 from ..mvcontext.mvcontext import MVContext
+from ..utils import utils
 import warnings
 import inspect
 
@@ -375,7 +376,7 @@ class ConceptLattice:
                                       for g_i, concepts_i in object_traced_concepts.items()}
         return object_bottom_concepts, object_traced_concepts
 
-    def get_conditional_generators_dict(self, context: MVContext):
+    def get_conditional_generators_dict(self, context: MVContext, use_tqdm=False):
         condgen_dict = dict()
         condgen_dict[self._top_concept_i] = [{}] if type(context) is MVContext else [[]]
 
@@ -388,7 +389,7 @@ class ConceptLattice:
             concepts_to_visit = list(range(len(self._concepts)))
 
         supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
-        for c_i in concepts_to_visit[1:]:
+        for c_i in utils.safe_tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
             intent_i = self._concepts[c_i].intent_i
 
             superconcepts_i = self._superconcepts_dict[c_i]

@@ -94,7 +94,7 @@ def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=No
 
 
 def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure='LStab',
-                 projection_sorting=None, proj_to_start=None):
+                 projection_sorting=None, proj_to_start=None, use_tqdm=False):
     assert not (iterate_attributes and type(context) != FormalContext),\
         "Sofia_binary error. " +\
         "Cannot iterate_attributes if given context is of type FormalContext"
@@ -133,7 +133,8 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
     itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
 
-    for projection_num in range(proj_to_start+1, max_projection + 1):
+    for projection_num in utils.safe_tqdm(range(proj_to_start+1, max_projection + 1),
+                                          desc='SOFIA: Iterate projections', disable=not use_tqdm):
         if iterate_attributes:
             ctx_projected = context[:, projections_order[:projection_num]]
         else:
@@ -189,8 +190,12 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
     return lattice
 
 
-def sofia_general(context: MVContext, L_max=100, measure='LStab', proj_to_start=None):
-    lattice = sofia_binary(context, L_max=L_max, iterate_attributes=False, measure=measure, proj_to_start=proj_to_start)
+def sofia_general(context: MVContext, L_max=100, measure='LStab', proj_to_start=None, use_tqdm=False):
+    lattice = sofia_binary(
+        context,
+        L_max=L_max, iterate_attributes=False, measure=measure, proj_to_start=proj_to_start,
+        use_tqdm=use_tqdm
+    )
     return lattice
 
 

@@ -12,9 +12,13 @@ def run_install(**kwargs):
         'mvcontext': [
             'frozendict'
         ],
+        'lattice': [
+            'tqdm'
+        ],
         'algorithms': [
             'joblib',
             'scikit-learn',
+            'tqdm',
         ],
         'visualizer': [
             'matplotlib',

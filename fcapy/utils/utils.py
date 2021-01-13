@@ -1,5 +1,9 @@
 from itertools import chain, combinations
 
+from .. import LIB_INSTALLED
+if LIB_INSTALLED['tqdm']:
+    from tqdm.notebook import tqdm
+
 
 def powerset(iterable):
     """powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"""
@@ -46,3 +50,10 @@ def sparse_unique_columns(M):
     uniques = M@sp.sparse.csc_matrix((np.ones((nu,)), idx[counts[:-1].cumsum()],
                                    np.arange(nu + 1)), (n, nu))
     return uniques, idx, counts[1:]
+
+
+def safe_tqdm(*args, **kwargs):
+    if LIB_INSTALLED['tqdm']:
+        return tqdm(*args, **kwargs)
+    else:
+        return args[0]

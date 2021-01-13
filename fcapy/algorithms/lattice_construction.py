@@ -1,7 +1,8 @@
 from copy import deepcopy
+from ..utils import utils
 
 
-def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
+def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
     def get_subconcepts(a_i, a, concepts):
         subconcepts = set()
         for b_i, b in enumerate(concepts):
@@ -14,7 +15,10 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
         return subconcepts
 
     if n_jobs == 1:
-        all_subconcepts = [get_subconcepts(a_i, a, concepts) for a_i, a in enumerate(concepts)]
+        all_subconcepts = []
+        for a_i, a in utils.safe_tqdm(enumerate(concepts), total=len(concepts),
+                                      disable=not use_tqdm, desc='Complete concepts comparison'):
+            all_subconcepts.append(get_subconcepts(a_i, a, concepts))
     else:
         from joblib import Parallel, delayed
 
@@ -36,7 +40,7 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1):
     return subconcepts_dict
 
 
-def construct_spanning_tree(concepts, is_concepts_sorted=False):
+def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
     from fcapy.lattice import ConceptLattice
 
     if not is_concepts_sorted:
@@ -46,7 +50,8 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False):
     subconcepts_st_dict = {}
     superconcepts_st_dict = {}
 
-    for c_sort_i in range(len(concepts)):
+    for c_sort_i in utils.safe_tqdm(range(len(concepts)),
+                                    disable=not use_tqdm, desc='Spanning tree construction'):
         if is_concepts_sorted:
             c = concepts[c_sort_i]
             c_i = c_sort_i
@@ -82,7 +87,7 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False):
     return subconcepts_st_dict, superconcepts_st_dict
 
 
-def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False):
+def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False):
     from ..lattice import ConceptLattice
 
     # initialize the dictionaries
@@ -141,7 +146,8 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
         return superconcepts_cur, all_superconcepts_cur, incomparables_cur, idx_comp_start
 
         # iterate through every chain. If new concept in the chain is found: select its superconcepts and subconcepts
-    for ch_i_cur in range(len(sptree_chains)):
+    for ch_i_cur in utils.safe_tqdm(range(len(sptree_chains)),
+                                    disable=not use_tqdm, desc='Construct lattice from spanning tree'):
         # start comparison of current concept and concepts from chain `ch_i from idxs_comp[ch_i]
         idxs_comp = [0] * len(sptree_chains)
         # iterate through every concept in the chain. Except the very first one (it is the lattice top concept)
@@ -310,13 +316,14 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
     return subconcepts_dict
 
 
-def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1):
+def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
     from ..lattice import ConceptLattice
     subconcepts_st_dict, superconcepts_st_dict = \
         construct_spanning_tree(concepts, is_concepts_sorted=is_concepts_sorted)
     chains = ConceptLattice._get_chains(concepts, superconcepts_st_dict, is_concepts_sorted=is_concepts_sorted)
     if n_jobs == 1:
-        subconcepts_dict = construct_lattice_from_spanning_tree(concepts, chains, is_concepts_sorted=is_concepts_sorted)
+        subconcepts_dict = construct_lattice_from_spanning_tree(
+            concepts, chains, is_concepts_sorted=is_concepts_sorted, use_tqdm=use_tqdm)
     else:
         subconcepts_dict = construct_lattice_from_spanning_tree_parallel(
             concepts, chains, is_concepts_sorted=is_concepts_sorted, n_jobs=n_jobs)
