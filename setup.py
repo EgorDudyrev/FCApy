@@ -13,7 +13,7 @@ def run_install(**kwargs):
             'frozendict'
         ],
         'lattice': [
-            'tqdm'
+            'ipywidgets', 'tqdm'
         ],
         'algorithms': [
             'joblib',
