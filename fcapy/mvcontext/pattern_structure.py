@@ -1,6 +1,10 @@
 from collections.abc import Iterable
 import math
 
+from .. import LIB_INSTALLED
+if LIB_INSTALLED['numpy']:
+    import numpy as np
+
 
 class AbstractPS:
     def __init__(self, data, name=None):
@@ -51,6 +55,11 @@ class AbstractPS:
 
 
 class IntervalPS(AbstractPS):
+    def __init__(self, data, name=None):
+        super(IntervalPS, self).__init__(data, name)
+        if LIB_INSTALLED['numpy']:
+            self._data = np.array(data)
+
     def intention_i(self, object_indexes):
         if len(object_indexes) == 0:
             return None
@@ -69,13 +78,17 @@ class IntervalPS(AbstractPS):
         if description is None:
             return []
 
-        if isinstance(description, (tuple, )):
+        if isinstance(description, Iterable):
             min_, max_ = description[0], description[1]
         else:
             min_ = max_ = description
 
-        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
-        g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
+        if not LIB_INSTALLED['numpy']:
+            base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+            g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
+        else:
+            base_objects_i = np.arange(len(self._data)) if base_objects_i is None else np.array(base_objects_i)
+            g_is = base_objects_i[(min_ <= self._data[base_objects_i]) & (self._data[base_objects_i] <= max_)]
         return g_is
 
     def description_to_generators(self, description, projection_num):

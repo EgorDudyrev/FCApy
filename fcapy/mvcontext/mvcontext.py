@@ -2,6 +2,10 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 
+from .. import LIB_INSTALLED
+if LIB_INSTALLED['numpy']:
+    import numpy as np
+
 
 class MVContext:
     """
@@ -97,11 +101,16 @@ class MVContext:
         return pattern_structures
 
     def extension_i(self, descriptions_i, base_objects_i=None):
-        extent_i = set(range(self._n_objects)) if base_objects_i is None else base_objects_i
+        if not LIB_INSTALLED['numpy']:
+            extent_i = range(self._n_objects) if base_objects_i is None else base_objects_i
+        else:
+            extent_i = np.arange(self._n_objects) if base_objects_i is None else np.array(base_objects_i)
+
         for ps_i, description in descriptions_i.items():
             ps = self._pattern_structures[ps_i]
-            extent_i &= set(ps.extension_i(description, base_objects_i=extent_i))
-        extent_i = sorted(extent_i)
+            extent_i = ps.extension_i(description, base_objects_i=extent_i)
+            if len(extent_i) == 0:
+                break
         return extent_i
 
     def intention_i(self, object_indexes):
