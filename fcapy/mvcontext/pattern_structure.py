@@ -87,7 +87,14 @@ class IntervalPS(AbstractPS):
             base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
             g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
         else:
-            base_objects_i = np.arange(len(self._data)) if base_objects_i is None else np.array(base_objects_i)
+            if base_objects_i is None:
+                base_objects_i = np.arange(len(self._data))
+            if not isinstance(base_objects_i, np.ndarray):
+                if isinstance(base_objects_i, (list, tuple)):
+                    base_objects_i = np.array(base_objects_i)
+                else:
+                    base_objects_i = np.array(tuple(base_objects_i))
+
             g_is = base_objects_i[(min_ <= self._data[base_objects_i]) & (self._data[base_objects_i] <= max_)]
         return g_is
 
@@ -120,3 +127,9 @@ class IntervalPS(AbstractPS):
             description = description[0]
         return description
 
+    def __eq__(self, other):
+        same_data = self._data == other.data if not LIB_INSTALLED['numpy'] else (self._data == other.data).all()
+        return same_data and self._name == other.name
+
+    def __hash__(self):
+        return hash((self._name, tuple(self._data)))

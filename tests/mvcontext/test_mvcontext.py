@@ -1,8 +1,10 @@
 import pytest
 from fcapy.mvcontext import mvcontext, pattern_structure as PS
-from fcapy.lattice.concept_lattice import  ConceptLattice
+from fcapy.lattice.concept_lattice import ConceptLattice
 import math
 from frozendict import frozendict
+from fcapy import LIB_INSTALLED
+import numpy as np
 
 
 def test_init():
@@ -46,12 +48,31 @@ def test_extension_intention():
     attribute_names = ['M1', 'M2']
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
     pattern_types = {'M1': PS.IntervalPS, 'M2': PS.IntervalPS}
-    mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
 
-    assert mvctx.intention_i([1, 2]) == {0: (2, 3), 1: (22, 100)}, 'MVContext.intention_i failed'
-    assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == [1, 2], 'MVContext.extension_i failed'
-    assert mvctx.intention(['b', 'c']) == {'M1': (2, 3), 'M2': (22, 100)}, 'MVContext.intention failed'
-    assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == ['b', 'c'], 'MVContext.extension failed'
+    intent_i_true = {0: (2, 3), 1: (22, 100)}
+    intent_true = {'M1': (2, 3), 'M2': (22, 100)}
+    extent_i_true = [1, 2]
+    extent_true = ['b', 'c']
+
+    for x in [False, True]:
+        LIB_INSTALLED['numpy'] = x
+        mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
+
+        if x:
+            extent_i_true = np.array(extent_i_true)
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == extent_i_true).all(), 'MVContext.extension_i failed'
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, frozenset([0, 1, 2, 3])) == extent_i_true).all()
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, [0, 1, 2, 3]) == extent_i_true).all()
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, np.array([0, 1, 2, 3])) == extent_i_true).all()
+        else:
+            extent_i_true = list(extent_i_true)
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == extent_i_true, 'MVContext.extension_i failed'
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}, [0, 1, 2, 3]) == extent_i_true
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}, frozenset([0, 1, 2, 3])) == extent_i_true
+
+        assert mvctx.intention_i([1, 2]) == intent_i_true, 'MVContext.intention_i failed'
+        assert mvctx.intention(['b', 'c']) == intent_true, 'MVContext.intention failed'
+        assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == extent_true, 'MVContext.extension failed'
 
 
 def test_to_json():

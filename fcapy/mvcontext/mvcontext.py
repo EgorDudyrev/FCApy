@@ -104,7 +104,15 @@ class MVContext:
         if not LIB_INSTALLED['numpy']:
             extent_i = range(self._n_objects) if base_objects_i is None else base_objects_i
         else:
-            extent_i = np.arange(self._n_objects) if base_objects_i is None else np.array(base_objects_i)
+            if base_objects_i is None:
+                extent_i = np.arange(self._n_objects)
+            elif not isinstance(base_objects_i, np.ndarray):
+                if isinstance(base_objects_i, (tuple, list)):
+                    extent_i = np.array(base_objects_i)
+                else:
+                    extent_i = np.array(list(base_objects_i))
+            else:
+                extent_i = base_objects_i
 
         for ps_i, description in descriptions_i.items():
             ps = self._pattern_structures[ps_i]
@@ -267,7 +275,13 @@ class MVContext:
                     int_ = self.intention_i(ext_)
 
                     if len(int_) == len(intent_i):
-                        if all([type(v) == type(intent_i[k]) and v == intent_i[k] for k, v in int_.items()]):
+                        for k, v in int_.items():
+                            v_is_iterable, new_v_is_iterable = isinstance(v, Iterable), isinstance(intent_i[k], Iterable)
+                            if v_is_iterable != new_v_is_iterable:
+                                break
+                            if v != intent_i[k]:
+                                break
+                        else:
                             min_gens.add(frozendict(descr))
                 if len(min_gens) > 0:
                     break
@@ -277,7 +291,6 @@ class MVContext:
                         for mg in min_gens}
         min_gens = list(min_gens)
         return min_gens
-
 
     def __repr__(self):
         data_to_print = f'MultiValuedContext ' +\

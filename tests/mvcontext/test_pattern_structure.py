@@ -1,6 +1,9 @@
 import pytest
 from fcapy.mvcontext import pattern_structure
 import math
+from fcapy import LIB_INSTALLED
+import numpy as np
+from copy import deepcopy
 
 
 def test_abstract_ps_repr():
@@ -35,15 +38,39 @@ def test_abstract_ps_descriptions_tofrom_generators():
         aps.description_to_generators(None, None)
 
 
+def test_abstract_ps_eq_hash():
+    aps1 = pattern_structure.AbstractPS([1, 2, 'c', None])
+    aps2 = pattern_structure.AbstractPS([1, 2, 'c'])
+    assert aps1 == deepcopy(aps1)
+    assert aps1 != aps2
+
+    assert len({aps1, aps2, deepcopy(aps1)}) == 2
+
+
 def test_interval_ps_extension_intention():
+    LIB_INSTALLED['numpy'] = False
     ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
     assert ips.extension_i(None) == [], "IntervalPS.extension_i failed"
     assert ips.extension_i((2, 3)) == [2, 3, 4], "IntervalPS.extension_i failed"
     assert ips.extension_i((2, 2)) == ips.extension_i(2), "IntervalPS.extension_i failed"
+
+    LIB_INSTALLED['numpy'] = True
+    ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
+    assert (ips.extension_i(None) == np.array([])).all(), "IntervalPS.extension_i failed"
+    assert (ips.extension_i((2, 3)) == np.array([2, 3, 4])).all(), "IntervalPS.extension_i failed"
+    assert (ips.extension_i((2, 2)) == np.array(ips.extension_i(2))).all(), "IntervalPS.extension_i failed"
+
+    assert (ips.extension_i((2, 3), [0, 1, 2, 3, 4]) == np.array([2, 3, 4])).all(), "IntervalPS.extension_i failed"
+    assert (ips.extension_i((2, 3), frozenset([0, 1, 2, 3, 4])) == np.array([2, 3, 4])).all(),\
+        "IntervalPS.extension_i failed"
+    assert (ips.extension_i((2, 3), np.array([0, 1, 2, 3, 4])) == np.array([2, 3, 4])).all(), \
+        "IntervalPS.extension_i failed"
+
+    ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
     assert ips.intention_i([]) is None, 'IntervalPS.intention_i failed'
     assert ips.intention_i([0, 1, 3]) == (0, 3), "IntervalPS.intention_i failed"
     assert ips.intention_i([2, 4]) == 2, "IntervalPS.intention_i failed"
-    assert ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4], "IntervalPS.extension_i/intention_i failed"
+    assert (ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4]).all(), "IntervalPS.extension_i/intention_i failed"
 
 
 def test_interval_ps_descriptions_tofrom_generators():
