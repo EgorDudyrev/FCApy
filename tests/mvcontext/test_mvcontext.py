@@ -161,13 +161,23 @@ def test_get_minimal_generators():
             [4.7, 3.2, 1.3, 0.2],
             [4.6, 3.1, 1.5, 0.2]]
     attribute_names = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
-    pattern_types = {f: PS.IntervalPS for f in attribute_names}
-    mvctx = mvcontext.MVContext(data=data, pattern_types=pattern_types, attribute_names=attribute_names)
 
-    intent = {0: (4.6, 5.1), 1: (3.0, 3.5), 2: (1.4, 1.5), 3: 0.2}
-    mg_true = {frozendict({2: (1.4, math.inf)})}
-    assert set(mvctx.get_minimal_generators(intent, use_indexes=True)) == mg_true,\
-        "MVContext.get_minimal_generators failed"
+    for x in [False, True]:
+        LIB_INSTALLED['numpy'] = x
+
+        pattern_types = {f: PS.IntervalPS for f in attribute_names}
+        mvctx = mvcontext.MVContext(data=data, pattern_types=pattern_types, attribute_names=attribute_names)
+
+        intent = {0: (4.6, 5.1), 1: (3.0, 3.5), 2: (1.4, 1.5), 3: 0.2}
+        mg_true = {frozendict({2: (1.4, math.inf)})}
+        assert set(mvctx.get_minimal_generators(intent, use_indexes=True)) == mg_true,\
+            "MVContext.get_minimal_generators failed"
+
+        intent = {'sepal length (cm)': (4.6, 5.1), 'sepal width (cm)': (3.0, 3.5),
+                  'petal length (cm)': (1.4, 1.5), 'petal width (cm)': 0.2}
+        mg_true = {frozendict({'petal length (cm)': (1.4, math.inf)})}
+        assert set(mvctx.get_minimal_generators(intent, base_objects=['0', '1', '2', '3'])) == mg_true,\
+            "MVContext.get_minimal_generators failed"
 
     # TODO: Find better example for usage of base_generator
     intent = {'sepal length (cm)': (4.6, 5.1), 'sepal width (cm)': (3.1, 3.5),

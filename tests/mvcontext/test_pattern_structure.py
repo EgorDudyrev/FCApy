@@ -78,6 +78,8 @@ def test_interval_ps_descriptions_tofrom_generators():
     description_true = (1, 2)
     generators_true = [(-math.inf, 2), (1, math.inf)]
 
+    assert ips.description_to_generators(description_true, projection_num=0) == [(-math.inf, math.inf)]
+
     assert ips.description_to_generators(description_true, projection_num=1) == generators_true,\
         "IntervalPS.description_to_generators failed"
     assert ips.generators_to_description(generators_true) == description_true, \

@@ -119,6 +119,10 @@ class MVContext:
             extent_i = ps.extension_i(description, base_objects_i=extent_i)
             if len(extent_i) == 0:
                 break
+
+        if LIB_INSTALLED['numpy']:
+            if type(extent_i) is np.ndarray:
+                extent_i = extent_i.tolist()
         return extent_i
 
     def intention_i(self, object_indexes):
@@ -228,11 +232,12 @@ class MVContext:
     def from_pandas(dataframe):
         raise NotImplementedError
 
-    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
+    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False,
+                               projection_to_start=1):
         intent_i = {
             ps_i: intent[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
             if ps.name in intent
-        } if not use_indexes else intent
+        } if not use_indexes else intent.copy()
 
         if base_generator is not None:
             if not use_indexes:
@@ -244,23 +249,33 @@ class MVContext:
             base_generator = []
 
         if base_objects is None:
-            base_objects_i = list(range(self.n_objects))
+            base_objects_i = None
+        elif not use_indexes:
+            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]
         else:
-            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if
-                              g in base_objects] if not use_indexes else base_objects
-        base_objects_i = frozenset(base_objects_i)
+            base_objects_i = base_objects.copy()
 
-        # base_objects_i = None
+        if not LIB_INSTALLED['numpy']:
+            if base_objects_i is None:
+                base_objects_i = list(range(self._n_objects))
+            base_objects_i = frozenset(base_objects_i)
+        else:
+            if base_objects_i is None:
+                base_objects_i = np.arange(self._n_objects)
+            if not isinstance(base_objects_i, np.ndarray):
+                if isinstance(base_objects_i, (list, tuple)):
+                    base_objects_i = np.array(base_objects_i)
+                else:
+                    base_objects_i = np.array(list(base_objects_i))
 
         def get_generators(ps_i, descr, max_projection_num):
-            return [gen for proj_num in range(max_projection_num + 1)
+            return [gen for proj_num in range(projection_to_start, max_projection_num + 1)
                     for gen in self._pattern_structures[ps_i].description_to_generators(descr, proj_num)]
 
-        max_projection_num = -1
+        ext_true = self.extension_i(intent_i)
+        max_projection_num = projection_to_start
         min_gens = set()
         while len(min_gens) == 0:
-            max_projection_num += 1
-
             generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
                                      for gen in get_generators(ps_i, descr, max_projection_num)]
 
@@ -272,19 +287,13 @@ class MVContext:
                     descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
                              for ps_i, gen in gens.items()}
                     ext_ = self.extension_i(descr, base_objects_i=base_objects_i)
-                    int_ = self.intention_i(ext_)
 
-                    if len(int_) == len(intent_i):
-                        for k, v in int_.items():
-                            v_is_iterable, new_v_is_iterable = isinstance(v, Iterable), isinstance(intent_i[k], Iterable)
-                            if v_is_iterable != new_v_is_iterable:
-                                break
-                            if v != intent_i[k]:
-                                break
-                        else:
-                            min_gens.add(frozendict(descr))
+                    if ext_ == ext_true:
+                        min_gens.add(frozendict(descr))
+
                 if len(min_gens) > 0:
                     break
+            max_projection_num += 1
 
         if not use_indexes:
             min_gens = {frozendict({self._pattern_structures[ps_i].name: descr for ps_i, descr in mg.items()})

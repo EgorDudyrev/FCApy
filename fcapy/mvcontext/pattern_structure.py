@@ -59,16 +59,32 @@ class IntervalPS(AbstractPS):
         super(IntervalPS, self).__init__(data, name)
         if LIB_INSTALLED['numpy']:
             self._data = np.array(data)
+            map_isort_i = sorted(range(len(data)), key=lambda x: data[x])
+            self._map_i_isort = sorted(range(len(data)), key=lambda x: map_isort_i[x])
 
     def intention_i(self, object_indexes):
         if len(object_indexes) == 0:
             return None
 
-        min_ = max_ = self._data[object_indexes[0]]
-        for g_i in object_indexes[1:]:
-            v = self._data[g_i]
-            min_ = v if v < min_ else min_
-            max_ = v if v > max_ else max_
+        if not LIB_INSTALLED['numpy']:
+            min_ = max_ = self._data[object_indexes[0]]
+            for g_i in object_indexes[1:]:
+                v = self._data[g_i]
+                min_ = v if v < min_ else min_
+                max_ = v if v > max_ else max_
+        else:
+            min_g_i, max_g_i = object_indexes[0], object_indexes[0]
+            min_sort_i, max_sort_i = self._map_i_isort[min_g_i], self._map_i_isort[max_g_i]
+            for g_i in object_indexes[1:]:
+                sort_i = self._map_i_isort[g_i]
+                if sort_i < min_sort_i:
+                    min_g_i = g_i
+                    min_sort_i = sort_i
+                if sort_i > max_sort_i:
+                    max_g_i = g_i
+                    max_sort_i = sort_i
+
+            min_, max_ = self._data[min_g_i], self._data[max_g_i]
 
         if min_ == max_:
             return min_
@@ -84,6 +100,7 @@ class IntervalPS(AbstractPS):
             min_ = max_ = description
 
         if not LIB_INSTALLED['numpy']:
+            print(base_objects_i)
             base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
             g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
         else:
