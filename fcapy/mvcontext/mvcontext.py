@@ -233,7 +233,7 @@ class MVContext:
         raise NotImplementedError
 
     def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False,
-                               projection_to_start=1):
+                               ps_to_iterate=None, projection_to_start=1):
         intent_i = {
             ps_i: intent[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
             if ps.name in intent
@@ -244,7 +244,7 @@ class MVContext:
                 base_generator = {
                     ps_i: base_generator[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
                     if ps.name in base_generator}
-            base_generator = [(ps_name, descr) for ps_name, descr in base_generator.items()]
+            base_generator = [(ps_i, descr) for ps_i, descr in base_generator.items()]
         else:
             base_generator = []
 
@@ -268,6 +268,14 @@ class MVContext:
                 else:
                     base_objects_i = np.array(list(base_objects_i))
 
+        if ps_to_iterate is None:
+            ps_to_iterate = range(len(self._pattern_structures))
+        elif not use_indexes:
+            ps_name_i_map = {ps.name: ps_i for ps_i, ps in enumerate(self._pattern_structures)}
+            ps_to_iterate = [ps_name_i_map[ps_name] for ps_name in ps_to_iterate]
+        else:
+            ps_to_iterate = ps_to_iterate.copy()
+
         def get_generators(ps_i, descr, max_projection_num):
             return [gen for proj_num in range(projection_to_start, max_projection_num + 1)
                     for gen in self._pattern_structures[ps_i].description_to_generators(descr, proj_num)]
@@ -276,8 +284,8 @@ class MVContext:
         max_projection_num = projection_to_start
         min_gens = set()
         while len(min_gens) == 0:
-            generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
-                                     for gen in get_generators(ps_i, descr, max_projection_num)]
+            generators_to_iterate = [(ps_i, gen) for ps_i in ps_to_iterate
+                                     for gen in get_generators(ps_i, intent_i[ps_i], max_projection_num)]
 
             for comb_size in range(1, len(generators_to_iterate)):
                 for comb in combinations(generators_to_iterate, comb_size):

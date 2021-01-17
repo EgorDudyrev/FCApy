@@ -5,6 +5,13 @@ from ..mvcontext.mvcontext import MVContext
 from ..utils import utils
 import warnings
 import inspect
+from itertools import product
+from copy import deepcopy
+from frozendict import frozendict
+
+from .. import LIB_INSTALLED
+if LIB_INSTALLED['numpy']:
+    import numpy as np
 
 
 class ConceptLattice:
@@ -388,17 +395,46 @@ class ConceptLattice:
         else:
             concepts_to_visit = list(range(len(self._concepts)))
 
-        supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
+        if not LIB_INSTALLED['numpy'] or type(context) is not MVContext:
+            supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
+        else:
+            supc_exts_i = [np.array(c.extent_i) for c in self._concepts]
+
         for c_i in utils.safe_tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
             intent_i = self._concepts[c_i].intent_i
 
             superconcepts_i = self._superconcepts_dict[c_i]
-            condgens = set()
-            for supc_i in superconcepts_i:
-                supc_ext_i = supc_exts_i[supc_i]
-                for supc_condgen in condgen_dict[supc_i]:
-                    condgens |= set(context.get_minimal_generators(
-                        intent_i, supc_condgen, base_objects=supc_ext_i, use_indexes=True))
+
+            if type(context) is MVContext:
+                condgens = set()
+
+                for supc_i in superconcepts_i:
+                    supc_ext_i = supc_exts_i[supc_i]
+                    supc_int_i = self._concepts[supc_i].intent_i
+                    ps_to_iterate = [ps_i for ps_i, descr in intent_i.items()
+                                     if type(descr) != type(supc_int_i[ps_i]) or descr != supc_int_i[ps_i]]
+
+                    new_condgens = context.get_minimal_generators(intent_i, base_objects=supc_ext_i,
+                                                                 use_indexes=True, ps_to_iterate=ps_to_iterate)
+                    for supc_condgen, new_condgen in product(condgen_dict[supc_i], new_condgens):
+                        condgen = dict(supc_condgen)
+                        for ps_i, descr in new_condgen.items():
+                            if ps_i in condgen:
+                                condgen[ps_i] = context.pattern_structures[ps_i].generators_to_description(
+                                    [descr, condgen[ps_i]])
+                            else:
+                                condgen[ps_i] = descr
+                        condgens.add(frozendict(condgen))
+
+            else:
+                condgens = set()
+                for supc_i in superconcepts_i:
+                    supc_ext_i = supc_exts_i[supc_i]
+                    for supc_condgen in condgen_dict[supc_i]:
+                        condgens |= set(context.get_minimal_generators(
+                            intent_i, supc_condgen, base_objects=supc_ext_i,
+                            use_indexes=True))
+
             condgen_dict[c_i] = list(condgens)
 
         return condgen_dict
