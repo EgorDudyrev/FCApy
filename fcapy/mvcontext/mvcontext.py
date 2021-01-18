@@ -2,6 +2,10 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 
+from .. import LIB_INSTALLED
+if LIB_INSTALLED['numpy']:
+    import numpy as np
+
 
 class MVContext:
     """
@@ -97,11 +101,31 @@ class MVContext:
         return pattern_structures
 
     def extension_i(self, descriptions_i, base_objects_i=None):
-        extent_i = set(range(self._n_objects)) if base_objects_i is None else base_objects_i
+        if base_objects_i is not None and len(base_objects_i) == 0:
+            return []
+
+        if not LIB_INSTALLED['numpy']:
+            extent_i = range(self._n_objects) if base_objects_i is None else base_objects_i
+        else:
+            if base_objects_i is None:
+                extent_i = np.arange(self._n_objects)
+            elif not isinstance(base_objects_i, np.ndarray):
+                if isinstance(base_objects_i, (tuple, list)):
+                    extent_i = np.array(base_objects_i)
+                else:
+                    extent_i = np.array(list(base_objects_i))
+            else:
+                extent_i = base_objects_i
+
         for ps_i, description in descriptions_i.items():
             ps = self._pattern_structures[ps_i]
-            extent_i &= set(ps.extension_i(description, base_objects_i=extent_i))
-        extent_i = sorted(extent_i)
+            extent_i = ps.extension_i(description, base_objects_i=extent_i)
+            if len(extent_i) == 0:
+                break
+
+        if LIB_INSTALLED['numpy']:
+            if type(extent_i) is np.ndarray:
+                extent_i = extent_i.tolist()
         return extent_i
 
     def intention_i(self, object_indexes):
@@ -211,41 +235,61 @@ class MVContext:
     def from_pandas(dataframe):
         raise NotImplementedError
 
-    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
+    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False,
+                               ps_to_iterate=None, projection_to_start=1):
         intent_i = {
             ps_i: intent[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
             if ps.name in intent
-        } if not use_indexes else intent
+        } if not use_indexes else intent.copy()
 
         if base_generator is not None:
             if not use_indexes:
                 base_generator = {
                     ps_i: base_generator[ps.name] for ps_i, ps in enumerate(self._pattern_structures)
                     if ps.name in base_generator}
-            base_generator = [(ps_name, descr) for ps_name, descr in base_generator.items()]
+            base_generator = [(ps_i, descr) for ps_i, descr in base_generator.items()]
         else:
             base_generator = []
 
         if base_objects is None:
-            base_objects_i = list(range(self.n_objects))
+            base_objects_i = None
+        elif not use_indexes:
+            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]
         else:
-            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if
-                              g in base_objects] if not use_indexes else base_objects
-        base_objects_i = frozenset(base_objects_i)
+            base_objects_i = base_objects.copy()
 
-        # base_objects_i = None
+        if not LIB_INSTALLED['numpy']:
+            if base_objects_i is None:
+                base_objects_i = list(range(self._n_objects))
+            base_objects_i = frozenset(base_objects_i)
+        else:
+            if base_objects_i is None:
+                base_objects_i = np.arange(self._n_objects)
+            if not isinstance(base_objects_i, np.ndarray):
+                if isinstance(base_objects_i, (list, tuple)):
+                    base_objects_i = np.array(base_objects_i)
+                else:
+                    base_objects_i = np.array(list(base_objects_i))
+
+        if ps_to_iterate is None:
+            ps_to_iterate = range(len(self._pattern_structures))
+        elif not use_indexes:
+            ps_name_i_map = {ps.name: ps_i for ps_i, ps in enumerate(self._pattern_structures)}
+            ps_to_iterate = [ps_name_i_map[ps_name] for ps_name in ps_to_iterate]
+        else:
+            ps_to_iterate = ps_to_iterate.copy()
 
         def get_generators(ps_i, descr, max_projection_num):
-            return [gen for proj_num in range(max_projection_num + 1)
+            return [gen for proj_num in range(projection_to_start, max_projection_num + 1)
                     for gen in self._pattern_structures[ps_i].description_to_generators(descr, proj_num)]
 
-        max_projection_num = -1
+        ext_true = self.extension_i(intent_i)
+        max_projection_num = projection_to_start
         min_gens = set()
         while len(min_gens) == 0:
-            max_projection_num += 1
-
-            generators_to_iterate = [(ps_i, gen) for ps_i, descr in intent_i.items()
-                                     for gen in get_generators(ps_i, descr, max_projection_num)]
+            generators_to_iterate = [(ps_i, gen) for ps_i in ps_to_iterate
+                                     for gen in get_generators(ps_i, intent_i[ps_i], max_projection_num)]
+            generator_volumes = {}
 
             for comb_size in range(1, len(generators_to_iterate)):
                 for comb in combinations(generators_to_iterate, comb_size):
@@ -255,20 +299,27 @@ class MVContext:
                     descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
                              for ps_i, gen in gens.items()}
                     ext_ = self.extension_i(descr, base_objects_i=base_objects_i)
-                    int_ = self.intention_i(ext_)
+                    if comb_size == 1:
+                        generator_volumes[comb[-1]] = len(ext_)
 
-                    if len(int_) == len(intent_i):
-                        if all([type(v) == type(intent_i[k]) and v == intent_i[k] for k, v in int_.items()]):
-                            min_gens.add(frozendict(descr))
+                    if ext_ == ext_true:
+                        min_gens.add(frozendict(descr))
+
+                if comb_size == 1:
+                    base_objects_i_size = len(base_objects_i)
+                    generators_to_iterate = [gen for gen in generators_to_iterate
+                                             if generator_volumes[gen] < base_objects_i_size]
+                    generators_to_iterate = sorted(generators_to_iterate, key=lambda gen: generator_volumes[gen])
+
                 if len(min_gens) > 0:
                     break
+            max_projection_num += 1
 
         if not use_indexes:
             min_gens = {frozendict({self._pattern_structures[ps_i].name: descr for ps_i, descr in mg.items()})
                         for mg in min_gens}
         min_gens = list(min_gens)
         return min_gens
-
 
     def __repr__(self):
         data_to_print = f'MultiValuedContext ' +\

@@ -1,8 +1,10 @@
 import pytest
 from fcapy.mvcontext import mvcontext, pattern_structure as PS
-from fcapy.lattice.concept_lattice import  ConceptLattice
+from fcapy.lattice.concept_lattice import ConceptLattice
 import math
 from frozendict import frozendict
+from fcapy import LIB_INSTALLED
+import numpy as np
 
 
 def test_init():
@@ -46,12 +48,31 @@ def test_extension_intention():
     attribute_names = ['M1', 'M2']
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
     pattern_types = {'M1': PS.IntervalPS, 'M2': PS.IntervalPS}
-    mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
 
-    assert mvctx.intention_i([1, 2]) == {0: (2, 3), 1: (22, 100)}, 'MVContext.intention_i failed'
-    assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == [1, 2], 'MVContext.extension_i failed'
-    assert mvctx.intention(['b', 'c']) == {'M1': (2, 3), 'M2': (22, 100)}, 'MVContext.intention failed'
-    assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == ['b', 'c'], 'MVContext.extension failed'
+    intent_i_true = {0: (2, 3), 1: (22, 100)}
+    intent_true = {'M1': (2, 3), 'M2': (22, 100)}
+    extent_i_true = [1, 2]
+    extent_true = ['b', 'c']
+
+    for x in [False, True]:
+        LIB_INSTALLED['numpy'] = x
+        mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
+
+        if x:
+            extent_i_true = np.array(extent_i_true)
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == extent_i_true).all(), 'MVContext.extension_i failed'
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, frozenset([0, 1, 2, 3])) == extent_i_true).all()
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, [0, 1, 2, 3]) == extent_i_true).all()
+            assert (mvctx.extension_i({0: (2, 3), 1: (22, 100)}, np.array([0, 1, 2, 3])) == extent_i_true).all()
+        else:
+            extent_i_true = list(extent_i_true)
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}) == extent_i_true, 'MVContext.extension_i failed'
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}, [0, 1, 2, 3]) == extent_i_true
+            assert mvctx.extension_i({0: (2, 3), 1: (22, 100)}, frozenset([0, 1, 2, 3])) == extent_i_true
+
+        assert mvctx.intention_i([1, 2]) == intent_i_true, 'MVContext.intention_i failed'
+        assert mvctx.intention(['b', 'c']) == intent_true, 'MVContext.intention failed'
+        assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == extent_true, 'MVContext.extension failed'
 
 
 def test_to_json():
@@ -140,13 +161,23 @@ def test_get_minimal_generators():
             [4.7, 3.2, 1.3, 0.2],
             [4.6, 3.1, 1.5, 0.2]]
     attribute_names = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
-    pattern_types = {f: PS.IntervalPS for f in attribute_names}
-    mvctx = mvcontext.MVContext(data=data, pattern_types=pattern_types, attribute_names=attribute_names)
 
-    intent = {0: (4.6, 5.1), 1: (3.0, 3.5), 2: (1.4, 1.5), 3: 0.2}
-    mg_true = {frozendict({2: (1.4, math.inf)})}
-    assert set(mvctx.get_minimal_generators(intent, use_indexes=True)) == mg_true,\
-        "MVContext.get_minimal_generators failed"
+    for x in [False, True]:
+        LIB_INSTALLED['numpy'] = x
+
+        pattern_types = {f: PS.IntervalPS for f in attribute_names}
+        mvctx = mvcontext.MVContext(data=data, pattern_types=pattern_types, attribute_names=attribute_names)
+
+        intent = {0: (4.6, 5.1), 1: (3.0, 3.5), 2: (1.4, 1.5), 3: 0.2}
+        mg_true = {frozendict({2: (1.4, math.inf)})}
+        assert set(mvctx.get_minimal_generators(intent, use_indexes=True)) == mg_true,\
+            "MVContext.get_minimal_generators failed"
+
+        intent = {'sepal length (cm)': (4.6, 5.1), 'sepal width (cm)': (3.0, 3.5),
+                  'petal length (cm)': (1.4, 1.5), 'petal width (cm)': 0.2}
+        mg_true = {frozendict({'petal length (cm)': (1.4, math.inf)})}
+        assert set(mvctx.get_minimal_generators(intent, base_objects=['0', '1', '2', '3'])) == mg_true,\
+            "MVContext.get_minimal_generators failed"
 
     # TODO: Find better example for usage of base_generator
     intent = {'sepal length (cm)': (4.6, 5.1), 'sepal width (cm)': (3.1, 3.5),
