@@ -101,6 +101,9 @@ class MVContext:
         return pattern_structures
 
     def extension_i(self, descriptions_i, base_objects_i=None):
+        if base_objects_i is not None and len(base_objects_i) == 0:
+            return []
+
         if not LIB_INSTALLED['numpy']:
             extent_i = range(self._n_objects) if base_objects_i is None else base_objects_i
         else:
@@ -286,6 +289,7 @@ class MVContext:
         while len(min_gens) == 0:
             generators_to_iterate = [(ps_i, gen) for ps_i in ps_to_iterate
                                      for gen in get_generators(ps_i, intent_i[ps_i], max_projection_num)]
+            generator_volumes = {}
 
             for comb_size in range(1, len(generators_to_iterate)):
                 for comb in combinations(generators_to_iterate, comb_size):
@@ -295,9 +299,17 @@ class MVContext:
                     descr = {ps_i: self._pattern_structures[ps_i].generators_to_description(gen)
                              for ps_i, gen in gens.items()}
                     ext_ = self.extension_i(descr, base_objects_i=base_objects_i)
+                    if comb_size == 1:
+                        generator_volumes[comb[-1]] = len(ext_)
 
                     if ext_ == ext_true:
                         min_gens.add(frozendict(descr))
+
+                if comb_size == 1:
+                    base_objects_i_size = len(base_objects_i)
+                    generators_to_iterate = [gen for gen in generators_to_iterate
+                                             if generator_volumes[gen] < base_objects_i_size]
+                    generators_to_iterate = sorted(generators_to_iterate, key=lambda gen: generator_volumes[gen])
 
                 if len(min_gens) > 0:
                     break

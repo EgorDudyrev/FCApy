@@ -71,6 +71,9 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
         return metrics
 
     def average_concepts_predictions(self, concepts_i):
+        if len(concepts_i) == 0:
+            return None
+
         probs_per_class = self.average_concepts_class_probabilities(concepts_i)
         max_prob = max(probs_per_class)
         max_class = [class_ for class_, prob in zip(self._class_names, probs_per_class) if prob == max_prob ]
@@ -79,6 +82,9 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
         return max_class
 
     def average_concepts_class_probabilities(self, concepts_i):
+        if len(concepts_i) == 0:
+            return None
+
         predictions = [self._lattice.concepts[c_i].measures['class_probabilities'] for c_i in concepts_i]
         probs_per_class = [sum(row) / len(row) if len(row) > 0 else None for row in zip(*predictions)]  # transpose data
         return probs_per_class
@@ -100,6 +106,8 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         return metrics
 
     def average_concepts_predictions(self, concepts_i):
+        if len(concepts_i) == 0:
+            return None
         predictions = [self._lattice.concepts[c_i].measures['mean_y'] for c_i in concepts_i]
         avg_prediction = sum(predictions)/len(predictions) if len(predictions) > 0 else None
         return avg_prediction
