@@ -333,7 +333,7 @@ class ConceptLattice:
                 all_subconcepts[c_i] |= all_subconcepts[subc_i]
         return all_subconcepts
 
-    def trace_context(self, context: MVContext, use_object_indices=False, use_generators=False):
+    def trace_context(self, context: MVContext, use_object_indices=False, use_generators=False, use_tqdm=False):
         concept_extents = {}
 
         def stored_extension(concept_i, use_generators, superconcept_i=None):
@@ -347,25 +347,35 @@ class ConceptLattice:
 
                 if concept_i == self._top_concept_i:
                     gen = self._generators_dict[concept_i]
-                    extent = set(context.extension_i(gen))
-                    concept_extents[concept_i] = extent
+                    concept_extents[concept_i] = set(context.extension_i(gen))
+                    extent = concept_extents[concept_i]
                 elif superconcept_i is None:
-                    extent = set()
-                    for supc_i in self._superconcepts_dict[concept_i]:
-                        extent |= concept_extents[concept_i].get(supc_i, set())
+                    # it is assumed that the function with superconcept_i=None will be called after
+                    # all generators (concept_i, superconcept_i) are computed.
+                    # Thus concept_extents[concept_i][None] = context.extent(concept.intent_i)
+                    extent = concept_extents[concept_i][None]
                 else:
                     if superconcept_i not in concept_extents[concept_i]:
                         condgens = self._generators_dict[concept_i][superconcept_i]
                         ext_ = set()
                         ext_sup = stored_extension(concept_i=superconcept_i, use_generators=use_generators)#[superconcept_i] self._concepts[superconcept_i].extent_i
-                        if LIB_INSTALLED['numpy']:
+                        if False: #LIB_INSTALLED['numpy']:
                             ext_sup = np.array(tuple(ext_sup))
                         else:
                             ext_sup = frozenset(ext_sup)
 
                         for gen in condgens:
-                            ext_ |= set(context.extension_i(gen, ext_sup))
+                            new_ext = context.extension_i(gen, ext_sup)
+                            ext_ |= set(new_ext)
+                            if False: #LIB_INSTALLED['numpy']:
+                                 ext_sup = ext_sup[~np.isin(ext_sup, np.array(new_ext, dtype=ext_sup.dtype))]
+                            else:
+                                ext_sup = ext_sup - set(new_ext)
+                            if len(ext_sup) == 0:
+                                break
+
                         concept_extents[concept_i][superconcept_i] = ext_
+                        concept_extents[concept_i][None] = concept_extents[concept_i].get(None, set()) | ext_
                     extent = concept_extents[concept_i][superconcept_i]
             return extent
 
@@ -374,7 +384,7 @@ class ConceptLattice:
         object_traced_concepts = {idx: set() for idx in range(context.n_objects)}
         visited_concepts = set()
 
-        for i in range(len(self._concepts)):
+        for i in utils.safe_tqdm(range(len(self._concepts)), disable=not use_tqdm, desc='Iterate through concepts'):
             if len(concepts_to_visit) == 0:
                 break
 
@@ -405,9 +415,12 @@ class ConceptLattice:
                                       for g_i, concepts_i in object_traced_concepts.items()}
         return object_bottom_concepts, object_traced_concepts
 
-    def get_conditional_generators_dict(self, context: MVContext, use_tqdm=False):
+    def get_conditional_generators_dict(self, context: MVContext, use_tqdm=False, algo='exact'):
         condgen_dict = dict()
-        condgen_dict[self._top_concept_i] = {} #if type(context) is MVContext else [[]]
+        condgen_dict[self._top_concept_i] = {}
+
+        assert algo in {'approximate', 'exact'}, f"Given algorithm '{algo}' is not supported. " \
+                                                 f"Possible values are: 'approximate', 'exact'"
 
         if not self._is_concepts_sorted:
             concepts_sorted = self.sort_concepts(self._concepts)
@@ -418,32 +431,37 @@ class ConceptLattice:
             concepts_to_visit = list(range(len(self._concepts)))
 
         if not LIB_INSTALLED['numpy'] or type(context) is not MVContext:
-            supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
+            supc_exts_i = [frozenset(context.extension_i(c.intent_i)) for c in self._concepts]
         else:
-            supc_exts_i = [np.array(c.extent_i) for c in self._concepts]
+            supc_exts_i = [np.array(context.extension_i(c.intent_i)) for c in self._concepts]
 
         for c_i in utils.safe_tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
             intent_i = self._concepts[c_i].intent_i
 
             superconcepts_i = self._superconcepts_dict[c_i]
 
-            if type(context) is MVContext:
-                condgens = {}
-                for supc_i in superconcepts_i:
-                    supc_ext_i = supc_exts_i[supc_i]
-                    supc_int_i = self._concepts[supc_i].intent_i
-                    ps_to_iterate = [ps_i for ps_i, descr in intent_i.items()
-                                     if type(descr) != type(supc_int_i[ps_i]) or descr != supc_int_i[ps_i]]
+            condgens = {}
+            if algo == 'exact':
+                if type(context) is MVContext:
+                    for supc_i in utils.safe_tqdm(superconcepts_i, desc='Iterate superconcepts', leave=False):
+                        supc_ext_i = supc_exts_i[supc_i]
+                        supc_int_i = self._concepts[supc_i].intent_i
+                        ps_to_iterate = [ps_i for ps_i, descr in intent_i.items()
+                                         if type(descr) != type(supc_int_i[ps_i]) or descr != supc_int_i[ps_i]]
 
-                    condgens[supc_i] = context.get_minimal_generators(
-                        intent_i, base_objects=supc_ext_i,
-                        use_indexes=True, ps_to_iterate=ps_to_iterate)
+                        condgens[supc_i] = context.get_minimal_generators(
+                            intent_i, base_objects=supc_ext_i,
+                            use_indexes=True, ps_to_iterate=ps_to_iterate)
 
+                else:
+                    for supc_i in superconcepts_i:
+                        supc_ext_i = supc_exts_i[supc_i]
+                        condgens[supc_i] = context.get_minimal_generators(
+                            intent_i, base_objects=supc_ext_i, use_indexes=True)
             else:
-                condgens = {}
                 for supc_i in superconcepts_i:
-                    supc_ext_i = supc_exts_i[supc_i]
-                    condgens[supc_i] = context.get_minimal_generators(
-                        intent_i, base_objects=supc_ext_i, use_indexes=True)
+                    condgens[supc_i] = context.generators_by_intent_difference(
+                        intent_i, self._concepts[supc_i].intent_i)
             condgen_dict[c_i] = condgens
+
         return condgen_dict

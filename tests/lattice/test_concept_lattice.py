@@ -259,3 +259,8 @@ def test_conditional_generators_dict():
                 assert set(mvctx.extension_i(
                     supc_condgen, base_objects_i=ltc.concepts[supc_i].extent_i)) == set(ext_i), \
                     "ConceptLattice.get_conditional_generators_dict failed"
+
+    condgens_dict_approx = ltc.get_conditional_generators_dict(mvctx, algo='approximate')
+    for k in condgens_dict.keys():
+        assert set(condgens_dict[k]) == set(condgens_dict_approx[k]),\
+            'ConceptLattice.get_conditional_generators_dict failed. Approximate method gives wrong results'

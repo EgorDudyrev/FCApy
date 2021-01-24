@@ -69,7 +69,7 @@ def test_interval_ps_extension_intention():
     ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
     assert ips.intention_i([]) is None, 'IntervalPS.intention_i failed'
     assert ips.intention_i([0, 1, 3]) == (0, 3), "IntervalPS.intention_i failed"
-    assert ips.intention_i([2, 4]) == 2, "IntervalPS.intention_i failed"
+    assert ips.intention_i([2, 4]) == (2, 2), "IntervalPS.intention_i failed"
     assert (ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4]).all(), "IntervalPS.extension_i/intention_i failed"
 
 

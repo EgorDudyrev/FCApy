@@ -380,3 +380,18 @@ class MVContext:
         else:
             data = data[0][0]
         return data
+
+    def to_numeric(self):
+        pattern_nums = [ps.to_numeric() for ps in self._pattern_structures]
+        if LIB_INSTALLED['numpy']:
+            num_dat = np.hstack([pn[0] for pn in pattern_nums])
+        else:
+            num_dat = [[x for ps_i in range(len(self._pattern_structures)) for x in pattern_nums[ps_i][0][g_i]]
+                       for g_i in range(self.n_objects)]
+        names = [name for pn in pattern_nums for name in pn[1]]
+        return num_dat, names
+
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        gens = [frozendict({ps_i: gen_}) for ps_i, ps in enumerate(self._pattern_structures)
+                for gen_ in ps.generators_by_intent_difference(new_intent[ps_i], old_intent[ps_i])]
+        return gens

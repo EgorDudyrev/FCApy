@@ -224,18 +224,7 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
 
     rf_params = rf_params if rf_params is not None else {}
 
-    X = context.data.copy()
-    # TODO: Add support of categorical features
-    # if type(context) is MVContext:
-    #     for f_idx in context._cat_attrs_idxs:
-    #         if len(set(X[:, f_idx])) <= 10:
-    #             for v in np.unique(X[:, f_idx]):
-    #                 X = np.hstack((X, (X[:, f_idx] == v).reshape(-1, 1)))
-    #         else:
-    #             le = LabelEncoder()
-    #             X = np.hstack((X, le.fit_transform(X[:, f_idx]).reshape(-1, 1)))
-    # X = X[:, [idx for idx in range(X.shape[1]) if idx not in context._cat_attrs_idxs]]
-
+    X = context.to_numeric()[0]
     Y = context.target
 
     if rf_class is None:
