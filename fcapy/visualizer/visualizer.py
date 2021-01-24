@@ -5,11 +5,15 @@ from collections.abc import Iterable
 class Visualizer:
     def __init__(
             self, lattice=None,
-            node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue'):
+            node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue',
+            cmap_min = None, cmap_max = None
+    ):
         self._lattice = lattice
         self._pos = self.get_nodes_position() if lattice is not None else None
         self.node_color = node_color
         self.cmap = cmap
+        self.cmap_min = cmap_min
+        self.cmap_max = cmap_max
         self.node_alpha = node_alpha
         self.node_linewidth = node_linewidth
         self.node_edgecolor = node_edgecolor
@@ -43,25 +47,28 @@ class Visualizer:
     def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3):
         graph = nx.DiGraph(self._lattice.subconcepts_dict)
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-        nx.draw_networkx_edges(graph, self._pos, edge_color='grey', arrowstyle='-', connectionstyle=cs)
+        nx.draw_networkx_edges(graph, self._pos, edge_color='lightgrey', arrowstyle='-', connectionstyle=cs)
         nx.draw_networkx_nodes(
             graph, self._pos,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
             linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
+            vmin=self.cmap_min, vmax=self.cmap_max
         )
 
         labels = {}
         for c_i in range(len(self._lattice.concepts)):
             new_extent = list(self._lattice.get_concept_new_extent(c_i))
             new_intent = list(self._lattice.get_concept_new_intent(c_i))
-            if len(new_extent)>0:
+            if len(new_extent) > 0:
                 new_extent_str = f"{len(new_extent)}: "+', '.join(new_extent[:max_new_extent_count])
-                new_extent_str += '...' if max_new_extent_count is not None and len(new_extent)>max_new_extent_count  else ''
+                new_extent_str += '...' \
+                    if max_new_extent_count is not None and len(new_extent) > max_new_extent_count else ''
             else:
                 new_extent_str = ''
-            if len(new_intent)>0:
+            if len(new_intent) > 0:
                 new_intent_str = f"{len(new_intent)}: "+', '.join(new_intent[:max_new_intent_count])
-                new_intent_str += '...' if max_new_intent_count is not None and len(new_intent)>max_new_intent_count  else ''
+                new_intent_str += '...'\
+                    if max_new_intent_count is not None and len(new_intent) > max_new_intent_count else ''
             else:
                 new_intent_str = ''
             
