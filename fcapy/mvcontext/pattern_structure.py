@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 import math
+from numbers import Number
 
 from .. import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
@@ -53,25 +54,55 @@ class AbstractPS:
             data = self._data[item]
         return data
 
+    def to_numeric(self):
+        raise NotImplementedError
+
 
 class IntervalPS(AbstractPS):
     def __init__(self, data, name=None):
         super(IntervalPS, self).__init__(data, name)
+        self.data = data
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        assert len(value) == len(self._data), "Length of new data does not match the length of old one"
+
+        self._data = []
+        for x in value:
+            if isinstance(x, Iterable) and len(x) == 2:
+                new_x = x
+            elif isinstance(x, Iterable) and len(x) == 1:
+                new_x = (x[0], x[0])
+            elif isinstance(x, Number):
+                new_x = (x, x)
+            else:
+                raise TypeError(
+                    f"Input data of {type(x)} is not supported by IntervalPS. "
+                    f"Possible types are: any of Number, iterables of 1 or 2 elements"
+                )
+            self._data.append(new_x)
+
         if LIB_INSTALLED['numpy']:
-            self._data = np.array(data)
-            map_isort_i = sorted(range(len(data)), key=lambda x: data[x])
-            self._map_i_isort = sorted(range(len(data)), key=lambda x: map_isort_i[x])
+            self._data = np.array(self._data)
+            # TODO: Rewrite sorting to ascending (right border of interval)
+            # TODO: and descending (left border of interval) orders
+            map_isort_i = sorted(range(len(self._data)), key=lambda x: self._data[x][1])
+            self._map_i_isort = sorted(range(len(self._data)), key=lambda x: map_isort_i[x])
 
     def intention_i(self, object_indexes):
         if len(object_indexes) == 0:
             return None
 
         if not LIB_INSTALLED['numpy']:
-            min_ = max_ = self._data[object_indexes[0]]
+            min_, max_ = self._data[object_indexes[0]]
             for g_i in object_indexes[1:]:
-                v = self._data[g_i]
-                min_ = v if v < min_ else min_
-                max_ = v if v > max_ else max_
+                v_min, v_max = self._data[g_i]
+                min_ = v_min if v_min < min_ else min_
+                max_ = v_max if v_max > max_ else max_
         else:
             min_g_i, max_g_i = object_indexes[0], object_indexes[0]
             min_sort_i, max_sort_i = self._map_i_isort[min_g_i], self._map_i_isort[max_g_i]
@@ -84,7 +115,7 @@ class IntervalPS(AbstractPS):
                     max_g_i = g_i
                     max_sort_i = sort_i
 
-            min_, max_ = self._data[min_g_i], self._data[max_g_i]
+            min_, max_ = self._data[min_g_i][0], self._data[max_g_i][1]
 
         if min_ == max_:
             return min_
@@ -102,7 +133,7 @@ class IntervalPS(AbstractPS):
         if not LIB_INSTALLED['numpy']:
             print(base_objects_i)
             base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
-            g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i] <= max_]
+            g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i][0] and self._data[g_i][1] <= max_]
         else:
             if base_objects_i is None:
                 base_objects_i = np.arange(len(self._data))
@@ -112,7 +143,7 @@ class IntervalPS(AbstractPS):
                 else:
                     base_objects_i = np.array(tuple(base_objects_i))
 
-            g_is = base_objects_i[(min_ <= self._data[base_objects_i]) & (self._data[base_objects_i] <= max_)]
+            g_is = base_objects_i[(min_ <= self._data[base_objects_i, 0]) & (self._data[base_objects_i, 1] <= max_)]
         return g_is
 
     def description_to_generators(self, description, projection_num):
@@ -149,4 +180,7 @@ class IntervalPS(AbstractPS):
         return same_data and self._name == other.name
 
     def __hash__(self):
-        return hash((self._name, tuple(self._data)))
+        return hash((self._name, tuple([tuple(x) for x in self._data])))
+
+    def to_numeric(self):
+        return self._data, (f"{self.name}_from", f"{self.name}_to")

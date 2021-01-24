@@ -517,3 +517,6 @@ class FormalContext:
             data = data[0][0]
 
         return data
+
+    def to_numeric(self):
+        return self._data, self._attribute_names

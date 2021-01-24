@@ -10,20 +10,27 @@ import numpy as np
 def test_init():
     mvctx = mvcontext.MVContext()
 
-    data = [[1, 10], [2, 22], [3, 100], [4, 60]]
-    pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
-    mvctx = mvcontext.MVContext(
-        data,
-        pattern_types=pattern_types,
-        description='description'
-    )
-    assert mvctx.n_objects == 4, "MVContext.__init__ failed"
-    assert mvctx.n_attributes == 2, 'MVContext.__init__ failed'
-    assert mvctx.object_names == ['0', '1', '2', '3'], 'MVContext.__init__ failed'
-    assert mvctx.attribute_names == ['0', '1'], 'MVContext.__init__ failed'
-    assert mvctx.description == 'description', 'MVContext.__init__ failed'
-    assert mvctx.pattern_types == pattern_types, 'MVContext.__init__ failed'
-    assert mvctx.data == data, "MVContext.__init__ failed"
+    for np_instld in [False, True]:
+        LIB_INSTALLED['numpy'] = np_instld
+
+        data_input = [[1, 10], [2, 22], [3, 100], [4, 60]]
+        data_hidden = [[(1, 1), (10, 10)], [(2, 2), (22, 22)], [(3, 3), (100, 100)], [(4, 4), (60, 60)]]
+        pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
+        mvctx = mvcontext.MVContext(
+            data_input,
+            pattern_types=pattern_types,
+            description='description'
+        )
+        assert mvctx.n_objects == 4, "MVContext.__init__ failed"
+        assert mvctx.n_attributes == 2, 'MVContext.__init__ failed'
+        assert mvctx.object_names == ['0', '1', '2', '3'], 'MVContext.__init__ failed'
+        assert mvctx.attribute_names == ['0', '1'], 'MVContext.__init__ failed'
+        assert mvctx.description == 'description', 'MVContext.__init__ failed'
+        assert mvctx.pattern_types == pattern_types, 'MVContext.__init__ failed'
+        if not np_instld:
+            assert mvctx.data == data_hidden, "MVContext.__init__ failed"
+        else:
+            assert np.all(mvctx.data == np.array(data_hidden)), "MVContext.__init__ failed"
 
     ps = [PS.IntervalPS([1, 2, 3, 4], name='0'), PS.IntervalPS([10, 22, 100, 60], name='1')]
     assert mvctx.pattern_structures == ps, 'MVContext.__init__ failed'
@@ -31,7 +38,7 @@ def test_init():
     object_names = ['a', 'b', 'c', 'd']
     attribute_names = ['M1', 'M2']
     mvctx = mvcontext.MVContext(
-        data,
+        data_input,
         pattern_types={'M1': PS.IntervalPS, 'M2': PS.IntervalPS},
         object_names=object_names,
         attribute_names=attribute_names
@@ -40,7 +47,7 @@ def test_init():
     assert mvctx.attribute_names == attribute_names, 'MVContext.__init__ failed'
 
     with pytest.raises(AssertionError):
-        mvcontext.MVContext(data)
+        mvcontext.MVContext(data_input)
 
 
 def test_extension_intention():
@@ -141,7 +148,7 @@ def test_getitem():
     pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
 
     mvctx = mvcontext.MVContext(data, pattern_types)
-    assert mvctx[0, 0] == 1, "MVContext.__getitem__ failed."
+    assert tuple(mvctx[0, 0]) == (1, 1), "MVContext.__getitem__ failed."
 
     mvctx_small = mvcontext.MVContext([row[:2] for row in data[:2]], pattern_types)
     assert mvctx[:2, :2] == mvctx_small, "MVContext.__getitem__ failed"
