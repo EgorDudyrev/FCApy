@@ -3,17 +3,19 @@ from ..lattice import ConceptLattice
 
 
 class DecisionLatticePredictor:
-    def __init__(self, algo='Sofia', use_generators=False, algo_params=None):
+    def __init__(self, algo='Sofia', use_generators=False, algo_params=None, generators_algo='approximate'):
         self._algo = algo
 
         self._lattice = ConceptLattice()
         self._use_generators = use_generators
+        self._generators_algo = generators_algo
         self._algo_params = algo_params if algo_params is not None else dict()
 
     def fit(self, context: MVContext, use_tqdm=False):
         self._lattice = ConceptLattice.from_context(context, algo=self._algo, use_tqdm=use_tqdm, **self._algo_params)
         if self._use_generators:
-            self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(context, use_tqdm=use_tqdm)
+            self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(
+                context, use_tqdm=use_tqdm, algo=self._generators_algo)
         for c_i, c in enumerate(self._lattice.concepts):
             metrics = self.calc_concept_prediction_metrics(c_i, context.target)
             c.measures = dict(metrics, **c.measures)

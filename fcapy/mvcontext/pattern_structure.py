@@ -57,6 +57,9 @@ class AbstractPS:
     def to_numeric(self):
         raise NotImplementedError
 
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        raise NotImplementedError
+
 
 class IntervalPS(AbstractPS):
     def __init__(self, data, name=None):
@@ -117,8 +120,6 @@ class IntervalPS(AbstractPS):
 
             min_, max_ = self._data[min_g_i][0], self._data[max_g_i][1]
 
-        if min_ == max_:
-            return min_
         return min_, max_
 
     def extension_i(self, description, base_objects_i=None):
@@ -184,3 +185,18 @@ class IntervalPS(AbstractPS):
 
     def to_numeric(self):
         return self._data, (f"{self.name}_from", f"{self.name}_to")
+
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        if new_intent is None:
+            return [None]
+
+        left_eq = old_intent[0] == new_intent[0]
+        right_eq = old_intent[1] == new_intent[1]
+
+        if left_eq and right_eq:
+            return []
+        if left_eq and not right_eq:
+            return [(-math.inf, new_intent[1])]
+        if not left_eq and right_eq:
+            return [(new_intent[0], math.inf)]
+        return [self.generators_to_description([new_intent, old_intent])]

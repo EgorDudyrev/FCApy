@@ -390,3 +390,8 @@ class MVContext:
                        for g_i in range(self.n_objects)]
         names = [name for pn in pattern_nums for name in pn[1]]
         return num_dat, names
+
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        gens = [frozendict({ps_i: gen_}) for ps_i, ps in enumerate(self._pattern_structures)
+                for gen_ in ps.generators_by_intent_difference(new_intent[ps_i], old_intent[ps_i])]
+        return gens

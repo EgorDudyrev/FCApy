@@ -38,7 +38,8 @@ def test_dlclassifier():
     mvctx_train, mvctx_test = mvctx_full[train_idxs], mvctx_full[test_idxs]
     y_train, y_test = Y[train_idxs], Y[test_idxs]
 
-    dlc = dl.DecisionLatticeClassifier(algo='Sofia', algo_params={'L_max': 10}, use_generators=True)
+    dlc = dl.DecisionLatticeClassifier(algo='Sofia', algo_params={'L_max': 10}, use_generators=True,
+                                       generators_algo='exact')
     dlc.fit(mvctx_train)
 
     assert dlc.class_names == sorted(set(Y)), "DecisionLatticeClassifier.class_names failed"

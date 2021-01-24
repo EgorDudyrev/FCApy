@@ -5,6 +5,7 @@ import math
 from frozendict import frozendict
 from fcapy import LIB_INSTALLED
 import numpy as np
+from sklearn.datasets import load_breast_cancer
 
 
 def test_init():
@@ -196,3 +197,21 @@ def test_get_minimal_generators():
     ltc = ConceptLattice.from_context(mvctx)
     for c in ltc.concepts:
         mvctx.get_minimal_generators(c.intent)
+
+
+def test_generators_by_intent_difference():
+    data = load_breast_cancer(as_frame=True)
+    X = data['data'].values
+    Y = data['target'].values
+    feature_names = [str(f) for f in data['feature_names']]
+
+    pattern_types = {f: PS.IntervalPS for f in feature_names}
+    mvctx = mvcontext.MVContext(data=X, target=Y, pattern_types=pattern_types, attribute_names=feature_names)[:20]
+    ltc = ConceptLattice.from_context(mvctx, algo='Sofia', L_max=100, use_tqdm=True)
+    c_i = 3
+    subc_i = sorted(ltc.subconcepts_dict[c_i])[0]
+    mg1 = mvctx.generators_by_intent_difference(ltc.concepts[subc_i].intent_i, ltc.concepts[c_i].intent_i)
+    mg2 = mvctx.get_minimal_generators(ltc.concepts[subc_i].intent_i, base_objects=list(ltc.concepts[c_i].extent_i),
+                                           use_indexes=True)
+
+    assert set(mg1) == set(mg2), "MVContext.generators_by_intent_difference failed"
