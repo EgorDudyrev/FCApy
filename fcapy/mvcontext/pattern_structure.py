@@ -132,7 +132,6 @@ class IntervalPS(AbstractPS):
             min_ = max_ = description
 
         if not LIB_INSTALLED['numpy']:
-            print(base_objects_i)
             base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
             g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i][0] and self._data[g_i][1] <= max_]
         else:

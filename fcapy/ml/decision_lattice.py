@@ -20,9 +20,9 @@ class DecisionLatticePredictor:
             metrics = self.calc_concept_prediction_metrics(c_i, context.target)
             c.measures = dict(metrics, **c.measures)
 
-    def predict(self, context: MVContext):
+    def predict(self, context: MVContext, use_tqdm=False):
         bottom_concepts, _ = self._lattice.trace_context(
-            context, use_object_indices=True, use_generators=self._use_generators)
+            context, use_object_indices=True, use_generators=self._use_generators, use_tqdm=use_tqdm)
         predictions = [self.average_concepts_predictions(bottom_concepts[g_i]) for g_i in range(context.n_objects)]
         return predictions
 
