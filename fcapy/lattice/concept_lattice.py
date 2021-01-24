@@ -418,9 +418,9 @@ class ConceptLattice:
             concepts_to_visit = list(range(len(self._concepts)))
 
         if not LIB_INSTALLED['numpy'] or type(context) is not MVContext:
-            supc_exts_i = [frozenset(c.extent_i) for c in self._concepts]
+            supc_exts_i = [frozenset(context.extension_i(c.intent_i)) for c in self._concepts]
         else:
-            supc_exts_i = [np.array(c.extent_i) for c in self._concepts]
+            supc_exts_i = [np.array(context.extension_i(c.intent_i)) for c in self._concepts]
 
         for c_i in utils.safe_tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
             intent_i = self._concepts[c_i].intent_i
