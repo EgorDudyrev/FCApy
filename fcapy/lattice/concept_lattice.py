@@ -350,11 +350,9 @@ class ConceptLattice:
                     concept_extents[concept_i] = set(context.extension_i(gen))
                     extent = concept_extents[concept_i]
                 elif superconcept_i is None:
-                    if None not in concept_extents[concept_i]:
-                        extent = set()
-                        for supc_i in self._superconcepts_dict[concept_i]:
-                            extent |= concept_extents[concept_i].get(supc_i, set())
-                        concept_extents[concept_i][None] = extent
+                    # it is assumed that the function with superconcept_i=None will be called after
+                    # all generators (concept_i, superconcept_i) are computed.
+                    # Thus concept_extents[concept_i][None] = context.extent(concept.intent_i)
                     extent = concept_extents[concept_i][None]
                 else:
                     if superconcept_i not in concept_extents[concept_i]:
