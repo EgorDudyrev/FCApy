@@ -3,19 +3,20 @@ from ..lattice import ConceptLattice
 
 
 class DecisionLatticePredictor:
-    def __init__(self, algo='Sofia', use_generators=False, algo_params=None, generators_algo='approximate'):
+    def __init__(self, algo='Sofia', use_generators=False, algo_params=None, generators_algo='approximate', random_state=None):
         self._algo = algo
 
         self._lattice = ConceptLattice()
         self._use_generators = use_generators
         self._generators_algo = generators_algo
         self._algo_params = algo_params if algo_params is not None else dict()
+        self._random_state = random_state if random_state is not None else 0
+        self._algo_params['random_state'] = self._random_state
 
     def fit(self, context: MVContext, use_tqdm=False):
         self._lattice = ConceptLattice.from_context(context, algo=self._algo, use_tqdm=use_tqdm, **self._algo_params)
         if self._use_generators:
-            self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(
-                context, use_tqdm=use_tqdm, algo=self._generators_algo)
+            self.compute_generators(context, self._generators_algo, use_tqdm)
         for c_i, c in enumerate(self._lattice.concepts):
             metrics = self.calc_concept_prediction_metrics(c_i, context.target)
             c.measures = dict(metrics, **c.measures)
@@ -37,6 +38,14 @@ class DecisionLatticePredictor:
     @property
     def use_generators(self):
         return self._use_generators
+    
+    @use_generators.setter
+    def use_generators(self, val: bool):
+        self._use_generators = val
+    
+    def compute_generators(self, context, algo, use_tqdm):
+        self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(
+                context, use_tqdm=use_tqdm, algo=algo)
 
     def calc_concept_prediction_metrics(self, c_i, Y):
         raise NotImplementedError
