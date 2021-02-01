@@ -443,7 +443,7 @@ class ConceptLattice:
             condgens = {}
             if algo == 'exact':
                 if type(context) is MVContext:
-                    for supc_i in utils.safe_tqdm(superconcepts_i, desc='Iterate superconcepts', leave=False):
+                    for supc_i in utils.safe_tqdm(superconcepts_i, desc='Iterate superconcepts', leave=False, disable=not use_tqdm):
                         supc_ext_i = supc_exts_i[supc_i]
                         supc_int_i = self._concepts[supc_i].intent_i
                         ps_to_iterate = [ps_i for ps_i, descr in intent_i.items()
