@@ -392,8 +392,13 @@ class ConceptLattice:
             extent = stored_extension(c_i, use_generators)
             visited_concepts.add(c_i)
 
+            if use_generators:
+                subconcepts_i = [k for k, gens_dict in self._generators_dict.items() if c_i in gens_dict]
+            else:
+                subconcepts_i = self._subconcepts_dict[c_i]
+
             subconcept_extents = set()
-            for subconcept_i in self._subconcepts_dict[c_i]:
+            for subconcept_i in subconcepts_i:
                 subconcept_extents |= stored_extension(subconcept_i, use_generators, c_i)
             stopped_objects = extent - subconcept_extents
 
@@ -402,7 +407,7 @@ class ConceptLattice:
             for g_i in extent:
                 object_traced_concepts[g_i].add(c_i)
 
-            new_concepts = [subconcept_i for subconcept_i in self._subconcepts_dict[c_i]
+            new_concepts = [subconcept_i for subconcept_i in subconcepts_i
                             if len(stored_extension(subconcept_i, use_generators, c_i)) > 0
                             and subconcept_i not in visited_concepts and subconcept_i not in concepts_to_visit]
             new_concepts = sorted(new_concepts, key=lambda c_i: -self._concepts[c_i].support)
