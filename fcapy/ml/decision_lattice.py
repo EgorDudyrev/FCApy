@@ -1,5 +1,5 @@
-from ..mvcontext.mvcontext import MVContext
-from ..lattice import ConceptLattice
+from fcapy.mvcontext.mvcontext import MVContext
+from fcapy.lattice import ConceptLattice
 
 
 class DecisionLatticePredictor:

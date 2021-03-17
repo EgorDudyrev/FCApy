@@ -1,4 +1,4 @@
-from fcapy.context import FormalContext
+from fcapy.context.formal_context import FormalContext
 
 
 def read_cxt(path=None, data=None):
