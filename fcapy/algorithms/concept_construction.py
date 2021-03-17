@@ -1,8 +1,8 @@
-from fcapy.context import FormalContext
+from fcapy.context.formal_context import FormalContext
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
-from ..utils import utils
+from fcapy.utils import utils
 import random
 from copy import deepcopy
 import math

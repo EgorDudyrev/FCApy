@@ -1,5 +1,5 @@
 from copy import deepcopy
-from ..utils import utils
+from fcapy.utils import utils
 
 
 def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
@@ -88,7 +88,7 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
 
 
 def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False):
-    from ..lattice import ConceptLattice
+    from fcapy.lattice import ConceptLattice
 
     # initialize the dictionaries
     all_superconcepts, incomparables, superconcepts_dict, subconcepts_dict = [
@@ -191,7 +191,7 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
 
 
 def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_concepts_sorted=False, n_jobs=1):
-    from ..lattice import ConceptLattice
+    from fcapy.lattice import ConceptLattice
 
     # initialize the dictionaries
     all_superconcepts, incomparables, superconcepts_dict, subconcepts_dict = [
@@ -317,7 +317,7 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
 
 
 def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
-    from ..lattice import ConceptLattice
+    from fcapy.lattice import ConceptLattice
     subconcepts_st_dict, superconcepts_st_dict = \
         construct_spanning_tree(concepts, is_concepts_sorted=is_concepts_sorted)
     chains = ConceptLattice._get_chains(concepts, superconcepts_st_dict, is_concepts_sorted=is_concepts_sorted)
@@ -349,7 +349,7 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
     def are_top_bottom_indices_weird():
         return new_concept > concepts[top_concept_i] or new_concept < concepts[bottom_concept_i]
     if top_concept_i is None or bottom_concept_i is None or are_top_bottom_indices_weird():
-        from ..lattice import ConceptLattice
+        from fcapy.lattice import ConceptLattice
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
 
     assert top_concept_i is not None and bottom_concept_i is not None,\
@@ -412,7 +412,7 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
 def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
                    top_concept_i=None, bottom_concept_i=None,
                    inplace=True):
-    from ..lattice import ConceptLattice
+    from fcapy.lattice import ConceptLattice
 
     assert concept_i < len(concepts), f"remove_concept error. There is no concept {concept_i} in a concepts list"
     assert len(concepts) >= 3,\
@@ -426,7 +426,7 @@ def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
 
     if top_concept_i is None or bottom_concept_i is None \
             or concepts[concept_i] > concepts[top_concept_i] or concepts[concept_i] < concepts[bottom_concept_i]:
-        from ..lattice import ConceptLattice
+        from fcapy.lattice import ConceptLattice
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
 
     superconcepts = superconcepts_dict[concept_i]

@@ -1,6 +1,6 @@
 from itertools import chain, combinations
 
-from .. import LIB_INSTALLED
+from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['tqdm']:
     from tqdm.notebook import tqdm
 

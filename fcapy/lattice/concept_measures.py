@@ -1,6 +1,6 @@
-from .concept_lattice import ConceptLattice
-from ..context import FormalContext
-from ..utils.utils import powerset
+from fcapy.lattice.concept_lattice import ConceptLattice
+from fcapy.context.formal_context import FormalContext
+from fcapy.utils.utils import powerset
 
 
 def stability(c_i, lattice: ConceptLattice, context: FormalContext):

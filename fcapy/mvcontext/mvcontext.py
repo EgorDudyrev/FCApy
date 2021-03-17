@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 
-from .. import LIB_INSTALLED
+from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
     import numpy as np
 

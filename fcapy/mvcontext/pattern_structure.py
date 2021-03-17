@@ -2,7 +2,7 @@ from collections.abc import Iterable
 import math
 from numbers import Number
 
-from .. import LIB_INSTALLED
+from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
     import numpy as np
 

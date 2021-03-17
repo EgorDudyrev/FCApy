@@ -1,15 +1,15 @@
 import json
-from ..algorithms import concept_construction as cca, lattice_construction as lca
-from .formal_concept import FormalConcept
-from ..mvcontext.mvcontext import MVContext
-from ..utils import utils
+from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
+from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.mvcontext.mvcontext import MVContext
+from fcapy.utils import utils
 import warnings
 import inspect
 from itertools import product
 from copy import deepcopy
 from frozendict import frozendict
 
-from .. import LIB_INSTALLED
+from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
     import numpy as np
 
@@ -242,7 +242,7 @@ class ConceptLattice:
         return new_intent
 
     def calc_concepts_measures(self, measure, context=None):
-        from . import concept_measures as cms
+        from fcapy.lattice import concept_measures as cms
 
         if measure in ('stability_bounds', 'LStab', 'UStab'):
             for c_i, c in enumerate(self._concepts):
