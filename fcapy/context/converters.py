@@ -2,20 +2,20 @@ from fcapy.context.formal_context import FormalContext
 
 
 def read_cxt(path=None, data=None):
-    """Read FormalContext from .cxt file
+    """Read FormalContext from .cxt file or from `data attribute
 
     Parameters
     ----------
     path : `str
         A path to requested .cxt file
-
+    data : `str
+        CXT formatted data (if it is already loaded into python)
     Returns
     -------
     ctx : `FormalContext
         The loaded FormalContext object
-
     """
-    # TODO: Modify the docstring
+
     assert path is not None or data is not None, 'converters.read_cxt error. Either path or data should be given'
 
     if data is None:
@@ -65,20 +65,19 @@ def write_cxt(context, path=None):
 
 
 def read_json(path=None, data=None):
-    """Read FormalContext from .json file
+    """Read FormalContext from .json file or from `data attribute
 
     Parameters
     ----------
     path : `str
         A path to requested .json file
-
+    data : `str
+        JSON formatted data (if it is already loaded into python)
     Returns
     -------
     ctx : `FormalContext
         The loaded FormalContext object
-
     """
-    # TODO: Modify docstring
     assert path is not None or data is not None, 'converters.read_json error. Either path or data should be given'
 
     import json
@@ -146,12 +145,16 @@ def read_csv(path, sep=',', word_true='True', word_false='False'):
     ----------
     path : `str
         A path to requested .csv file
-
+    sep : `str
+        A separator in the .csv file
+    word_true : `str
+        A string placeholder corresponding to True values in the .csv file
+    word_false : `str
+        A string placeholder corresponding to False values in the .csv file
     Returns
     -------
     ctx : `FormalContext
         The loaded FormalContext object
-
     """
     # TODO: add `data` parameter
     with open(path, 'r') as f:
@@ -186,11 +189,16 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
         A context to write to a file
     path : `str
         A path to the file to write a FormalContext object
+    sep : `str
+        A separator in the .csv file
+    word_true : `str
+        A string placeholder corresponding to True values in the .csv file
+    word_false : `str
+        A string placeholder corresponding to False values in the .csv file
     Returns
     -------
     file_data : `str
         The date from the .csv file. Returned if ``path`` is None
-
     """
     file_data = sep+sep.join(context.attribute_names)+'\n'
     for obj_name, data_line in zip(context.object_names, context.data):

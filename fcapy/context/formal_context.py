@@ -162,6 +162,7 @@ class FormalContext:
 
     @property
     def target(self):
+        """A set of target values for supervised ML tasks"""
         return self._target
 
     def extension_i(self, attribute_indexes, base_objects_i=None):
@@ -171,14 +172,13 @@ class FormalContext:
         ----------
         attribute_indexes : `list of `int
             Indexes of the attributes (from [0, ``n_attributes``-1])
-
+        base_objects_i : `list of `int
+            Indexes of set of objects on which to look for extension_i
         Returns
         -------
         extension_indexes : `list of `int
             Indexes of maximal set of objects which share ``attributes``
-
         """
-        # TODO: Update docstring
         base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
         return [g_idx for g_idx in base_objects
                 if all([self._data[g_idx][m] for m in attribute_indexes])]
@@ -232,7 +232,8 @@ class FormalContext:
         ----------
         attributes : `list of `str
             Names of the attributes (subset of ``attribute_names``)
-
+        base_objects : `list of `str
+            Set of objects on which to look for extension
         Returns
         -------
         extension : `list of `str
@@ -363,7 +364,18 @@ class FormalContext:
 
     @staticmethod
     def from_pandas(dataframe):
-        # TODO: add docstring
+        """Construct a FormalContext from a binarized pandas dataframe
+
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+            The dataframe with boolean values to construct a FormalContext
+
+        Returns
+        -------
+        context : FormalContext
+            A FormalContext corresponding to `dataframe
+        """
         from fcapy.context.converters import from_pandas
         return from_pandas(dataframe)
 
@@ -432,6 +444,39 @@ class FormalContext:
         return data_to_print
 
     def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
+        """Get a set of minimal generators for closed intent `intent
+
+        WARNING: The current algorithm looks for mimimUM generators instead of mimimAL
+
+        Parameters
+        ----------
+        intent : `list of `string or `int
+            A set of attribute names (or indexes if `use_indexes=True) to construct generators for.
+        base_generator : `list of `string or `int
+            A set of attribute names (or indexes if `use_indexes=True)
+            which should be included in each constructed generator
+        base_objects : `list of `string or `int
+            A set of object names (or indexes if `use_indexes=True) used to check the generators
+        use_indexes : bool
+            A flag whether to use object and attribute names (if set to False) or indexes (otherwise)
+        Returns
+        -------
+        min_gens : `list of `tuple
+            A set of miminUM generators for the in
+
+        Notes
+        -----
+        A generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
+        is a subset of attributes with the same closed description as $B$: $D'' = B$
+
+        A mimimAL generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
+        is a generator of $B$ s.t. there is no generator $E \subseteq M$ of $B$ smaller than $D$:
+        $D'' = B, \nexists E \subset D, E''=B$.
+
+        A mimimUM generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
+        is a generator of $B$ s.t. there is no generator $E \subseteq M$ of $B$ with the size smaller:
+        $D'' = B, \nexists E \subset B, |E| < |D|$.
+        """
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
         intent_i = set(intent_i)
 
@@ -519,4 +564,15 @@ class FormalContext:
         return data
 
     def to_numeric(self):
+        """A method to extract the data of the context in a numerical form (and the names of numerical attributes)
+
+        The method is less straightforward for MVContext class
+
+        Returns
+        -------
+        data : `list of `list of `bool
+            Binary data of connections between objects and attributes
+        attrinute_names : `list of `str
+            Name of attributes from the context
+        """
         return self._data, self._attribute_names
