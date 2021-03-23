@@ -1,3 +1,7 @@
+"""
+This module provides a number of functions to read/write FormalContext object from/to a file
+
+"""
 from fcapy.context.formal_context import FormalContext
 
 
@@ -14,8 +18,8 @@ def read_cxt(path=None, data=None):
     -------
     ctx : `FormalContext
         The loaded FormalContext object
-    """
 
+    """
     assert path is not None or data is not None, 'converters.read_cxt error. Either path or data should be given'
 
     if data is None:
@@ -77,6 +81,7 @@ def read_json(path=None, data=None):
     -------
     ctx : `FormalContext
         The loaded FormalContext object
+
     """
     assert path is not None or data is not None, 'converters.read_json error. Either path or data should be given'
 
@@ -155,6 +160,7 @@ def read_csv(path, sep=',', word_true='True', word_false='False'):
     -------
     ctx : `FormalContext
         The loaded FormalContext object
+
     """
     # TODO: add `data` parameter
     with open(path, 'r') as f:
@@ -199,6 +205,7 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
     -------
     file_data : `str
         The date from the .csv file. Returned if ``path`` is None
+
     """
     file_data = sep+sep.join(context.attribute_names)+'\n'
     for obj_name, data_line in zip(context.object_names, context.data):

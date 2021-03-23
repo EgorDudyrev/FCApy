@@ -1,3 +1,8 @@
+"""
+This is the main module of subpackage `context`.
+It contains a class FormalContext which represents a Formal Context object from FCA theory
+
+"""
 from collections.abc import Iterable
 from itertools import combinations
 
@@ -178,6 +183,7 @@ class FormalContext:
         -------
         extension_indexes : `list of `int
             Indexes of maximal set of objects which share ``attributes``
+
         """
         base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
         return [g_idx for g_idx in base_objects
@@ -212,6 +218,7 @@ class FormalContext:
         -------
         intention: `list of `str
             Names of maximal set of attributes which are shared by given ``objects``
+
         """
         obj_idx_dict = {g: g_idx for g_idx, g in enumerate(self._object_names)}
         obj_indices = []
@@ -375,6 +382,7 @@ class FormalContext:
         -------
         context : FormalContext
             A FormalContext corresponding to `dataframe
+
         """
         from fcapy.context.converters import from_pandas
         return from_pandas(dataframe)
@@ -476,6 +484,7 @@ class FormalContext:
         A mimimUM generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
         is a generator of $B$ s.t. there is no generator $E \subseteq M$ of $B$ with the size smaller:
         $D'' = B, \nexists E \subset B, |E| < |D|$.
+
         """
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
         intent_i = set(intent_i)
@@ -572,7 +581,8 @@ class FormalContext:
         -------
         data : `list of `list of `bool
             Binary data of connections between objects and attributes
-        attrinute_names : `list of `str
+        attribute_names : `list of `str
             Name of attributes from the context
+
         """
         return self._data, self._attribute_names
