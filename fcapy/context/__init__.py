@@ -12,6 +12,7 @@ Modules
     Implements Formal Context class
   converters:
     Contains function to read/write a FormalContext object from/to a file
+
 """
 
 from .formal_context import FormalContext
