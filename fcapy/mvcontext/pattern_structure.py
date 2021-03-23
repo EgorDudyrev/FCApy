@@ -1,3 +1,7 @@
+"""
+This module contains classes of basic Pattern Structures (which allow FCA to work with data of any complex description)
+"""
+
 from collections.abc import Iterable
 import math
 from numbers import Number
@@ -8,18 +12,33 @@ if LIB_INSTALLED['numpy']:
 
 
 class AbstractPS:
+    """
+    An abstract class to provide an interface for any Pattern Structure (PS)
+
+    Notes
+    -----
+    A pattern structure $D$ is any kind of description of the set of objects $G$
+    for which we can define two functions:
+    1) Given description $d \in D$ we can select a subset of objects $A = d'$ which share this description
+    2) Given a subset of objects $A \subseteq G$ we can determine their common description $d = A'$
+
+    """
     def __init__(self, data, name=None):
+        """Initialize the PatternStructure with some `data and the distinct `name of pattern structure"""
         self._data = data
         self._name = name
 
     def intention_i(self, object_indexes):
+        """Select a common description of objects `object_indexes"""
         raise NotImplementedError
 
     def extension_i(self, description, base_objects_i=None):
+        """Select a subset of objects of `base_objects_i which share `description"""
         raise NotImplementedError
 
     @property
     def data(self):
+        """The data for PatternStructure to work with"""
         return self._data
 
     @data.setter
@@ -29,12 +48,15 @@ class AbstractPS:
 
     @property
     def name(self):
+        """The distinct name of a PatternStructure"""
         return self._name
 
     def description_to_generators(self, description, projection_num):
+        """Convert a closed `description into a set of generators of this closed description (Optional)"""
         raise NotImplementedError
 
     def generators_to_description(self, generators):
+        """Combine a set of `generators into one closed description (Optional)"""
         raise NotImplementedError
 
     def __repr__(self):
@@ -55,19 +77,39 @@ class AbstractPS:
         return data
 
     def to_numeric(self):
+        """Convert the complex `data of the PatternStructure to a set of numeric columns"""
         raise NotImplementedError
 
     def generators_by_intent_difference(self, new_intent, old_intent):
+        """Compute the set of generators to select the `new_intent from `old_intent"""
         raise NotImplementedError
 
 
 class IntervalPS(AbstractPS):
+    """
+    An class to work with Interval Pattern Structures from FCA theory
+
+    Notes
+    -----
+    An Interval Pattern Structure describes any object $g$ with a closed interval $g' = [g_{min}, g_{max}]$
+    Thus:
+    1) Given an interval [a, b] we can select objects $A$ which description falls into an interval [a,b]:
+        A = {g \in G | a <= g_{min} & g_{max} <= b }
+    2) Given a set of objects $A \subseteq G$ we can determine their common description [a, b]:
+         a = min({g_{min} | g \in A})
+         b = max({g_{max} | g \in A})
+
+    If object description is defined by a single number $x$ we turn it into an interval $[x, x]$
+
+    """
     def __init__(self, data, name=None):
+        """Initialize the Interval PS with the `data and a distinct `name"""
         super(IntervalPS, self).__init__(data, name)
         self.data = data
 
     @property
     def data(self):
+        """The data for IntervalPS to work with (`list of tuples representing the intervals)"""
         return self._data
 
     @data.setter
@@ -97,6 +139,7 @@ class IntervalPS(AbstractPS):
             self._map_i_isort = sorted(range(len(self._data)), key=lambda x: map_isort_i[x])
 
     def intention_i(self, object_indexes):
+        """Select a common interval description for all objects from `object_indexes"""
         if len(object_indexes) == 0:
             return None
 
@@ -123,6 +166,7 @@ class IntervalPS(AbstractPS):
         return min_, max_
 
     def extension_i(self, description, base_objects_i=None):
+        """Select a set of indexes of objects from `base_objects_i which fall into interval of `description"""
         if description is None:
             return []
 
@@ -147,6 +191,29 @@ class IntervalPS(AbstractPS):
         return g_is
 
     def description_to_generators(self, description, projection_num):
+        """Convert the closed interval of `description into a set of more broader intervals that generate it
+
+        For example, an interval (-inf, 10] can describe the same set of objects as a closed interval [0, 10].
+        Thus we say that an interval (-int, 10] is a generator of a closed description [0,10].
+
+        The projections of IntervalPS are considered as following:
+            Projection 0: an interval (-inf, inf)
+            Projection 1: an interval (-inf, x] or [x, inf), where x is a real number
+            Projection 2: a closed interval [a, b], where a,b are real numbers
+
+        Parameters
+        ----------
+        description: `tuple of `float
+            A closed description to turn into generators
+        projection_num: `int
+            An index of IntervalPS projection for generators to belong to
+
+        Returns
+        -------
+        generators: `list of `tuple
+            A list of generators of a closed `description
+
+        """
         if description is None:
             return [None]
 
@@ -162,6 +229,7 @@ class IntervalPS(AbstractPS):
         return generators
 
     def generators_to_description(self, generators):
+        """Combine a set of `generators into a single closed description"""
         if any([gen is None for gen in generators]):
             return None
 
@@ -183,9 +251,11 @@ class IntervalPS(AbstractPS):
         return hash((self._name, tuple([tuple(x) for x in self._data])))
 
     def to_numeric(self):
+        """Turn IntervalPS data into a set of numeric columns and their names"""
         return self._data, (f"{self.name}_from", f"{self.name}_to")
 
     def generators_by_intent_difference(self, new_intent, old_intent):
+        """Compute the set of generators to select the `new_intent from `old_intent"""
         if new_intent is None:
             return [None]
 
