@@ -226,6 +226,20 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
 
 
 class DecisionLatticeRegressor(DecisionLatticePredictor):
+    """
+    A class which combines DecisionTree ideas with Concept Lattice to solve Regression tasks
+
+    Methods
+    -------
+    fit(context):
+        Construct a concept lattice based on `context
+        and calculate interestingness measures to predict the context.target values
+        (Inherited from DecisionLatticePredictor class)
+    predict(context)
+        Predict context.target labels based on context.data
+        (Inherited from DecisionLatticePredictor class)
+
+    """
     def calc_concept_prediction_metrics(self, c_i, Y):
         """Calculate the target prediction for concept `c_i based on ground truth targets `Y"""
         extent_i = self._lattice.concepts[c_i].extent_i
