@@ -1,12 +1,13 @@
 """
 This subpackage provides a class FormalContext to work with Formal Context object from FCA theory.
-Other modules are implemented to shorten FormalContext class.
+Other modules of the subpackage are implemented to shorten FormalContext class.
 
 Classes
 -------
 formal_context.FormalContext
 
-Modules:
+Modules
+-------
   formal_context:
     Implements Formal Context class
   converters:
