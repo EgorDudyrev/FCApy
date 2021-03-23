@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Examples" href="../examples.html" />
+    <link rel="next" title="fcapy.context.converters" href="fcapy.context.converters.html" />
     <link rel="prev" title="API Reference" href="../api.html" /> 
 </head>
 
@@ -87,8 +87,15 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#context">Context</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">fcapy.context.FormalContext</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fcapy.context.converters.html">fcapy.context.converters</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mvcontext">MVContext</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#lattice">Lattice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualizer">Visualizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#machine-learning">Machine Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#algorithms">Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#utils">Utils</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
@@ -280,31 +287,40 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id0" title="fcapy.context.FormalContext.extension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension</span></code></a>(attributes)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#id0" title="fcapy.context.FormalContext.extension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension</span></code></a>(attributes[, base_objects])</p></td>
 <td><p>Return maximal set of objects which share given <code class="docutils literal notranslate"><span class="pre">attributes</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id47" title="fcapy.context.FormalContext.extension_i"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension_i</span></code></a>(attribute_indexes)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id53" title="fcapy.context.FormalContext.extension_i"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension_i</span></code></a>(attribute_indexes[, base_objects_i])</p></td>
 <td><p>Return indexes of maximal set of objects which share given <code class="docutils literal notranslate"><span class="pre">attribute_indexes</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id56" title="fcapy.context.FormalContext.intention"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intention</span></code></a>(objects)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.from_pandas" title="fcapy.context.FormalContext.from_pandas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_pandas</span></code></a>(dataframe)</p></td>
+<td><p>Construct a FormalContext from a binarized pandas dataframe</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.get_minimal_generators" title="fcapy.context.FormalContext.get_minimal_generators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_minimal_generators</span></code></a>(intent[, …])</p></td>
+<td><p>Get a set of minimal generators for closed intent <a href="#id15"><span class="problematic" id="id16">`</span></a>intent</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id100" title="fcapy.context.FormalContext.intention"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intention</span></code></a>(objects)</p></td>
 <td><p>Return maximal set of attributes which are shared by given <code class="docutils literal notranslate"><span class="pre">objects</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id65" title="fcapy.context.FormalContext.intention_i"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intention_i</span></code></a>(object_indexes)</p></td>
-<td><p>Return indexes of maximal set of attributes which are shared by given <a href="#id15"><span class="problematic" id="id16">``</span></a>object_indexes`</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id109" title="fcapy.context.FormalContext.intention_i"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intention_i</span></code></a>(object_indexes)</p></td>
+<td><p>Return indexes of maximal set of attributes which are shared by given <a href="#id17"><span class="problematic" id="id18">``</span></a>object_indexes`</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.print_data" title="fcapy.context.FormalContext.print_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_data</span></code></a>([max_n_objects, max_n_attributes])</p></td>
 <td><p>Get the FormalContext date in the string formatted as the table</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id86" title="fcapy.context.FormalContext.to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_csv</span></code></a>([path])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id130" title="fcapy.context.FormalContext.to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_csv</span></code></a>([path])</p></td>
 <td><p>Convert the FormalContext into csv file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id97" title="fcapy.context.FormalContext.to_cxt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_cxt</span></code></a>([path])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#id141" title="fcapy.context.FormalContext.to_cxt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_cxt</span></code></a>([path])</p></td>
 <td><p>Convert the FormalContext into cxt file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id102" title="fcapy.context.FormalContext.to_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_json</span></code></a>([path])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id146" title="fcapy.context.FormalContext.to_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_json</span></code></a>([path])</p></td>
 <td><p>Convert the FormalContext into json file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id107" title="fcapy.context.FormalContext.to_pandas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_pandas</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.to_numeric" title="fcapy.context.FormalContext.to_numeric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_numeric</span></code></a>()</p></td>
+<td><p>A method to extract the data of the context in a numerical form (and the names of numerical attributes)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id161" title="fcapy.context.FormalContext.to_pandas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_pandas</span></code></a>()</p></td>
 <td><p>Convert the FormalContext into pandas.DataFrame object</p></td>
 </tr>
 </tbody>
@@ -320,7 +336,7 @@
 <td><p>Get of set the names of the attributes in the context</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.data" title="fcapy.context.FormalContext.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
-<td><p>Get or set the data with relations between objects and attributes (<a href="#id17"><span class="problematic" id="id18">`</span></a>list of <a href="#id19"><span class="problematic" id="id20">`</span></a>list)</p></td>
+<td><p>Get or set the data with relations between objects and attributes (<a href="#id19"><span class="problematic" id="id20">`</span></a>list of <a href="#id21"><span class="problematic" id="id22">`</span></a>list)</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.description" title="fcapy.context.FormalContext.description"><code class="xref py py-obj docutils literal notranslate"><span class="pre">description</span></code></a></p></td>
 <td><p>Get or set the human readable description of the context</p></td>
@@ -334,6 +350,9 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.object_names" title="fcapy.context.FormalContext.object_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">object_names</span></code></a></p></td>
 <td><p>Get of set the names of the objects in the context</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fcapy.context.FormalContext.target" title="fcapy.context.FormalContext.target"><code class="xref py py-obj docutils literal notranslate"><span class="pre">target</span></code></a></p></td>
+<td><p>A set of target values for supervised ML tasks</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py method">
@@ -342,7 +361,7 @@
 <dd><p>Get of set the names of the attributes in the context</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>value</strong> (<a href="#id21"><span class="problematic" id="id22">`</span></a>list of <a href="#id23"><span class="problematic" id="id24">`</span></a>str) – The list of names for the attributes (default are “0”,”1”,…,”<cite>n_attributes</cite>-1”)</p>
+<dd class="field-odd"><p><strong>value</strong> (<a href="#id23"><span class="problematic" id="id24">`</span></a>list of <a href="#id25"><span class="problematic" id="id26">`</span></a>str) – The list of names for the attributes (default are “0”,”1”,…,”<cite>n_attributes</cite>-1”)</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>AssertionError</strong> – If the number of names in the <code class="docutils literal notranslate"><span class="pre">value</span></code> does not equal to the number of attributes in the context
@@ -354,16 +373,16 @@ If the the elements of <code class="docutils literal notranslate"><span class="p
 <dl class="py method">
 <dt id="fcapy.context.FormalContext.data">
 <em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#fcapy.context.FormalContext.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get or set the data with relations between objects and attributes (<a href="#id25"><span class="problematic" id="id26">`</span></a>list of <a href="#id27"><span class="problematic" id="id28">`</span></a>list)</p>
+<dd><p>Get or set the data with relations between objects and attributes (<a href="#id27"><span class="problematic" id="id28">`</span></a>list of <a href="#id29"><span class="problematic" id="id30">`</span></a>list)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>value</strong> (<a href="#id29"><span class="problematic" id="id30">`</span></a>list of <a href="#id31"><span class="problematic" id="id32">`</span></a>list) – value[i][j] represents whether i-th object shares j-th attribute</p>
+<dd class="field-odd"><p><strong>value</strong> (<a href="#id31"><span class="problematic" id="id32">`</span></a>list of <a href="#id33"><span class="problematic" id="id34">`</span></a>list) – value[i][j] represents whether i-th object shares j-th attribute</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>AssertionError</strong> – If <code class="docutils literal notranslate"><span class="pre">value</span></code> is not a <cite>list
 If ``value`</cite> of type <cite>list is given (should be `list of `list)
 If some lists ``value[i]`</cite> and <code class="docutils literal notranslate"><span class="pre">value[j]</span></code> have different length (should be the same for any <code class="docutils literal notranslate"><span class="pre">value[i]</span></code>)
-If any <code class="docutils literal notranslate"><span class="pre">value[i][j]</span></code> is not of type <a href="#id33"><span class="problematic" id="id34">`</span></a>bool</p>
+If any <code class="docutils literal notranslate"><span class="pre">value[i][j]</span></code> is not of type <a href="#id35"><span class="problematic" id="id36">`</span></a>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -376,78 +395,140 @@ If any <code class="docutils literal notranslate"><span class="pre">value[i][j]<
 The description will be lost when saving context to .cxt or .csv</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>value</strong> (<a href="#id35"><span class="problematic" id="id36">`</span></a>str, None) – The human readable description of the context</p>
+<dd class="field-odd"><p><strong>value</strong> (<a href="#id37"><span class="problematic" id="id38">`</span></a>str, None) – The human readable description of the context</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>AssertionError</strong> – If the given <code class="docutils literal notranslate"><span class="pre">value</span></code> is not None and not of type <a href="#id37"><span class="problematic" id="id38">`</span></a>str</p>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the given <code class="docutils literal notranslate"><span class="pre">value</span></code> is not None and not of type <a href="#id39"><span class="problematic" id="id40">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="id0">
-<code class="sig-name descname">extension</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">attributes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">extension</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">attributes</span></em>, <em class="sig-param"><span class="n">base_objects</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return maximal set of objects which share given <code class="docutils literal notranslate"><span class="pre">attributes</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>attributes</strong> (<a href="#id39"><span class="problematic" id="id40">`</span></a>list of <a href="#id41"><span class="problematic" id="id42">`</span></a>str) – Names of the attributes (subset of <code class="docutils literal notranslate"><span class="pre">attribute_names</span></code>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attributes</strong> (<a href="#id41"><span class="problematic" id="id42">`</span></a>list of <a href="#id43"><span class="problematic" id="id44">`</span></a>str) – Names of the attributes (subset of <code class="docutils literal notranslate"><span class="pre">attribute_names</span></code>)</p></li>
+<li><p><strong>base_objects</strong> (<a href="#id45"><span class="problematic" id="id46">`</span></a>list of <a href="#id47"><span class="problematic" id="id48">`</span></a>str) – Set of objects on which to look for extension</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>extension</strong> – Names of the maximal set of objects which share given <code class="docutils literal notranslate"><span class="pre">attributes</span></code></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id43"><span class="problematic" id="id44">`</span></a>list of <a href="#id45"><span class="problematic" id="id46">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id49"><span class="problematic" id="id50">`</span></a>list of <a href="#id51"><span class="problematic" id="id52">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id47">
-<code class="sig-name descname">extension_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">attribute_indexes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id47" title="Permalink to this definition">¶</a></dt>
+<dt id="id53">
+<code class="sig-name descname">extension_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">attribute_indexes</span></em>, <em class="sig-param"><span class="n">base_objects_i</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id53" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return indexes of maximal set of objects which share given <code class="docutils literal notranslate"><span class="pre">attribute_indexes</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>attribute_indexes</strong> (<a href="#id48"><span class="problematic" id="id49">`</span></a>list of <a href="#id50"><span class="problematic" id="id51">`</span></a>int) – Indexes of the attributes (from [0, <code class="docutils literal notranslate"><span class="pre">n_attributes</span></code>-1])</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute_indexes</strong> (<a href="#id54"><span class="problematic" id="id55">`</span></a>list of <a href="#id56"><span class="problematic" id="id57">`</span></a>int) – Indexes of the attributes (from [0, <code class="docutils literal notranslate"><span class="pre">n_attributes</span></code>-1])</p></li>
+<li><p><strong>base_objects_i</strong> (<a href="#id58"><span class="problematic" id="id59">`</span></a>list of <a href="#id60"><span class="problematic" id="id61">`</span></a>int) – Indexes of set of objects on which to look for extension_i</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>extension_indexes</strong> – Indexes of maximal set of objects which share <code class="docutils literal notranslate"><span class="pre">attributes</span></code></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id52"><span class="problematic" id="id53">`</span></a>list of <a href="#id54"><span class="problematic" id="id55">`</span></a>int</p>
+<dd class="field-odd"><p><a href="#id62"><span class="problematic" id="id63">`</span></a>list of <a href="#id64"><span class="problematic" id="id65">`</span></a>int</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id56">
-<code class="sig-name descname">intention</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">objects</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id56" title="Permalink to this definition">¶</a></dt>
+<dt id="fcapy.context.FormalContext.from_pandas">
+<em class="property">static </em><code class="sig-name descname">from_pandas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataframe</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.FormalContext.from_pandas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a FormalContext from a binarized pandas dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataframe</strong> (<em>pandas.DataFrame</em>) – The dataframe with boolean values to construct a FormalContext</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>context</strong> – A FormalContext corresponding to <a href="#id66"><span class="problematic" id="id67">`</span></a>dataframe</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fcapy.context.FormalContext" title="fcapy.context.FormalContext">FormalContext</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fcapy.context.FormalContext.get_minimal_generators">
+<code class="sig-name descname">get_minimal_generators</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">intent</span></em>, <em class="sig-param"><span class="n">base_generator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">base_objects</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">use_indexes</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.FormalContext.get_minimal_generators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a set of minimal generators for closed intent <a href="#id68"><span class="problematic" id="id69">`</span></a>intent</p>
+<blockquote>
+<div><p>WARNING: The current algorithm looks for mimimUM generators instead of mimimAL</p>
+</div></blockquote>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>intent</strong><span class="classifier"><a href="#id70"><span class="problematic" id="id71">`</span></a>list of <a href="#id72"><span class="problematic" id="id73">`</span></a>string or <a href="#id74"><span class="problematic" id="id75">`</span></a>int</span></dt><dd><blockquote>
+<div><p>A set of attribute names (or indexes if <a href="#id76"><span class="problematic" id="id77">`</span></a>use_indexes=True) to construct generators for.</p>
+</div></blockquote>
+<dl>
+<dt>base_generator<span class="classifier"><a href="#id78"><span class="problematic" id="id79">`</span></a>list of <a href="#id80"><span class="problematic" id="id81">`</span></a>string or <a href="#id82"><span class="problematic" id="id83">`</span></a>int</span></dt><dd><p>A set of attribute names (or indexes if <a href="#id84"><span class="problematic" id="id85">`</span></a>use_indexes=True)
+which should be included in each constructed generator</p>
+</dd>
+<dt>base_objects<span class="classifier"><a href="#id86"><span class="problematic" id="id87">`</span></a>list of <a href="#id88"><span class="problematic" id="id89">`</span></a>string or <a href="#id90"><span class="problematic" id="id91">`</span></a>int</span></dt><dd><p>A set of object names (or indexes if <a href="#id92"><span class="problematic" id="id93">`</span></a>use_indexes=True) used to check the generators</p>
+</dd>
+<dt>use_indexes<span class="classifier">bool</span></dt><dd><p>A flag whether to use object and attribute names (if set to False) or indexes (otherwise)</p>
+</dd>
+</dl>
+<dl>
+<dt>min_gens<span class="classifier"><a href="#id94"><span class="problematic" id="id95">`</span></a>list of <a href="#id96"><span class="problematic" id="id97">`</span></a>tuple</span></dt><dd><p>A set of miminUM generators of the closed intent</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>exists E subset D, E’’=B$.</p>
+<blockquote>
+<div><p>A mimimUM generator $D subseteq M$ of a closed description (intent) $B subseteq M$
+is a generator of $B$ s.t. there is no generator $E subseteq M$ of $B$ with the size smaller:
+$D’’ = B,</p>
+</div></blockquote>
+<p>exists E subset B, <a href="#id162"><span class="problematic" id="id163">|E|</span></a> &lt; <a href="#id98"><span class="problematic" id="id99">|</span></a>D|$.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id100">
+<code class="sig-name descname">intention</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">objects</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id100" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return maximal set of attributes which are shared by given <code class="docutils literal notranslate"><span class="pre">objects</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>objects</strong> (<a href="#id57"><span class="problematic" id="id58">`</span></a>list of <a href="#id59"><span class="problematic" id="id60">`</span></a>str) – Names of the objects (subset of <code class="docutils literal notranslate"><span class="pre">object_names</span></code>)</p>
+<dd class="field-odd"><p><strong>objects</strong> (<a href="#id101"><span class="problematic" id="id102">`</span></a>list of <a href="#id103"><span class="problematic" id="id104">`</span></a>str) – Names of the objects (subset of <code class="docutils literal notranslate"><span class="pre">object_names</span></code>)</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>intention</strong> – Names of maximal set of attributes which are shared by given <code class="docutils literal notranslate"><span class="pre">objects</span></code></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id61"><span class="problematic" id="id62">`</span></a>list of <a href="#id63"><span class="problematic" id="id64">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id105"><span class="problematic" id="id106">`</span></a>list of <a href="#id107"><span class="problematic" id="id108">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id65">
-<code class="sig-name descname">intention_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">object_indexes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id65" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return indexes of maximal set of attributes which are shared by given <a href="#id66"><span class="problematic" id="id67">``</span></a>object_indexes`</p>
+<dt id="id109">
+<code class="sig-name descname">intention_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">object_indexes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id109" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return indexes of maximal set of attributes which are shared by given <a href="#id110"><span class="problematic" id="id111">``</span></a>object_indexes`</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>object_indexes</strong> (<a href="#id68"><span class="problematic" id="id69">`</span></a>list of <a href="#id70"><span class="problematic" id="id71">`</span></a>int) – Indexes of the objects (from [0, <code class="docutils literal notranslate"><span class="pre">n_objects</span></code>-1])</p>
+<dd class="field-odd"><p><strong>object_indexes</strong> (<a href="#id112"><span class="problematic" id="id113">`</span></a>list of <a href="#id114"><span class="problematic" id="id115">`</span></a>int) – Indexes of the objects (from [0, <code class="docutils literal notranslate"><span class="pre">n_objects</span></code>-1])</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>intention_i</strong> – Indexes of maximal set of attributes which are shared by <code class="docutils literal notranslate"><span class="pre">objects</span></code></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id72"><span class="problematic" id="id73">`</span></a>list of <a href="#id74"><span class="problematic" id="id75">`</span></a>int</p>
+<dd class="field-odd"><p><a href="#id116"><span class="problematic" id="id117">`</span></a>list of <a href="#id118"><span class="problematic" id="id119">`</span></a>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -470,7 +551,7 @@ The description will be lost when saving context to .cxt or .csv</p>
 <dd><p>Get of set the names of the objects in the context</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>value</strong> (<a href="#id76"><span class="problematic" id="id77">`</span></a>list of <a href="#id78"><span class="problematic" id="id79">`</span></a>str) – The list of names for the objects (default are ‘0’,’1’,…,’<cite>n_objects</cite>-1’)</p>
+<dd class="field-odd"><p><strong>value</strong> (<a href="#id120"><span class="problematic" id="id121">`</span></a>list of <a href="#id122"><span class="problematic" id="id123">`</span></a>str) – The list of names for the objects (default are ‘0’,’1’,…,’<cite>n_objects</cite>-1’)</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>AssertionError</strong> – If the number of names in the <code class="docutils literal notranslate"><span class="pre">value</span></code> does not equal to the number of objects in the context
@@ -486,9 +567,9 @@ If the the elements of <code class="docutils literal notranslate"><span class="p
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_n_objects</strong> (<a href="#id80"><span class="problematic" id="id81">`</span></a>int) – Maximal number of objects to print. If it is less then <code class="docutils literal notranslate"><span class="pre">n_objects</span></code> then print <code class="docutils literal notranslate"><span class="pre">max_n_objects/2</span></code>
+<li><p><strong>max_n_objects</strong> (<a href="#id124"><span class="problematic" id="id125">`</span></a>int) – Maximal number of objects to print. If it is less then <code class="docutils literal notranslate"><span class="pre">n_objects</span></code> then print <code class="docutils literal notranslate"><span class="pre">max_n_objects/2</span></code>
 objects from the “top” and the “bottom” of the context</p></li>
-<li><p><strong>max_n_attributes</strong> (<a href="#id82"><span class="problematic" id="id83">`</span></a>int) – Maximal number of attributes to print. If it is less then <code class="docutils literal notranslate"><span class="pre">n_attributes</span></code> then print <code class="docutils literal notranslate"><span class="pre">max_n_attributes/2</span></code>
+<li><p><strong>max_n_attributes</strong> (<a href="#id126"><span class="problematic" id="id127">`</span></a>int) – Maximal number of attributes to print. If it is less then <code class="docutils literal notranslate"><span class="pre">n_attributes</span></code> then print <code class="docutils literal notranslate"><span class="pre">max_n_attributes/2</span></code>
 attributes from the “left” and the “right” part of the context</p></li>
 </ul>
 </dd>
@@ -496,25 +577,31 @@ attributes from the “left” and the “right” part of the context</p></li>
 <dd class="field-even"><p><strong>data_to_print</strong> – A string with the context data formatted as the table</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id84"><span class="problematic" id="id85">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id128"><span class="problematic" id="id129">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id86">
-<code class="sig-name descname">to_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id86" title="Permalink to this definition">¶</a></dt>
+<dt id="fcapy.context.FormalContext.target">
+<em class="property">property </em><code class="sig-name descname">target</code><a class="headerlink" href="#fcapy.context.FormalContext.target" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of target values for supervised ML tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id130">
+<code class="sig-name descname">to_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id130" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the FormalContext into csv file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a href="#id87"><span class="problematic" id="id88">`</span></a>str or None) – Path to save a context</p></li>
+<li><p><strong>path</strong> (<a href="#id131"><span class="problematic" id="id132">`</span></a>str or None) – Path to save a context</p></li>
 <li><p><strong>**kwargs</strong> – <dl>
-<dt><code class="docutils literal notranslate"><span class="pre">sep</span></code><span class="classifier"><a href="#id89"><span class="problematic" id="id90">`</span></a>str</span></dt><dd><p>Field delimiter for the output file</p>
+<dt><code class="docutils literal notranslate"><span class="pre">sep</span></code><span class="classifier"><a href="#id133"><span class="problematic" id="id134">`</span></a>str</span></dt><dd><p>Field delimiter for the output file</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">word_true</span></code><span class="classifier"><a href="#id91"><span class="problematic" id="id92">`</span></a>str</span></dt><dd><p>A placeholder to put instead of ‘True’ for data[i][j]==True (default ‘True’)</p>
+<dt><code class="docutils literal notranslate"><span class="pre">word_true</span></code><span class="classifier"><a href="#id135"><span class="problematic" id="id136">`</span></a>str</span></dt><dd><p>A placeholder to put instead of ‘True’ for data[i][j]==True (default ‘True’)</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">word_false</span></code><span class="classifier"><a href="#id93"><span class="problematic" id="id94">`</span></a>str</span></dt><dd><p>A placeholder to put instead of ‘False’ for data[i][j]==False (default ‘False’)</p>
+<dt><code class="docutils literal notranslate"><span class="pre">word_false</span></code><span class="classifier"><a href="#id137"><span class="problematic" id="id138">`</span></a>str</span></dt><dd><p>A placeholder to put instead of ‘False’ for data[i][j]==False (default ‘False’)</p>
 </dd>
 </dl>
 </p></li>
@@ -524,48 +611,64 @@ attributes from the “left” and the “right” part of the context</p></li>
 <dd class="field-even"><p><strong>context</strong> – If <code class="docutils literal notranslate"><span class="pre">path</span></code> is None, the string with .csv file data is returned. If <code class="docutils literal notranslate"><span class="pre">path</span></code> is given - return None</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id95"><span class="problematic" id="id96">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id139"><span class="problematic" id="id140">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id97">
-<code class="sig-name descname">to_cxt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id97" title="Permalink to this definition">¶</a></dt>
+<dt id="id141">
+<code class="sig-name descname">to_cxt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id141" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the FormalContext into cxt file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>path</strong> (<a href="#id98"><span class="problematic" id="id99">`</span></a>str or None) – Path to save a context</p>
+<dd class="field-odd"><p><strong>path</strong> (<a href="#id142"><span class="problematic" id="id143">`</span></a>str or None) – Path to save a context</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>context</strong> – If <code class="docutils literal notranslate"><span class="pre">path</span></code> is None, the string with .cxt file data is returned. If <code class="docutils literal notranslate"><span class="pre">path</span></code> is given - return None</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id100"><span class="problematic" id="id101">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id144"><span class="problematic" id="id145">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id102">
-<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id102" title="Permalink to this definition">¶</a></dt>
+<dt id="id146">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id146" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the FormalContext into json file format (save if <code class="docutils literal notranslate"><span class="pre">path</span></code> is given)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>path</strong> (<a href="#id103"><span class="problematic" id="id104">`</span></a>str or None) – Path to save a context</p>
+<dd class="field-odd"><p><strong>path</strong> (<a href="#id147"><span class="problematic" id="id148">`</span></a>str or None) – Path to save a context</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>context</strong> – If <code class="docutils literal notranslate"><span class="pre">path</span></code> is None, the string with .json file data is returned. If <code class="docutils literal notranslate"><span class="pre">path</span></code> is given - return None</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id105"><span class="problematic" id="id106">`</span></a>str</p>
+<dd class="field-odd"><p><a href="#id149"><span class="problematic" id="id150">`</span></a>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="id107">
-<code class="sig-name descname">to_pandas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id107" title="Permalink to this definition">¶</a></dt>
+<dt id="fcapy.context.FormalContext.to_numeric">
+<code class="sig-name descname">to_numeric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.FormalContext.to_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method to extract the data of the context in a numerical form (and the names of numerical attributes)</p>
+<p>The method is less straightforward for MVContext class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>data</strong> (<a href="#id151"><span class="problematic" id="id152">`</span></a>list of <a href="#id153"><span class="problematic" id="id154">`</span></a>list of <a href="#id155"><span class="problematic" id="id156">`</span></a>bool) – Binary data of connections between objects and attributes</p></li>
+<li><p><strong>attribute_names</strong> (<a href="#id157"><span class="problematic" id="id158">`</span></a>list of <a href="#id159"><span class="problematic" id="id160">`</span></a>str) – Name of attributes from the context</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id161">
+<code class="sig-name descname">to_pandas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id161" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the FormalContext into pandas.DataFrame object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -590,7 +693,7 @@ attributes from the “left” and the “right” part of the context</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fcapy.context.converters.html" class="btn btn-neutral float-right" title="fcapy.context.converters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

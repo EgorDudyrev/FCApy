@@ -87,6 +87,35 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#context">Context</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/fcapy.context.FormalContext.html">fcapy.context.FormalContext</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.context.converters.html">fcapy.context.converters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mvcontext">MVContext</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.mvcontext.pattern_structure.html">fcapy.mvcontext.pattern_structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lattice">Lattice</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.lattice.ConceptLattice.html">fcapy.lattice.ConceptLattice</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.lattice.formal_concept.html">fcapy.lattice.formal_concept</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.lattice.pattern_concept.html">fcapy.lattice.pattern_concept</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.lattice.concept_measures.html">fcapy.lattice.concept_measures</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#visualizer">Visualizer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.visualizer.Visualizer.html">fcapy.visualizer.Visualizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.ml.decision_lattice.html">fcapy.ml.decision_lattice</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#algorithms">Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.algorithms.concept_construction.html">fcapy.algorithms.concept_construction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.algorithms.lattice_construction.html">fcapy.algorithms.lattice_construction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utils">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.utils.utils.html">fcapy.utils.utils</a></li>
 </ul>
 </li>
 </ul>
@@ -193,6 +222,105 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.context.FormalContext.html#fcapy.context.FormalContext" title="fcapy.context.FormalContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">context.FormalContext</span></code></a>([data, object_names, …])</p></td>
 <td><p>A class used to represent Formal Context object from FCA theory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/fcapy.context.converters.html#module-fcapy.context.converters" title="fcapy.context.converters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">context.converters</span></code></a></p></td>
+<td><p>This module provides a number of functions to read/write FormalContext object from/to a file</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mvcontext">
+<h2>MVContext<a class="headerlink" href="#mvcontext" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.mvcontext.pattern_structure.html#module-fcapy.mvcontext.pattern_structure" title="fcapy.mvcontext.pattern_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mvcontext.pattern_structure</span></code></a></p></td>
+<td><p>This module contains classes of basic Pattern Structures (which allow FCA to work with data of any complex description)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="lattice">
+<h2>Lattice<a class="headerlink" href="#lattice" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.lattice.ConceptLattice.html#fcapy.lattice.ConceptLattice" title="fcapy.lattice.ConceptLattice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lattice.ConceptLattice</span></code></a>([concepts])</p></td>
+<td><p>A class used to represent Concept Lattice object from FCA theory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/fcapy.lattice.formal_concept.html#module-fcapy.lattice.formal_concept" title="fcapy.lattice.formal_concept"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lattice.formal_concept</span></code></a></p></td>
+<td><p>This module provides a class FormalConcept which represents the Formal Concept object from FCA theory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.lattice.pattern_concept.html#module-fcapy.lattice.pattern_concept" title="fcapy.lattice.pattern_concept"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lattice.pattern_concept</span></code></a></p></td>
+<td><p>This module provides a class PatternConcept which represents the Pattern Concept object from FCA theory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/fcapy.lattice.concept_measures.html#module-fcapy.lattice.concept_measures" title="fcapy.lattice.concept_measures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lattice.concept_measures</span></code></a></p></td>
+<td><p>This module provides a set of functions to compute interestingness measures of concepts</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="visualizer">
+<h2>Visualizer<a class="headerlink" href="#visualizer" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.visualizer.Visualizer.html#fcapy.visualizer.Visualizer" title="fcapy.visualizer.Visualizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualizer.Visualizer</span></code></a>([lattice, node_color, …])</p></td>
+<td><p>A class for visualizing the ConceptLattice</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="machine-learning">
+<h2>Machine Learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.ml.decision_lattice.html#module-fcapy.ml.decision_lattice" title="fcapy.ml.decision_lattice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ml.decision_lattice</span></code></a></p></td>
+<td><p>This module provides DecisionLatticeClassifier and DecisionLatticeRegressor classes to use ConceptLattice in a DecisionTree-like manner</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="algorithms">
+<h2>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.algorithms.concept_construction.html#module-fcapy.algorithms.concept_construction" title="fcapy.algorithms.concept_construction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algorithms.concept_construction</span></code></a></p></td>
+<td><p>This module contains a number of functions which take a FormalContext (or MVContext) and return a set of formal (or pattern) concepts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/fcapy.algorithms.lattice_construction.html#module-fcapy.algorithms.lattice_construction" title="fcapy.algorithms.lattice_construction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algorithms.lattice_construction</span></code></a></p></td>
+<td><p>This module contains a number of function which take a set of formal (or pattern) concepts and return its subconcepts_dict i.e.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="utils">
+<h2>Utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.utils.utils.html#module-fcapy.utils.utils" title="fcapy.utils.utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.utils</span></code></a></p></td>
+<td><p>This module provides a set of functions which can be useful in any subpackage of fcapy package</p></td>
 </tr>
 </tbody>
 </table>
