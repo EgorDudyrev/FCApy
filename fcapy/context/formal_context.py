@@ -470,7 +470,7 @@ class FormalContext:
         Returns
         -------
         min_gens : `list of `tuple
-            A set of miminUM generators for the in
+            A set of miminUM generators of the closed intent
 
         Notes
         -----
