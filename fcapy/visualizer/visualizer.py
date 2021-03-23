@@ -1,13 +1,49 @@
+"""
+This module provides a class Visualizer to visualize a ConceptLattice
+
+"""
 import networkx as nx
 from collections.abc import Iterable
 
 
 class Visualizer:
+    """
+    A class for visualizing the ConceptLattice
+
+    Methods
+    -------
+    draw_networkx(...):
+        Draw a ConceptLattice line diagram with networkx package
+    get_plotly_figure(...):
+        Return a Plotly figure with the ConceptLattice line diagram
+    """
     def __init__(
             self, lattice=None,
             node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue',
-            cmap_min = None, cmap_max = None
+            cmap_min=None, cmap_max=None
     ):
+        """Initialize the Visualizer
+
+        Parameters
+        ----------
+        lattice: `ConceptLattice
+            A ConceptLattice to visualize
+        node_color: `str or `list of `str
+            A default color to use for ConceptLattice visualization (can be changed afterwards)
+        cmap: `str
+            Colormap to use for ConceptLattice visualization
+        node_alpha: `float
+            Transparency of nodes
+        node_linewidth: `float
+            Width of borderline (edge) around the nodes in a line diagram
+        node_edgecolor: `float
+            Color of borderline (edge) around the nodes in a line diagram
+        cmap_min: `float
+            The minimum value of a colormap
+        cmap_max: `float
+            The maximum value of a colormap
+
+        """
         self._lattice = lattice
         self._pos = self.get_nodes_position() if lattice is not None else None
         self.node_color = node_color
@@ -19,6 +55,7 @@ class Visualizer:
         self.node_edgecolor = node_edgecolor
 
     def get_nodes_position(self, lattice=None):
+        """Return a dict of nodes positions in a line diagram"""
         lattice = self._lattice if lattice is None else lattice
         c_levels, levels_dict = self._calc_levels()
         n_levels = len(levels_dict)
@@ -30,6 +67,7 @@ class Visualizer:
         return pos
 
     def _calc_levels(self, lattice=None):
+        """Return levels (y position) of nodes and dict with {level: nodes} mapping in a line diagram"""
         lattice = self._lattice if lattice is None else lattice
         c_levels = [0] * len(lattice.concepts)
         nodes_to_visit = [lattice.top_concept_i]
@@ -45,6 +83,23 @@ class Visualizer:
         return c_levels, levels_dict
 
     def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3):
+        """Draw line diagram of the ConceptLattice with networkx package
+
+        Parameters
+        ----------
+        draw_node_indices: `bool
+            A flag whether to draw indexes of nodes inside the nodes
+        edge_radius: `float
+            A value of how much curve the edges on line diagram should be
+        max_new_extent_count: `int
+            A number of new objects in concept extent to draw
+        max_new_intent_count: `int
+            A number of new attributes in concept intent to draw
+
+        Returns
+        -------
+
+        """
         graph = nx.DiGraph(self._lattice.subconcepts_dict)
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(graph, self._pos, edge_color='lightgrey', arrowstyle='-', connectionstyle=cs)
@@ -80,6 +135,28 @@ class Visualizer:
             nx.draw_networkx_labels(graph, self._pos)
 
     def get_plotly_figure(self, **kwargs):
+        """Get a line diagram of ConceptLattice constructed by Plotly package
+
+        Parameters
+        ----------
+        kwargs:
+            colorbar_title: `str
+                A title of colorbar axis
+            max_new_extent_count: `int
+                A number of new objects in concept extent to draw
+            max_new_intent_count: `int
+                A number of new objects in concept extent to draw
+            xlim: `tuple of `float
+                A tuple of xaxis ranges (x_left, x_right) (default value is (-1, 1))
+            figsize: `tuple of `float
+                A tuple of size of a figure (width, height) (default value is (1000, 500))
+
+        Returns
+        -------
+        fig: `plotly.graph_objects.Figure
+            A line diagram of ConceptLattice in the form of Plotly Figure
+
+        """
         from plotly import graph_objects as go
 
         digraph = nx.DiGraph(self._lattice.subconcepts_dict)
