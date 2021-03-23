@@ -1,12 +1,46 @@
+"""
+This module provides a class FormalConcept which represents the Formal Concept object from FCA theory
+
+"""
 from collections.abc import Iterable
 import json
 import numbers
 
 
 class FormalConcept:
+    """A class used to represent Formal Concept object from FCA theory
+
+    Notes
+    -----
+    A Formal Concept $(A,B)$ denotes the pair of subset of objects $A$ and subset of attributes $B$,
+    s.t. objects $A$ are all the objects described by attributes $B$
+      and attributes $B$ are all the attributes which describe objects $A$.
+
+    The set $A$ is called `extent`, the set $B$ is called `intent`
+
+    """
     JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
 
     def __init__(self, extent_i, extent, intent_i, intent, measures=None, context_hash=None):
+        """Initialize the FormalConcept object
+
+        Parameters
+        ----------
+        extent_i: `list of `int
+            A list of indexes of objects described by intent
+        extent: `list of `str
+            A list of names of objects described by intent
+        intent_i: `list of `int
+            A list of indexes of attributes which describe extent
+        intent: `list of `str
+            A list of names of attributes which describe extent
+        measures: `dict of type {`str: `int}
+            Dict with values of interestingness measures of the concept
+        context_hash: `int
+            Hash value of a FormalContext the FormalConcept is based on.
+            Only the concepts from the same FormalContext can be compared
+
+        """
         def unify_iterable_type(value, name="", value_type=str):
             assert isinstance(value, Iterable) and type(value) != str, \
                 f"FormalConcept.__init__. Given {name} value should be an iterable but not a string"
@@ -30,26 +64,36 @@ class FormalConcept:
 
     @property
     def extent_i(self):
+        """The set of indexes of objects described by intent of the FormalConcept"""
         return self._extent_i
 
     @property
     def extent(self):
+        """The set of names of objects described by intent of the FormalConcept"""
         return self._extent
 
     @property
     def intent_i(self):
+        """The set of indexes of attributes which describe the extent of the FormalConcept"""
         return self._intent_i
 
     @property
     def intent(self):
+        """The set of names of attributes which describe the extent of the FormalConcept"""
         return self._intent
 
     @property
     def support(self):
+        """The number of objects described by the intent of the FormalConcept"""
         return self._support
 
     @property
     def context_hash(self):
+        """Hash value of a FormalContext the FormalConcept is based on.
+
+        Only the concepts from the same FormalContext can be compared
+
+        """
         return self._context_hash
 
     def __eq__(self, other):
@@ -65,6 +109,7 @@ class FormalConcept:
         return hash((tuple(sorted(self._extent_i)), tuple(sorted(self._intent_i))))
 
     def __le__(self, other):
+        """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
         if self._context_hash != other.context_hash:
             raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
 
@@ -78,6 +123,7 @@ class FormalConcept:
         return True
 
     def __lt__(self, other):
+        """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
         if self._context_hash != other.context_hash:
             raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
 
@@ -87,6 +133,7 @@ class FormalConcept:
         return self <= other
 
     def to_dict(self):
+        """Convert FormalConcept into a dictionary"""
         concept_info = dict()
         concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
         concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i)}
@@ -98,6 +145,7 @@ class FormalConcept:
 
     @classmethod
     def from_dict(cls, data):
+        """Construct a FormalConcept from a dictionary `data"""
         if data["Int"] == "BOTTOM":
             data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
             #data["Int"] = {'Inds': [], "Names": []}
@@ -115,6 +163,7 @@ class FormalConcept:
         return c
 
     def to_json(self, path=None):
+        """Save FormalConcept to .json file of return the .json encoded data if path is None"""
         concept_info = self.to_dict()
 
         file_data = json.dumps(concept_info)
@@ -126,6 +175,7 @@ class FormalConcept:
 
     @classmethod
     def from_json(cls, path=None, json_data=None):
+        """Load FormalConcept from .json file or from .json encoded string `json_data"""
         assert path is not None or json_data is not None,\
             "FormalConcept.from_json error. Either path or data attribute should be given"
 
