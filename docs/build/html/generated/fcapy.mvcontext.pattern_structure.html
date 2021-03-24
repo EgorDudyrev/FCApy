@@ -192,7 +192,7 @@
 </style>
 <div class="section" id="module-fcapy.mvcontext.pattern_structure">
 <span id="fcapy-mvcontext-pattern-structure"></span><h1>fcapy.mvcontext.pattern_structure<a class="headerlink" href="#module-fcapy.mvcontext.pattern_structure" title="Permalink to this headline">¶</a></h1>
-<p>This module contains classes of basic Pattern Structures (which allow FCA to work with data of any complex description)</p>
+<p>This module contains classes of basic Pattern Structures which allow FCA to work with data of any complex description</p>
 <p class="rubric">Classes</p>
 <table class="longtable docutils align-default">
 <colgroup>
@@ -213,10 +213,12 @@
 <em class="property">class </em><code class="sig-prename descclassname">fcapy.mvcontext.pattern_structure.</code><code class="sig-name descname">AbstractPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS" title="Permalink to this definition">¶</a></dt>
 <dd><p>An abstract class to provide an interface for any Pattern Structure (PS)</p>
 <p class="rubric">Notes</p>
-<p>A pattern structure $D$ is any kind of description of the set of objects $G$
-for which we can define two functions:
-1) Given description $d in D$ we can select a subset of objects $A = d’$ which share this description
-2) Given a subset of objects $A subseteq G$ we can determine their common description $d = A’$</p>
+<p>A pattern structure D is any kind of description of the set of objects G
+for which we can define two functions:</p>
+<ol class="arabic simple">
+<li><p>Given description d \subseteq D we can select a subset of objects A = d’ which share this description</p></li>
+<li><p>Given a subset of objects A \subseteq G we can determine their common description d = A’</p></li>
+</ol>
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.data">
 <em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.data" title="Permalink to this definition">¶</a></dt>
@@ -226,31 +228,31 @@ for which we can define two functions:
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.description_to_generators">
 <code class="sig-name descname">description_to_generators</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">description</span></em>, <em class="sig-param"><span class="n">projection_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.description_to_generators" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a closed <a href="#id1"><span class="problematic" id="id2">`</span></a>description into a set of generators of this closed description (Optional)</p>
+<dd><p>Convert a closed <code class="docutils literal notranslate"><span class="pre">description</span></code> into a set of generators of this closed description (Optional)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.extension_i">
 <code class="sig-name descname">extension_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">description</span></em>, <em class="sig-param"><span class="n">base_objects_i</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.extension_i" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select a subset of objects of <a href="#id3"><span class="problematic" id="id4">`</span></a>base_objects_i which share <a href="#id5"><span class="problematic" id="id6">`</span></a>description</p>
+<dd><p>Select a subset of objects of <code class="docutils literal notranslate"><span class="pre">base_objects_i</span></code> which share <code class="docutils literal notranslate"><span class="pre">description</span></code></p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.generators_by_intent_difference">
 <code class="sig-name descname">generators_by_intent_difference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_intent</span></em>, <em class="sig-param"><span class="n">old_intent</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.generators_by_intent_difference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the set of generators to select the <a href="#id7"><span class="problematic" id="id8">`</span></a>new_intent from <a href="#id9"><span class="problematic" id="id10">`</span></a>old_intent</p>
+<dd><p>Compute the set of generators to select the <code class="docutils literal notranslate"><span class="pre">new_intent</span></code> from <code class="docutils literal notranslate"><span class="pre">old_intent</span></code></p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.generators_to_description">
 <code class="sig-name descname">generators_to_description</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">generators</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.generators_to_description" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine a set of <a href="#id11"><span class="problematic" id="id12">`</span></a>generators into one closed description (Optional)</p>
+<dd><p>Combine a set of <code class="docutils literal notranslate"><span class="pre">generators</span></code> into one closed description (Optional)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.intention_i">
 <code class="sig-name descname">intention_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">object_indexes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.intention_i" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select a common description of objects <a href="#id13"><span class="problematic" id="id14">`</span></a>object_indexes</p>
+<dd><p>Select a common description of objects <code class="docutils literal notranslate"><span class="pre">object_indexes</span></code></p>
 </dd></dl>
 
 <dl class="py method">
@@ -262,7 +264,7 @@ for which we can define two functions:
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.AbstractPS.to_numeric">
 <code class="sig-name descname">to_numeric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.AbstractPS.to_numeric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the complex <a href="#id15"><span class="problematic" id="id16">`</span></a>data of the PatternStructure to a set of numeric columns</p>
+<dd><p>Convert the complex <code class="docutils literal notranslate"><span class="pre">data</span></code> of the PatternStructure to a set of numeric columns</p>
 </dd></dl>
 
 </dd></dl>
@@ -272,31 +274,32 @@ for which we can define two functions:
 <em class="property">class </em><code class="sig-prename descclassname">fcapy.mvcontext.pattern_structure.</code><code class="sig-name descname">IntervalPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS" title="Permalink to this definition">¶</a></dt>
 <dd><p>An class to work with Interval Pattern Structures from FCA theory</p>
 <p class="rubric">Notes</p>
-<p>An Interval Pattern Structure describes any object $g$ with a closed interval $g’ = [g_{min}, g_{max}]$
-Thus:
-1) Given an interval [a, b] we can select objects $A$ which description falls into an interval [a,b]:</p>
-<blockquote>
-<div><p>A = {g in G | a &lt;= g_{min} &amp; g_{max} &lt;= b }</p>
-</div></blockquote>
-<ol class="arabic simple" start="2">
+<p>An Interval Pattern Structure describes any object g with a closed interval g’ = [g_{min}, g_{max}]
+Thus:</p>
+<ol class="arabic simple">
 <li><dl class="simple">
-<dt>Given a set of objects $A subseteq G$ we can determine their common description [a, b]:</dt><dd><p>a = min({g_{min} | g in A})
+<dt>Given an interval [a, b] we can select objects A which description falls into an interval [a,b]:</dt><dd><p>A = {g in G | a &lt;= g_{min} &amp; g_{max} &lt;= b }</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Given a set of objects A subseteq G we can determine their common description [a, b]: </dt><dd><p>a = min({g_{min} | g in A})
 b = max({g_{max} | g in A})</p>
 </dd>
 </dl>
 </li>
 </ol>
-<p>If object description is defined by a single number $x$ we turn it into an interval $[x, x]$</p>
+<p>If object description is defined by a single number x we turn it into an interval [x, x]</p>
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.data">
 <em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>The data for IntervalPS to work with (<a href="#id17"><span class="problematic" id="id18">`</span></a>list of tuples representing the intervals)</p>
+<dd><p>The data for IntervalPS to work with (<cite>list</cite> of <cite>tuple</cite> representing the intervals)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.description_to_generators">
 <code class="sig-name descname">description_to_generators</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">description</span></em>, <em class="sig-param"><span class="n">projection_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.description_to_generators" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the closed interval of <a href="#id19"><span class="problematic" id="id20">`</span></a>description into a set of more broader intervals that generate it</p>
+<dd><p>Convert the closed interval of <code class="docutils literal notranslate"><span class="pre">description</span></code> into a set of more broader intervals that generate it</p>
 <p>For example, an interval (-inf, 10] can describe the same set of objects as a closed interval [0, 10].
 Thus we say that an interval (-int, 10] is a generator of a closed description [0,10].</p>
 <dl class="simple">
@@ -308,15 +311,15 @@ Projection 2: a closed interval [a, b], where a,b are real numbers</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>description</strong> (<a href="#id21"><span class="problematic" id="id22">`</span></a>tuple of <a href="#id23"><span class="problematic" id="id24">`</span></a>float) – A closed description to turn into generators</p></li>
-<li><p><strong>projection_num</strong> (<a href="#id25"><span class="problematic" id="id26">`</span></a>int) – An index of IntervalPS projection for generators to belong to</p></li>
+<li><p><strong>description</strong> (<cite>tuple</cite> of <cite>float</cite>) – A closed description to turn into generators</p></li>
+<li><p><strong>projection_num</strong> (<cite>int</cite>) – An index of IntervalPS projection for generators to belong to</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>generators</strong> – A list of generators of a closed <a href="#id27"><span class="problematic" id="id28">`</span></a>description</p>
+<dd class="field-even"><p><strong>generators</strong> – A list of generators of a closed <code class="docutils literal notranslate"><span class="pre">description</span></code></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a href="#id29"><span class="problematic" id="id30">`</span></a>list of <a href="#id31"><span class="problematic" id="id32">`</span></a>tuple</p>
+<dd class="field-odd"><p><cite>list</cite> of <cite>tuple</cite></p>
 </dd>
 </dl>
 </dd></dl>
@@ -324,25 +327,25 @@ Projection 2: a closed interval [a, b], where a,b are real numbers</p>
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.extension_i">
 <code class="sig-name descname">extension_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">description</span></em>, <em class="sig-param"><span class="n">base_objects_i</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.extension_i" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select a set of indexes of objects from <a href="#id33"><span class="problematic" id="id34">`</span></a>base_objects_i which fall into interval of <a href="#id35"><span class="problematic" id="id36">`</span></a>description</p>
+<dd><p>Select a set of indexes of objects from <code class="docutils literal notranslate"><span class="pre">base_objects_i</span></code> which fall into interval of <code class="docutils literal notranslate"><span class="pre">description</span></code></p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.generators_by_intent_difference">
 <code class="sig-name descname">generators_by_intent_difference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_intent</span></em>, <em class="sig-param"><span class="n">old_intent</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.generators_by_intent_difference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the set of generators to select the <a href="#id37"><span class="problematic" id="id38">`</span></a>new_intent from <a href="#id39"><span class="problematic" id="id40">`</span></a>old_intent</p>
+<dd><p>Compute the set of generators to select the <code class="docutils literal notranslate"><span class="pre">new_intent</span></code> from <code class="docutils literal notranslate"><span class="pre">old_intent</span></code></p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.generators_to_description">
 <code class="sig-name descname">generators_to_description</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">generators</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.generators_to_description" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine a set of <a href="#id41"><span class="problematic" id="id42">`</span></a>generators into a single closed description</p>
+<dd><p>Combine a set of <code class="docutils literal notranslate"><span class="pre">generators</span></code> into a single closed description</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.intention_i">
 <code class="sig-name descname">intention_i</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">object_indexes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.intention_i" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select a common interval description for all objects from <a href="#id43"><span class="problematic" id="id44">`</span></a>object_indexes</p>
+<dd><p>Select a common interval description for all objects from <code class="docutils literal notranslate"><span class="pre">object_indexes</span></code></p>
 </dd></dl>
 
 <dl class="py method">
@@ -354,7 +357,7 @@ Projection 2: a closed interval [a, b], where a,b are real numbers</p>
 <dl class="py method">
 <dt id="fcapy.mvcontext.pattern_structure.IntervalPS.to_numeric">
 <code class="sig-name descname">to_numeric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.mvcontext.pattern_structure.IntervalPS.to_numeric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turn IntervalPS data into a set of numeric columns and their names</p>
+<dd><p>Turn <cite>IntervalPS</cite> data into a set of numeric columns and their names</p>
 </dd></dl>
 
 </dd></dl>

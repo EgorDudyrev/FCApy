@@ -21,18 +21,18 @@ class MVContext:
 
         Parameters
         ----------
-        data: `list of `list of `PatternStructure descriptions
+        data: `list` of `list` of `PatternStructure intents`
             The data for MVContext to work with
-        pattern_types: `dict of type {`name of an attribute: `Pattern Structure type}
+        pattern_types: `dict` of type {`name of an attribute`: `Pattern Structure type`}
             The types of PatternStructure to describe each "column" of the data
-        object_names: `list of `str
+        object_names: `list` of `str`
             The names of objects (default values are ['0','1','2',...]
-        attribute_names: `list of `str
-            The names of attributes, i.e. pattern structures (default values are ['0','1','2',...])
+        attribute_names: `list` of `str`
+            The names of attributes, i.e. pattern structures (default values are ['0', '1', '2', ...])
         kwargs:
-            description: `str
+            description: `str`
                 A human readable description of the context
-            target: `list of `float
+            target: `list` of `float`
                 A target values to use in Supervised ML scenario
 
         """
@@ -108,7 +108,7 @@ class MVContext:
         return self._target
 
     def assemble_pattern_structures(self, data, pattern_types):
-        """Return pattern_structures based on `data and the `pattern_types"""
+        """Return pattern_structures based on ``data`` and the ``pattern_types``"""
         if data is None:
             return None
 
@@ -131,19 +131,19 @@ class MVContext:
         return pattern_structures
 
     def extension_i(self, descriptions_i, base_objects_i=None):
-        """Return a subset of objects of `base_objects_i which falls into `descriptions_i
+        """Return a subset of objects of ``base_objects_i`` which falls into ``descriptions_i``
 
         Parameters
         ----------
-        descriptions_i: `dict of type {pattern_structure_index: description}
+        descriptions_i: `dict` of type {pattern_structure_index: description}
             Descriptions to filter objects
-        base_objects_i: `list of `int
+        base_objects_i: `list` of `int`
             Indexes of objects to select extension from (default value is the set of all object indexes)
 
         Returns
         -------
-        extent_i: `list of `int
-            A list of indexes of objects described by `descriptions_i
+        extent_i: `list` of `int`
+            A list of indexes of objects described by ``descriptions_i``
 
         """
         if base_objects_i is not None and len(base_objects_i) == 0:
@@ -174,24 +174,24 @@ class MVContext:
         return extent_i
 
     def intention_i(self, object_indexes):
-        """Return a common description of objects from `object_indexes. Pat. structures are denoted by their indexes"""
+        """Return a common description of objects from ``object_indexes``. Pat. structures are denoted by their indexes"""
         description_i = {ps_i: ps.intention_i(object_indexes) for ps_i, ps in enumerate(self._pattern_structures)}
         return description_i
 
     def extension(self, descriptions, base_objects=None):
-        """Return a subset of objects of `base_objects_i which falls into `descriptions
+        """Return a subset of objects of ``base_objects_i`` which falls into ``descriptions``
 
         Parameters
         ----------
-        descriptions: `dict of type {pattern_structure_name: description}
+        descriptions: `dict` of type {pattern_structure_name: description}
             Descriptions to filter objects
-        base_objects: `list of `str
+        base_objects: `list` of `str`
             Names of objects to select extension from (default value is the set of all object names)
 
         Returns
         -------
-        extent_i: `list of `str
-            A list of names of objects described by `descriptions_i
+        extent_i: `list` of `str`
+            A list of names of objects described by ``descriptions_i``
 
         """
         ps_names_map = {ps.name: ps_i for ps_i, ps in enumerate(self._pattern_structures)}
@@ -203,7 +203,7 @@ class MVContext:
         return objects
 
     def intention(self, objects):
-        """Return a common description of objects from `object_indexes. Pat. structures are denoted by their names"""
+        """Return a common description of objects from ``objects``. Pat. structures are denoted by their names"""
         objects = set(objects)
         object_indexes = [g_i for g_i, g in enumerate(self._object_names) if g in objects]
         descriptions_i = self.intention_i(object_indexes)
@@ -212,12 +212,12 @@ class MVContext:
 
     @property
     def n_objects(self):
-        """Get the number of objects in the context (i.e. len(`data`))"""
+        """Get the number of objects in the context (i.e. len(``MVContext.data``))"""
         return self._n_objects
 
     @property
     def n_attributes(self):
-        """Get the number of attributes in the context (i.e. len(`data[0]`)"""
+        """Get the number of pattern structures (attributes) in the context (i.e. len(``MVContext.pattern_structures``))"""
         return self._n_attributes
 
     @property
@@ -229,13 +229,13 @@ class MVContext:
 
         Parameters
         ----------
-        value : `str, None
+        value : `str`, None
             The human readable description of the context
 
         Raises
         ------
         AssertionError
-            If the given ``value`` is not None and not of type `str
+            If the given ``value`` is not None and not of type `str`
 
         """
         return self._description
@@ -249,14 +249,16 @@ class MVContext:
     def to_json(self, path=None):
         """Convert the FormalContext into json file format (save if ``path`` is given)
 
+        WARNING: Does not implemented yet
+
         Parameters
         ----------
-        path : `str or None
+        path : `str` or None
             Path to save a context
 
         Returns
         -------
-        context : `str
+        context : `str`
             If ``path`` is None, the string with .json file data is returned. If ``path`` is given - return None
 
         """
@@ -265,17 +267,19 @@ class MVContext:
     def to_csv(self, path=None, **kwargs):
         """Convert the FormalContext into csv file format (save if ``path`` is given)
 
+        WARNING: Does not implemented yet
+
         Parameters
         ----------
-        path : `str or None
+        path : `str` or None
             Path to save a context
         **kwargs :
-            ``sep`` : `str
+            ``sep`` : `str`
                 Field delimiter for the output file
 
         Returns
         -------
-        context : `str
+        context : `str`
             If ``path`` is None, the string with .csv file data is returned. If ``path`` is given - return None
 
         """
@@ -284,9 +288,11 @@ class MVContext:
     def to_pandas(self):
         """Convert the FormalContext into pandas.DataFrame object
 
+        WARNING: Does not implemented yet
+
         Returns
         -------
-        df : pandas.DataFrame
+        df : `pandas.DataFrame`
             The dataframe with boolean variables,
             ``object_names`` turned into ``df.index``, ``attribute_names`` turned into ``df.columns``
 
@@ -295,35 +301,39 @@ class MVContext:
 
     @staticmethod
     def from_pandas(dataframe):
-        """Create MVContext from Pandas `dataframe"""
+        """Create MVContext from Pandas ``dataframe``
+
+        WARNING: Does not implemented yet
+
+        """
         raise NotImplementedError
 
     def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False,
                                ps_to_iterate=None, projection_to_start=1):
-        """Get a set of minimal generators for closed intent `intent
+        """Get a set of minimal generators for closed intent ``intent``
 
         WARNING: The current algorithm looks for mimimUM generators instead of mimimAL
 
         Parameters
         ----------
-        intent: `dict with PatternStrucure descriptions
+        intent: `dict` with PatternStructure intents
             A dict of PatternStructure description to construct generators for.
-        base_generator: `dict with PatternStrucure descriptions
+        base_generator: `dict` with PatternStructure intents
             A dict of PatternStructure descriptions
             which should be included in each constructed generator
-        base_objects: `list of `string or `int
-            A set of object names (or indexes if `use_indexes=True) used to check the generators
-        use_indexes: bool
+        base_objects: `list` of `string` or `int`
+            A set of object names (or indexes if ``use_indexes`` set to True) used to check the generators
+        use_indexes: `bool`
             A flag whether to use object and attribute names (if set to False) or indexes (otherwise)
-        ps_to_iterate: `list of `string or `int
-            A list of pattern structures names (or indexes if `use_indexes=True) to construct generators on
-        projection_to_start: `int
-            A number of PatternStructures projection to constuct generators on
+        ps_to_iterate: `list` of `string` or `int`
+            A list of pattern structures names (or indexes if ``use_indexes`` set to True) to construct generators on
+        projection_to_start: `int`
+            A number of PatternStructures projection to construct generators on
 
         Returns
         -------
-        min_gens: `list of `dict of type {pattern_structure_index/name: description}
-            A list of mimimUM generators of a closed `intent
+        min_gens: `list` of `dict` of type {pattern_structure_index/name: description}
+            A list of mimimUM generators of a closed ``intent``
         Notes
         -----
         An idea of generators for FormalContext is described in the function
@@ -486,7 +496,7 @@ class MVContext:
         return num_dat, names
 
     def generators_by_intent_difference(self, new_intent, old_intent):
-        """Return the set of generators to select the `new_intent from `old_intent"""
+        """Return the set of generators to select the ``new_intent`` from ``old_intent``"""
         gens = [frozendict({ps_i: gen_}) for ps_i, ps in enumerate(self._pattern_structures)
                 for gen_ in ps.generators_by_intent_difference(new_intent[ps_i], old_intent[ps_i])]
         return gens
