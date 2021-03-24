@@ -29,7 +29,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -209,7 +208,7 @@
 </table>
 <dl class="py class">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept">
-<em class="property">class </em><code class="sig-prename descclassname">fcapy.lattice.pattern_concept.</code><code class="sig-name descname">PatternConcept</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extent_i</span></em>, <em class="sig-param"><span class="n">extent</span></em>, <em class="sig-param"><span class="n">intent_i</span></em>, <em class="sig-param"><span class="n">intent</span></em>, <em class="sig-param"><span class="n">pattern_types</span></em>, <em class="sig-param"><span class="n">measures</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">context_hash</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">fcapy.lattice.pattern_concept.</span></code><code class="sig-name descname"><span class="pre">PatternConcept</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extent_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intent_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class used to represent Pattern Concept object from FCA theory</p>
 <p class="rubric">Notes</p>
 <p>A Pattern Concept $(A, d)$ denotes the pair of subset of objects $A$ and a (complex) description $d$,
@@ -222,70 +221,70 @@ s.t. objects $A$ are all the objects described by description $d$</p>
 from the module <cite>fcapy.mvcontext.pattern_structure</cite></p>
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.context_hash">
-<em class="property">property </em><code class="sig-name descname">context_hash</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.context_hash" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">context_hash</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.context_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hash value of a MVContext the PatternConcept is based on.</p>
 <p>Only the concepts from the same MVContext can be compared</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.extent">
-<em class="property">property </em><code class="sig-name descname">extent</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.extent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">extent</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.extent" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of names of objects described by intent of the PatternConcept</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.extent_i">
-<em class="property">property </em><code class="sig-name descname">extent_i</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.extent_i" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">extent_i</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.extent_i" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of indexes of objects described by intent of the PatternConcept</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.from_dict">
-<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.from_dict" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a PatternConcept from a dictionary <a href="#id1"><span class="problematic" id="id2">`</span></a>data</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.from_json">
-<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">json_data</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.from_json" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load PatternConcept from .json file or from .json encoded string <a href="#id3"><span class="problematic" id="id4">`</span></a>json_data</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.intent">
-<em class="property">property </em><code class="sig-name descname">intent</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.intent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">intent</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.intent" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dict of the most specific descriptions of extent by each of pattern structure from <a href="#id5"><span class="problematic" id="id6">`</span></a>pattern_types</p>
 <p>indexed by the name of pattern structure in <a href="#id7"><span class="problematic" id="id8">`</span></a>pattern_types</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.intent_i">
-<em class="property">property </em><code class="sig-name descname">intent_i</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.intent_i" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">intent_i</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.intent_i" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dict of the most specific descriptions of extent by each of pattern structure from <a href="#id9"><span class="problematic" id="id10">`</span></a>pattern_types</p>
 <p>indexed by the index of pattern structure in <a href="#id11"><span class="problematic" id="id12">`</span></a>pattern_types</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.pattern_types">
-<em class="property">property </em><code class="sig-name descname">pattern_types</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.pattern_types" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">pattern_types</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.pattern_types" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of subtypes of <a href="#id13"><span class="problematic" id="id14">`</span></a>PatternStructures used to encode the descriptions from <a href="#id15"><span class="problematic" id="id16">`</span></a>intent</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.support">
-<em class="property">property </em><code class="sig-name descname">support</code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.support" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">support</span></code><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.support" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of objects described by the intent of the PatternConcept</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.to_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert PatternConcept into a dictionary</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.lattice.pattern_concept.PatternConcept.to_json">
-<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.to_json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">to_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.lattice.pattern_concept.PatternConcept.to_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save PatternConcept to .json file of return the .json encoded data if path is None</p>
 </dd></dl>
 

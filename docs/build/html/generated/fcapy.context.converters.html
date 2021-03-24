@@ -29,7 +29,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -228,7 +227,7 @@
 </table>
 <dl class="py function">
 <dt id="fcapy.context.converters.from_pandas">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">from_pandas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataframe</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.from_pandas" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">from_pandas</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.from_pandas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create FormalContext object based on pandas.DataFrame</p>
 <p><code class="docutils literal notranslate"><span class="pre">context.object_names</span></code> are parsed from <code class="docutils literal notranslate"><span class="pre">dataframe.index</span></code>.
 <code class="docutils literal notranslate"><span class="pre">context.column_names</span></code> are parsed from <code class="docutils literal notranslate"><span class="pre">dataframe.columns</span></code></p>
@@ -247,7 +246,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.read_csv">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">read_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">sep</span><span class="o">=</span><span class="default_value">','</span></em>, <em class="sig-param"><span class="n">word_true</span><span class="o">=</span><span class="default_value">'True'</span></em>, <em class="sig-param"><span class="n">word_false</span><span class="o">=</span><span class="default_value">'False'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_csv" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">read_csv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_true</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'True'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_false</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'False'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read FormalContext from .csv file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -269,7 +268,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.read_cxt">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">read_cxt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_cxt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">read_cxt</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_cxt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read FormalContext from .cxt file or from <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -289,7 +288,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.read_json">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">read_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">read_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.read_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read FormalContext from .json file or from <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,7 +308,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.to_pandas">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">to_pandas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.to_pandas" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">to_pandas</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.to_pandas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FormalContext object to pandas.DataFrame object</p>
 <p><code class="docutils literal notranslate"><span class="pre">context.object_names</span></code> are turned into <code class="docutils literal notranslate"><span class="pre">df.index</span></code>.
 <code class="docutils literal notranslate"><span class="pre">context.column_names</span></code> are turned into <code class="docutils literal notranslate"><span class="pre">df.columns</span></code></p>
@@ -328,7 +327,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.write_csv">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">write_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sep</span><span class="o">=</span><span class="default_value">','</span></em>, <em class="sig-param"><span class="n">word_true</span><span class="o">=</span><span class="default_value">'True'</span></em>, <em class="sig-param"><span class="n">word_false</span><span class="o">=</span><span class="default_value">'False'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_csv" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">write_csv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_true</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'True'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word_false</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'False'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write FormalContext object to the .csv file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -351,7 +350,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.write_cxt">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">write_cxt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_cxt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">write_cxt</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_cxt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write FormalContext object to the .cxt file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -371,7 +370,7 @@
 
 <dl class="py function">
 <dt id="fcapy.context.converters.write_json">
-<code class="sig-prename descclassname">fcapy.context.converters.</code><code class="sig-name descname">write_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">fcapy.context.converters.</span></code><code class="sig-name descname"><span class="pre">write_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.context.converters.write_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write FormalContext object to the .json file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

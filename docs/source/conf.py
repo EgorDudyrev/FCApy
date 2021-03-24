@@ -42,6 +42,9 @@ extensions = [
     'numpydoc',
     'nbsphinx',
 ]
+
+needs_sphinx = '3.5'
+
 autodoc_default_options = {
     'members': True,
     'inherited-members': True

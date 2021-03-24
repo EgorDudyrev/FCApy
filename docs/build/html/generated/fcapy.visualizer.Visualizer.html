@@ -29,7 +29,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -193,23 +192,23 @@
 <h1>fcapy.visualizer.Visualizer<a class="headerlink" href="#fcapy-visualizer-visualizer" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="fcapy.visualizer.Visualizer">
-<em class="property">class </em><code class="sig-prename descclassname">fcapy.visualizer.</code><code class="sig-name descname">Visualizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">node_color</span><span class="o">=</span><span class="default_value">'blue'</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">'Blues'</span></em>, <em class="sig-param"><span class="n">node_alpha</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">node_linewidth</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">node_edgecolor</span><span class="o">=</span><span class="default_value">'blue'</span></em>, <em class="sig-param"><span class="n">cmap_min</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_max</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">fcapy.visualizer.</span></code><code class="sig-name descname"><span class="pre">Visualizer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Blues'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_edgecolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for visualizing the ConceptLattice</p>
 <dl class="py method">
 <dt>
-<code class="sig-name descname">draw_networkx(...):</code></dt>
+<code class="sig-name descname"><span class="pre">draw_networkx(...):</span></code></dt>
 <dd><p>Draw a ConceptLattice line diagram with networkx package</p>
 </dd></dl>
 
 <dl class="py method">
 <dt>
-<code class="sig-name descname">get_plotly_figure(...):</code></dt>
+<code class="sig-name descname"><span class="pre">get_plotly_figure(...):</span></code></dt>
 <dd><p>Return a Plotly figure with the ConceptLattice line diagram</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.visualizer.Visualizer.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">node_color</span><span class="o">=</span><span class="default_value">'blue'</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">'Blues'</span></em>, <em class="sig-param"><span class="n">node_alpha</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">node_linewidth</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">node_edgecolor</span><span class="o">=</span><span class="default_value">'blue'</span></em>, <em class="sig-param"><span class="n">cmap_min</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_max</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Blues'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_edgecolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Visualizer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -250,7 +249,7 @@
 </table>
 <dl class="py method">
 <dt id="fcapy.visualizer.Visualizer.draw_networkx">
-<code class="sig-name descname">draw_networkx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">draw_node_indices</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">edge_radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_new_extent_count</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">max_new_intent_count</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.draw_networkx" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">draw_networkx</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">draw_node_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_new_extent_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_new_intent_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.draw_networkx" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw line diagram of the ConceptLattice with networkx package</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -266,13 +265,13 @@
 
 <dl class="py method">
 <dt id="fcapy.visualizer.Visualizer.get_nodes_position">
-<code class="sig-name descname">get_nodes_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.get_nodes_position" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_nodes_position</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lattice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.get_nodes_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dict of nodes positions in a line diagram</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="fcapy.visualizer.Visualizer.get_plotly_figure">
-<code class="sig-name descname">get_plotly_figure</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.get_plotly_figure" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_plotly_figure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.visualizer.Visualizer.get_plotly_figure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a line diagram of ConceptLattice constructed by Plotly package</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
