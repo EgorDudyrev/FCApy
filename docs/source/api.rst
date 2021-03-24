@@ -16,7 +16,7 @@ MVContext
 .. autosummary::
     :toctree: generated/
 
-    mvcontext.mvcontext.MVContext
+    mvcontext.MVContext
     mvcontext.pattern_structure
 
 Lattice
@@ -24,7 +24,7 @@ Lattice
 .. autosummary::
     :toctree: generated/
 
-    lattice.concept_lattice.ConceptLattice
+    lattice.ConceptLattice
     lattice.formal_concept
     lattice.pattern_concept
     lattice.concept_measures
@@ -34,7 +34,7 @@ Visualizer
 .. autosummary::
     :toctree: generated/
 
-    visualizer.visualizer.Visualizer
+    visualizer.Visualizer
 
 Machine Learning
 ---------------
