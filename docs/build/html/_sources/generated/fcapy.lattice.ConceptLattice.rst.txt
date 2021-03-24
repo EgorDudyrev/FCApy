@@ -1,4 +1,4 @@
-fcapy.lattice.ConceptLattice
+﻿fcapy.lattice.ConceptLattice
 ============================
 
 .. currentmodule:: fcapy.lattice

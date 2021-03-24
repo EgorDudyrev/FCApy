@@ -1,4 +1,4 @@
-fcapy.lattice.formal\_concept
+﻿fcapy.lattice.formal\_concept
 =============================
 
 .. automodule:: fcapy.lattice.formal_concept

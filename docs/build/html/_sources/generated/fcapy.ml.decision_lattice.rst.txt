@@ -1,4 +1,4 @@
-fcapy.ml.decision\_lattice
+﻿fcapy.ml.decision\_lattice
 ==========================
 
 .. automodule:: fcapy.ml.decision_lattice

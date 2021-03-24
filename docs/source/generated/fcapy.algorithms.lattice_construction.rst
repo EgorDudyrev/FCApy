@@ -1,4 +1,4 @@
-fcapy.algorithms.lattice\_construction
+﻿fcapy.algorithms.lattice\_construction
 ======================================
 
 .. automodule:: fcapy.algorithms.lattice_construction

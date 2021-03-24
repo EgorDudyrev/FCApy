@@ -1,4 +1,4 @@
-fcapy.lattice.pattern\_concept
+﻿fcapy.lattice.pattern\_concept
 ==============================
 
 .. automodule:: fcapy.lattice.pattern_concept

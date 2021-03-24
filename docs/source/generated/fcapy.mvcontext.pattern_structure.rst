@@ -1,4 +1,4 @@
-fcapy.mvcontext.pattern\_structure
+﻿fcapy.mvcontext.pattern\_structure
 ==================================
 
 .. automodule:: fcapy.mvcontext.pattern_structure

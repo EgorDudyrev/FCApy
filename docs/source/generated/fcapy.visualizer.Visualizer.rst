@@ -1,4 +1,4 @@
-fcapy.visualizer.Visualizer
+﻿fcapy.visualizer.Visualizer
 ===========================
 
 .. currentmodule:: fcapy.visualizer

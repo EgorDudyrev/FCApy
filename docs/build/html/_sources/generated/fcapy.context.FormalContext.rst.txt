@@ -1,4 +1,4 @@
-fcapy.context.FormalContext
+﻿fcapy.context.FormalContext
 ===========================
 
 .. currentmodule:: fcapy.context

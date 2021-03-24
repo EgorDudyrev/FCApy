@@ -1,4 +1,4 @@
-fcapy.lattice.concept\_measures
+﻿fcapy.lattice.concept\_measures
 ===============================
 
 .. automodule:: fcapy.lattice.concept_measures
