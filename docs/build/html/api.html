@@ -104,15 +104,22 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/fcapy.lattice.concept_measures.html">fcapy.lattice.concept_measures</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#module-fcapy.visualizer">Visualizer</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#modules">Modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="visualizer.html">Visualizer class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualizer">Visualizer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.visualizer.Visualizer.html">fcapy.visualizer.Visualizer</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#algorithms">Algorithms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#utils">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.ml.decision_lattice.html">fcapy.ml.decision_lattice</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#algorithms">Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.algorithms.lattice_construction.html">fcapy.algorithms.lattice_construction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utils">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/fcapy.utils.utils.html">fcapy.utils.utils</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -266,28 +273,19 @@
 </tbody>
 </table>
 </div>
-<div class="section" id="module-fcapy.visualizer">
-<span id="visualizer"></span><h2>Visualizer<a class="headerlink" href="#module-fcapy.visualizer" title="Permalink to this headline">¶</a></h2>
-<p>This subpackage provides a number of options to visualize objects of fcapy package</p>
-<div class="section" id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>visualizer.Visualizer:</dt><dd><p>A class to visualize the ConceptLattice</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="modules">
-<h3>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>visualizer:</dt><dd><p>A module to visualize the ConceptLattice</p>
-</dd>
-</dl>
-</div>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="visualizer.html">Visualizer class</a></li>
-</ul>
-</div>
+<div class="section" id="visualizer">
+<h2>Visualizer<a class="headerlink" href="#visualizer" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.visualizer.Visualizer.html#fcapy.visualizer.Visualizer" title="fcapy.visualizer.Visualizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualizer.Visualizer</span></code></a>([lattice, node_color, …])</p></td>
+<td><p>A class for visualizing the ConceptLattice</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="machine-learning">
 <h2>Machine Learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
@@ -297,6 +295,9 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.ml.decision_lattice.html#module-fcapy.ml.decision_lattice" title="fcapy.ml.decision_lattice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ml.decision_lattice</span></code></a></p></td>
+<td><p>This module provides DecisionLatticeClassifier and DecisionLatticeRegressor classes to use ConceptLattice in a DecisionTree-like manner</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -308,6 +309,9 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.algorithms.lattice_construction.html#module-fcapy.algorithms.lattice_construction" title="fcapy.algorithms.lattice_construction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algorithms.lattice_construction</span></code></a></p></td>
+<td><p>This module contains a number of function which take a set of formal (or pattern) concepts and return its subconcepts_dict i.e. the order of given concepts in the form {parent_concept_index: child_concept_index}.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -319,6 +323,9 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/fcapy.utils.utils.html#module-fcapy.utils.utils" title="fcapy.utils.utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.utils</span></code></a></p></td>
+<td><p>This module provides a set of functions which can be useful in any subpackage of fcapy package</p></td>
+</tr>
 </tbody>
 </table>
 </div>
