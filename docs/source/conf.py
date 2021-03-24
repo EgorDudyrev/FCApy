@@ -24,7 +24,7 @@ copyright = '2020, Egor Dudyrev'
 author = 'Egor Dudyrev'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.5'
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -37,10 +37,14 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
+    'sphinx.ext.mathjax',
     'sphinx_rtd_theme',
     'numpydoc',
     'nbsphinx',
 ]
+
+needs_sphinx = '3.5'
+
 autodoc_default_options = {
     'members': True,
     'inherited-members': True

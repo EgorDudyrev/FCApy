@@ -1,4 +1,4 @@
-fcapy.context.FormalContext
+﻿fcapy.context.FormalContext
 ===========================
 
 .. currentmodule:: fcapy.context
@@ -16,12 +16,15 @@ fcapy.context.FormalContext
       ~FormalContext.__init__
       ~FormalContext.extension
       ~FormalContext.extension_i
+      ~FormalContext.from_pandas
+      ~FormalContext.get_minimal_generators
       ~FormalContext.intention
       ~FormalContext.intention_i
       ~FormalContext.print_data
       ~FormalContext.to_csv
       ~FormalContext.to_cxt
       ~FormalContext.to_json
+      ~FormalContext.to_numeric
       ~FormalContext.to_pandas
    
    
@@ -38,5 +41,6 @@ fcapy.context.FormalContext
       ~FormalContext.n_attributes
       ~FormalContext.n_objects
       ~FormalContext.object_names
+      ~FormalContext.target
    
    

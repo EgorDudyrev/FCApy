@@ -1,21 +1,25 @@
+"""
+This module provides a number of functions to read/write FormalContext object from/to a file
+
+"""
 from fcapy.context.formal_context import FormalContext
 
 
 def read_cxt(path=None, data=None):
-    """Read FormalContext from .cxt file
+    """Read FormalContext from .cxt file or from ``data`` attribute
 
     Parameters
     ----------
-    path : `str
+    path : `str`
         A path to requested .cxt file
-
+    data : `str`
+        CXT formatted data (if it is already loaded into python)
     Returns
     -------
-    ctx : `FormalContext
+    ctx : `FormalContext`
         The loaded FormalContext object
 
     """
-    # TODO: Modify the docstring
     assert path is not None or data is not None, 'converters.read_cxt error. Either path or data should be given'
 
     if data is None:
@@ -39,13 +43,13 @@ def write_cxt(context, path=None):
 
     Parameters
     ----------
-    context : `FormalContext
+    context : `FormalContext`
         A context to write to a file
-    path : `str
+    path : `str`
         A path to the file to write a FormalContext object
     Returns
     -------
-    file_data : `str
+    file_data : `str`
         The date from the .cxt file. Returned if ``path`` is None
 
     """
@@ -65,20 +69,20 @@ def write_cxt(context, path=None):
 
 
 def read_json(path=None, data=None):
-    """Read FormalContext from .json file
+    """Read FormalContext from .json file or from ``data`` attribute
 
     Parameters
     ----------
-    path : `str
+    path : `str`
         A path to requested .json file
-
+    data : `str`
+        JSON formatted data (if it is already loaded into python)
     Returns
     -------
-    ctx : `FormalContext
+    ctx : `FormalContext`
         The loaded FormalContext object
 
     """
-    # TODO: Modify docstring
     assert path is not None or data is not None, 'converters.read_json error. Either path or data should be given'
 
     import json
@@ -106,13 +110,13 @@ def write_json(context, path=None):
 
     Parameters
     ----------
-    context : `FormalContext
+    context : `FormalContext`
         A context to write to a file
-    path : `str
+    path : `str`
         A path to the file to write a FormalContext object
     Returns
     -------
-    file_data : `str
+    file_data : `str`
         The date from the .json file. Returned if ``path`` is None
 
     """
@@ -144,12 +148,17 @@ def read_csv(path, sep=',', word_true='True', word_false='False'):
 
     Parameters
     ----------
-    path : `str
+    path : `str`
         A path to requested .csv file
-
+    sep : `str`
+        A separator in the .csv file
+    word_true : `str`
+        A string placeholder corresponding to True values in the .csv file
+    word_false : `str`
+        A string placeholder corresponding to False values in the .csv file
     Returns
     -------
-    ctx : `FormalContext
+    ctx : `FormalContext`
         The loaded FormalContext object
 
     """
@@ -182,13 +191,19 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
 
     Parameters
     ----------
-    context : `FormalContext
+    context : `FormalContext`
         A context to write to a file
-    path : `str
+    path : `str`
         A path to the file to write a FormalContext object
+    sep : `str`
+        A separator in the .csv file
+    word_true : `str`
+        A string placeholder corresponding to True values in the .csv file
+    word_false : `str`
+        A string placeholder corresponding to False values in the .csv file
     Returns
     -------
-    file_data : `str
+    file_data : `str`
         The date from the .csv file. Returned if ``path`` is None
 
     """
@@ -212,11 +227,11 @@ def from_pandas(dataframe):
 
     Parameters
     ----------
-    dataframe : `pandas.DataFrame
+    dataframe : `pandas.DataFrame`
 
     Returns
     -------
-    ctx : `FormalContext
+    ctx : `FormalContext`
 
     """
     ctx = FormalContext(data=dataframe.values.tolist(),
@@ -232,11 +247,11 @@ def to_pandas(context):
 
     Parameters
     ----------
-    context : `FormalContext
+    context : `FormalContext`
         A context to convert
     Returns
     -------
-    df : `pandas.DataFrame
+    df : `pandas.DataFrame`
         The binary dataframe based on FormalContext object
 
     """

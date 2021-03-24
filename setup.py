@@ -36,6 +36,7 @@ def run_install(**kwargs):
         ]
     }
     extras_require['all'] = list(set(i for val in extras_require.values() for i in val))
+    extras_require['docs'] = extras_require['all']
 
     setuptools.setup(
         name="fcapy",
