@@ -12,11 +12,11 @@ class FormalConcept:
 
     Notes
     -----
-    A Formal Concept $(A,B)$ denotes the pair of subset of objects $A$ and subset of attributes $B$,
-    s.t. objects $A$ are all the objects described by attributes $B$
-      and attributes $B$ are all the attributes which describe objects $A$.
+    A Formal Concept `(A,B)` denotes the pair of subset of objects `A` and subset of attributes `B`,
+    s.t. objects `A` are all the objects described by attributes `B`
+      and attributes `B` are all the attributes which describe objects `A`.
 
-    The set $A$ is called `extent`, the set $B$ is called `intent`
+    The set `A` is called `extent`, the set `B` is called `intent`
 
     """
     JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
@@ -26,17 +26,17 @@ class FormalConcept:
 
         Parameters
         ----------
-        extent_i: `list of `int
+        extent_i: `list` of `int`
             A list of indexes of objects described by intent
-        extent: `list of `str
+        extent: `list` of `str`
             A list of names of objects described by intent
-        intent_i: `list of `int
+        intent_i: `list` of `int`
             A list of indexes of attributes which describe extent
-        intent: `list of `str
+        intent: `list` of `str`
             A list of names of attributes which describe extent
-        measures: `dict of type {`str: `int}
+        measures: `dict` of type {`str`: `int`}
             Dict with values of interestingness measures of the concept
-        context_hash: `int
+        context_hash: `int`
             Hash value of a FormalContext the FormalConcept is based on.
             Only the concepts from the same FormalContext can be compared
 
@@ -145,7 +145,7 @@ class FormalConcept:
 
     @classmethod
     def from_dict(cls, data):
-        """Construct a FormalConcept from a dictionary `data"""
+        """Construct a FormalConcept from a dictionary ``data``"""
         if data["Int"] == "BOTTOM":
             data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
             #data["Int"] = {'Inds': [], "Names": []}
@@ -163,7 +163,7 @@ class FormalConcept:
         return c
 
     def to_json(self, path=None):
-        """Save FormalConcept to .json file of return the .json encoded data if path is None"""
+        """Save FormalConcept to .json file of return the .json encoded data if ``path`` is None"""
         concept_info = self.to_dict()
 
         file_data = json.dumps(concept_info)
@@ -175,7 +175,7 @@ class FormalConcept:
 
     @classmethod
     def from_json(cls, path=None, json_data=None):
-        """Load FormalConcept from .json file or from .json encoded string `json_data"""
+        """Load FormalConcept from .json file or from .json encoded string ``json_data``"""
         assert path is not None or json_data is not None,\
             "FormalConcept.from_json error. Either path or data attribute should be given"
 

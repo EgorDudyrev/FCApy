@@ -2,10 +2,13 @@
 This module provides a set of functions to compute interestingness measures of concepts
 
 For the definition of interestingness measures look the paper:
+
 Kuznetsov, Sergei & Makhalova, Tatiana. (2016). On interestingness measures of formal concepts.
 Information Sciences. 442. 10.1016/j.ins.2018.02.032.
 
+
 For the definition of stability and its bounds look the paper:
+
 Buzmakov, Aleksey & Kuznetsov, Sergei & Napoli, Amedeo. (2014). Scalable Estimates of Concept Stability.
 8478. 10.1007/978-3-319-07248-7_12.
 
@@ -17,7 +20,7 @@ from fcapy.utils.utils import powerset
 
 
 def stability(c_i, lattice: ConceptLattice, context: FormalContext):
-    """Compute the exact stability of the concept number `c_i of a `lattice constructed over `context
+    """Compute the exact stability of the concept number ``c_i`` of a ``lattice`` constructed over ``context``
 
     Exact but exponential time to compute measure
     """
@@ -36,7 +39,7 @@ def stability(c_i, lattice: ConceptLattice, context: FormalContext):
 
 
 def stability_bounds(c_i, lattice: ConceptLattice):
-    """Compute the lower and upper stability of the concept number `c_i of a `lattice constructed over `context
+    """Compute the lower and upper stability of the concept number ``c_i`` of a ``lattice`` constructed over ``context``
 
     Approximate but polynomial time to compute measure of concept stability
     """

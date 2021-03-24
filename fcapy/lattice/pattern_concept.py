@@ -13,13 +13,13 @@ class PatternConcept:
 
     Notes
     -----
-    A Pattern Concept $(A, d)$ denotes the pair of subset of objects $A$ and a (complex) description $d$,
-    s.t. objects $A$ are all the objects described by description $d$
-      and description $d$ is the most accurate description of objects $A$/
+    A Pattern Concept `(A, d)` denotes the pair of subset of objects `A` and a (complex) description `d`,
+    s.t. objects `A` are all the objects described by description `d`
+      and description `d` is the most accurate description of objects `A`
 
-    The set $A$ is called `extent`, the description $d$ is called `intent`
+    The set `A` is called `extent`, the description `d` is called `intent`
 
-    The only restriction to a type description $d$ is that should encoded by Pattern Structures
+    The only restriction to a type description `d` is that should encoded by Pattern Structures
     from the module `fcapy.mvcontext.pattern_structure`
 
     """
@@ -28,21 +28,21 @@ class PatternConcept:
 
         Parameters
         ----------
-        extent_i: `list of `int
+        extent_i: `list` of `int`
             A list of indexes of objects described by intent
-        extent: `list of `str
+        extent: `list` of `str`
             A list of names of objects described by intent
-        intent_i: `dict of type {`idx: description}
-            A dict of the most specific descriptions of extent by each of pattern structure from `pattern_types
-            indexed by the index of pattern structure in `pattern_types
-        intent: `dict of type {`str: description}
-            A dict of the most specific descriptions of extent by each of pattern structure from `pattern_types
-            indexed by the name of pattern structure in `pattern_types
-        pattern_types: `list of subtypes of `PatternStructure
-            A set of subtypes of `PatternStructures used to encode the descriptions from `intent
-        measures: `dict of type {`str: `int}
+        intent_i: `dict` of type {`idx`: description}
+            A dict of the most specific descriptions of extent by each of pattern structure from ``pattern_types``
+            indexed by the index of pattern structure in ``pattern_types``
+        intent: `dict` of type {`str`: description}
+            A dict of the most specific descriptions of extent by each of pattern structure from ``pattern_types``
+            indexed by the name of pattern structure in ``pattern_types``
+        pattern_types: `list` of subtypes of `PatternStructure`
+            A set of subtypes of `PatternStructures` used to encode the descriptions from ``intent``
+        measures: `dict` of type {`str`: `int`}
             Dict with values of interestingness measures of the concept
-        context_hash: `int
+        context_hash: `int`
             Hash value of a MVContext the PatternConcept is based on.
             Only the concepts from the same MVContext can be compared
 
@@ -82,25 +82,25 @@ class PatternConcept:
 
     @property
     def intent_i(self):
-        """A dict of the most specific descriptions of extent by each of pattern structure from `pattern_types
+        """A dict of the most specific descriptions of extent by each of pattern structure from ``pattern_types``
 
-        indexed by the index of pattern structure in `pattern_types
+        indexed by the index of pattern structure in ``pattern_types``
 
         """
         return self._intent_i
 
     @property
     def intent(self):
-        """A dict of the most specific descriptions of extent by each of pattern structure from `pattern_types
+        """A dict of the most specific descriptions of extent by each of pattern structure from ``pattern_types``
 
-        indexed by the name of pattern structure in `pattern_types
+        indexed by the name of pattern structure in ``pattern_types``
 
         """
         return self._intent
 
     @property
     def pattern_types(self):
-        """A set of subtypes of `PatternStructures used to encode the descriptions from `intent"""
+        """A set of subtypes of `PatternStructures` used to encode the descriptions from ``intent``"""
         return self._pattern_types
 
     @property
@@ -130,7 +130,7 @@ class PatternConcept:
         return hash((tuple(sorted(self._extent_i)), frozendict(self._intent_i)))
 
     def __le__(self, other):
-        """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
+        """A concept is smaller than the ``other`` concept if its extent is a subset of extent of ``other`` concept"""
         if self._context_hash != other.context_hash:
             raise NotImplementedError('PatternConcept error. Cannot compare concepts from different contexts')
 
@@ -144,7 +144,7 @@ class PatternConcept:
         return True
 
     def __lt__(self, other):
-        """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
+        """A concept is smaller than the ``other`` concept if its extent is a subset of extent of ``other`` concept"""
         if self._context_hash != other.context_hash:
             raise NotImplementedError('PatternConcept error. Cannot compare concepts from different contexts')
 
@@ -159,14 +159,14 @@ class PatternConcept:
 
     @classmethod
     def from_dict(cls, data):
-        """Construct a PatternConcept from a dictionary `data"""
+        """Construct a PatternConcept from a dictionary ``data``"""
         raise NotImplementedError
 
     def to_json(self, path=None):
-        """Save PatternConcept to .json file of return the .json encoded data if path is None"""
+        """Save PatternConcept to .json file of return the .json encoded data if ``path`` is None"""
         raise NotImplementedError
 
     @classmethod
     def from_json(cls, path=None, json_data=None):
-        """Load PatternConcept from .json file or from .json encoded string `json_data"""
+        """Load PatternConcept from .json file or from .json encoded string ``json_data``"""
         raise NotImplementedError
