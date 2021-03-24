@@ -180,7 +180,7 @@ class FormalContext:
         Returns
         -------
         extension_indexes : `list` of `int`
-            Indexes of maximal set of objects which share ``attributes``
+            Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
         base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
@@ -188,7 +188,7 @@ class FormalContext:
                 if all([self._data[g_idx][m] for m in attribute_indexes])]
 
     def intention_i(self, object_indexes):
-        """Return indexes of maximal set of attributes which are shared by given ``object_indexes`
+        """Return indexes of maximal set of attributes which are shared by given ``object_indexes``
 
         Parameters
         ----------
@@ -198,7 +198,7 @@ class FormalContext:
         Returns
         -------
         intention_i : `list` of `int`
-            Indexes of maximal set of attributes which are shared by ``objects``
+            Indexes of maximal set of attributes which are shared by ``objects_indexes``
 
         """
         return [m_idx for m_idx in range(len(self._data[0]))
@@ -472,40 +472,16 @@ class FormalContext:
 
         Notes
         -----
-        A generator
-        .. math::
-            D \subseteq M
-        of a closed description (intent)
-        .. math::
-            B \subseteq M
-        is a subset of attributes with the same closed description as B:
-        .. math::
-            D'' = B
+        A generator D \\subseteq M of a closed description (intent) B \\subseteq M
+        is a subset of attributes with the same closed description as B: D'' = B
 
-        A mimimAL generator
-        .. math::
-            D \subseteq M
-        of a closed description (intent)
-        .. math::
-            B \subseteq M
-        is a generator of B s.t. there is no generator
-        .. math::
-            E \subseteq M
-        of B smaller than D:
-        .. math::
-            D'' = B, \nexists E \subset D, E''=B
+        A mimimAL generator D \\subseteq M of a closed description (intent) B \\subseteq M
+        is a generator of B s.t. there is no generator E \\subseteq M of B smaller than D:
+        D'' = B, \\nexists E \\subset D, E''=B
 
-        A mimimUM generator
-        .. math::
-            D \subseteq M
-        of a closed description (intent)
-        .. math::
-            B \subseteq M
-        is a generator of B s.t. there is no generator
-        .. math::
-            E \subseteq M
-        of B with the smaller size:
-            D'' = B, \nexists E \subset B, | E | < | D |
+        A mimimUM generator D \\subseteq M of a closed description (intent) B \\subseteq M
+        is a generator of B s.t. there is no generator E \\subseteq M of B with the smaller size:
+        D'' = B, \\nexists E \\subset B, | E | < | D |
 
         """
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
