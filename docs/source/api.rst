@@ -48,6 +48,7 @@ Algorithms
 .. autosummary::
     :toctree: generated/
 
+    algorithms.concept_construction
     algorithms.lattice_construction
 
 Utils
