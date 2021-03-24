@@ -13,7 +13,7 @@ if LIB_INSTALLED['numpy']:
 
 class MVContext:
     """
-    A class used to represent Multi Valued Context object from FCA theory.
+    A class used to represent Many Valued Context object from FCA theory.
 
     """
     def __init__(self, data=None, pattern_types=None, object_names=None, attribute_names=None, **kwargs):
@@ -425,7 +425,7 @@ class MVContext:
         return min_gens
 
     def __repr__(self):
-        data_to_print = f'MultiValuedContext ' +\
+        data_to_print = f'ManyValuedContext ' +\
                         f'({self.n_objects} objects, {self.n_attributes} attributes)'
         return data_to_print
 
