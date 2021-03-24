@@ -31,10 +31,10 @@ Lattice
 
 Visualizer
 ==========
-.. autosummary::
-    :toctree: generated/
+.. automodule:: fcapy.visualizer
+.. toctree::
 
-    visualizer.Visualizer
+    Visualizer class <visualizer>
 
 Machine Learning
 ================
