@@ -457,12 +457,12 @@ class FormalContext:
         Parameters
         ----------
         intent : `list` of `string` or `int`
-            A set of attribute names (or indexes if ``use_indexes``=True) to construct generators for.
+            A set of attribute names (or indexes if ``use_indexes`` set to True) to construct generators for.
         base_generator : `list` of `string` or `int`
-            A set of attribute names (or indexes if ``use_indexes``=True)
+            A set of attribute names (or indexes if ``use_indexes`` set to True)
             which should be included in each constructed generator
         base_objects : `list` of `string` or `int`
-            A set of object names (or indexes if ``use_indexes``=True) used to check the generators
+            A set of object names (or indexes if ``use_indexes`` set to True) used to check the generators
         use_indexes : bool
             A flag whether to use object and attribute names (if set to False) or indexes (otherwise)
         Returns
