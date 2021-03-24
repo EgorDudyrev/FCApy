@@ -1,5 +1,5 @@
 """
-This module provides a set of functions which can be useful in any subpackage of fcapy package
+This module provides a set of functions which can be useful in any subpackage of `fcapy` package
 
 """
 from itertools import chain, combinations
@@ -16,7 +16,7 @@ def powerset(iterable):
 
 
 def sparse_unique_columns(M):
-    """Return unique columns of sparse scipy matrix M
+    """Return unique columns of sparse scipy matrix ``M``
 
     Sincerely copy-pasted from https://stackoverflow.com/questions/50419778/unique-column-of-a-sparse-matrix-in-python
     """
