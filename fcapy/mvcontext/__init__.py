@@ -18,3 +18,6 @@ Modules
     Contains basic classes of Pattern Structures
 
 """
+
+from .mvcontext import MVContext
+from . import pattern_structure as PS

@@ -4,7 +4,7 @@ API Reference
 =============
 
 Context
----------------
+-------
 .. autosummary::
     :toctree: generated/
 
@@ -12,7 +12,7 @@ Context
     context.converters
 
 MVContext
----------------
+---------
 .. autosummary::
     :toctree: generated/
 
@@ -20,7 +20,7 @@ MVContext
     mvcontext.pattern_structure
 
 Lattice
----------------
+-------
 .. autosummary::
     :toctree: generated/
 
@@ -30,21 +30,21 @@ Lattice
     lattice.concept_measures
 
 Visualizer
----------------
+----------
 .. autosummary::
     :toctree: generated/
 
     visualizer.Visualizer
 
 Machine Learning
----------------
+----------------
 .. autosummary::
     :toctree: generated/
 
     ml.decision_lattice
 
 Algorithms
----------------
+----------
 .. autosummary::
     :toctree: generated/
 

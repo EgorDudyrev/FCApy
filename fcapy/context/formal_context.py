@@ -36,25 +36,23 @@ class FormalContext:
     Formal Context K = (G, M, I) - is a triplet of:
     1. set of objects G (the property ``object_names`` in this class)
     2. set of attributes M (the property ``attribute_names`` in this class)
-    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m")
-      (the property ``data`` in this class)
+    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m") (the property ``data`` in this class)
 
     """
-
     def __init__(self, data=None, object_names=None, attribute_names=None, **kwargs):
         """
         Parameters
         ----------
-        data : `list of `list
+        data : `list` of `list`
             Two dimensional list of bool variables.
             "data[i][j] = True" represents that i-th object shares j-th attribute
-        object_names : `list of `str, optional
+        object_names : `list` of `str`, optional
             Names of objects (rows) of the FormalContext
-        attribute_names : `list of `str, optional
+        attribute_names : `list` of `str`, optional
             Names of attributes (columns) of the FormalContext
         **kwargs:
             ``description``:
-                `str with human readable description of the FormalContext (stored only in json file format)
+                `str` with human readable description of the FormalContext (stored only in json file format)
 
         """
         self.data = data
@@ -65,20 +63,20 @@ class FormalContext:
 
     @property
     def data(self):
-        """Get or set the data with relations between objects and attributes (`list of `list)
+        """Get or set the data with relations between objects and attributes (`list` of `list`)
 
         Parameters
         ----------
-        value : `list of `list
+        value : `list` of `list`
             value[i][j] represents whether i-th object shares j-th attribute
 
         Raises
         ------
         AssertionError
-            If ``value`` is not a `list
-            If ``value`` of type `list is given (should be `list of `list)
+            If ``value`` is not a `list`
+            If ``value`` of type `list` is given (should be `list` of `list`)
             If some lists ``value[i]`` and ``value[j]`` have different length (should be the same for any ``value[i]``)
-            If any ``value[i][j]`` is not of type `bool
+            If any ``value[i][j]`` is not of type `bool`
 
         """
         return self._data
@@ -111,7 +109,7 @@ class FormalContext:
 
         Parameters
         ----------
-        value : `list of `str
+        value : `list` of `str`
             The list of names for the objects (default are '0','1',...,'`n_objects`-1')
 
         Raises
@@ -141,7 +139,7 @@ class FormalContext:
 
         Parameters
         ----------
-        value : `list of `str
+        value : `list` of `str`
             The list of names for the attributes (default are "0","1",...,"`n_attributes`-1")
 
         Raises
@@ -175,13 +173,13 @@ class FormalContext:
 
         Parameters
         ----------
-        attribute_indexes : `list of `int
+        attribute_indexes : `list` of `int`
             Indexes of the attributes (from [0, ``n_attributes``-1])
-        base_objects_i : `list of `int
+        base_objects_i : `list` of `int`
             Indexes of set of objects on which to look for extension_i
         Returns
         -------
-        extension_indexes : `list of `int
+        extension_indexes : `list` of `int`
             Indexes of maximal set of objects which share ``attributes``
 
         """
@@ -194,12 +192,12 @@ class FormalContext:
 
         Parameters
         ----------
-        object_indexes : `list of `int
+        object_indexes : `list` of `int`
             Indexes of the objects (from [0, ``n_objects``-1])
 
         Returns
         -------
-        intention_i : `list of `int
+        intention_i : `list` of `int`
             Indexes of maximal set of attributes which are shared by ``objects``
 
         """
@@ -211,12 +209,12 @@ class FormalContext:
 
         Parameters
         ----------
-        objects : `list of `str
+        objects : `list` of `str`
             Names of the objects (subset of ``object_names``)
 
         Returns
         -------
-        intention: `list of `str
+        intention: `list` of `str`
             Names of maximal set of attributes which are shared by given ``objects``
 
         """
@@ -237,13 +235,13 @@ class FormalContext:
 
         Parameters
         ----------
-        attributes : `list of `str
+        attributes : `list` of `str`
             Names of the attributes (subset of ``attribute_names``)
-        base_objects : `list of `str
+        base_objects : `list` of `str`
             Set of objects on which to look for extension
         Returns
         -------
-        extension : `list of `str
+        extension : `list` of `str`
             Names of the maximal set of objects which share given ``attributes``
 
         """
@@ -281,13 +279,13 @@ class FormalContext:
 
         Parameters
         ----------
-        value : `str, None
+        value : `str` or None
             The human readable description of the context
 
         Raises
         ------
         AssertionError
-            If the given ``value`` is not None and not of type `str
+            If the given ``value`` is not None and not of type `str`
 
         """
         return self._description
@@ -303,12 +301,12 @@ class FormalContext:
 
         Parameters
         ----------
-        path : `str or None
+        path : `str` or None
             Path to save a context
 
         Returns
         -------
-        context : `str
+        context : `str`
             If ``path`` is None, the string with .cxt file data is returned. If ``path`` is given - return None
 
         """
@@ -320,12 +318,12 @@ class FormalContext:
 
         Parameters
         ----------
-        path : `str or None
+        path : `str` or None
             Path to save a context
 
         Returns
         -------
-        context : `str
+        context : `str`
             If ``path`` is None, the string with .json file data is returned. If ``path`` is given - return None
 
         """
@@ -337,19 +335,19 @@ class FormalContext:
 
         Parameters
         ----------
-        path : `str or None
+        path : `str` or None
             Path to save a context
         **kwargs :
-            ``sep`` : `str
+            ``sep`` : `str`
                 Field delimiter for the output file
-            ``word_true`` : `str
+            ``word_true`` : `str`
                 A placeholder to put instead of 'True' for data[i][j]==True (default 'True')
-            ``word_false`` : `str
+            ``word_false`` : `str`
                 A placeholder to put instead of 'False' for data[i][j]==False (default 'False')
 
         Returns
         -------
-        context : `str
+        context : `str`
             If ``path`` is None, the string with .csv file data is returned. If ``path`` is given - return None
 
         """
@@ -361,7 +359,7 @@ class FormalContext:
 
         Returns
         -------
-        df : pandas.DataFrame
+        df : `pandas.DataFrame`
             The dataframe with boolean variables,
             ``object_names`` turned into ``df.index``, ``attribute_names`` turned into ``df.columns``
 
@@ -375,13 +373,13 @@ class FormalContext:
 
         Parameters
         ----------
-        dataframe : pandas.DataFrame
+        dataframe : `pandas.DataFrame`
             The dataframe with boolean values to construct a FormalContext
 
         Returns
         -------
-        context : FormalContext
-            A FormalContext corresponding to `dataframe
+        context : `FormalContext`
+            A FormalContext corresponding to ``dataframe``
 
         """
         from fcapy.context.converters import from_pandas
@@ -399,16 +397,16 @@ class FormalContext:
 
         Parameters
         ----------
-        max_n_objects : `int
+        max_n_objects : `int`
             Maximal number of objects to print. If it is less then ``n_objects`` then print ``max_n_objects/2``
             objects from the "top" and the "bottom" of the context
-        max_n_attributes : `int
+        max_n_attributes : `int`
             Maximal number of attributes to print. If it is less then ``n_attributes`` then print ``max_n_attributes/2``
             attributes from the "left" and the "right" part of the context
 
         Returns
         -------
-        data_to_print : `str
+        data_to_print : `str`
             A string with the context data formatted as the table
 
         """
@@ -452,38 +450,62 @@ class FormalContext:
         return data_to_print
 
     def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
-        """Get a set of minimal generators for closed intent `intent
+        r"""Get a set of minimal generators for closed intent ``intent``
 
         WARNING: The current algorithm looks for mimimUM generators instead of mimimAL
 
         Parameters
         ----------
-        intent : `list of `string or `int
-            A set of attribute names (or indexes if `use_indexes=True) to construct generators for.
-        base_generator : `list of `string or `int
-            A set of attribute names (or indexes if `use_indexes=True)
+        intent : `list` of `string` or `int`
+            A set of attribute names (or indexes if ``use_indexes``=True) to construct generators for.
+        base_generator : `list` of `string` or `int`
+            A set of attribute names (or indexes if ``use_indexes``=True)
             which should be included in each constructed generator
-        base_objects : `list of `string or `int
-            A set of object names (or indexes if `use_indexes=True) used to check the generators
+        base_objects : `list` of `string` or `int`
+            A set of object names (or indexes if ``use_indexes``=True) used to check the generators
         use_indexes : bool
             A flag whether to use object and attribute names (if set to False) or indexes (otherwise)
         Returns
         -------
-        min_gens : `list of `tuple
+        min_gens : `list` of `tuple`
             A set of miminUM generators of the closed intent
 
         Notes
         -----
-        A generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
-        is a subset of attributes with the same closed description as $B$: $D'' = B$
+        A generator
+        .. math::
+            D \subseteq M
+        of a closed description (intent)
+        .. math::
+            B \subseteq M
+        is a subset of attributes with the same closed description as B:
+        .. math::
+            D'' = B
 
-        A mimimAL generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
-        is a generator of $B$ s.t. there is no generator $E \subseteq M$ of $B$ smaller than $D$:
-        $D'' = B, \nexists E \subset D, E''=B$.
+        A mimimAL generator
+        .. math::
+            D \subseteq M
+        of a closed description (intent)
+        .. math::
+            B \subseteq M
+        is a generator of B s.t. there is no generator
+        .. math::
+            E \subseteq M
+        of B smaller than D:
+        .. math::
+            D'' = B, \nexists E \subset D, E''=B
 
-        A mimimUM generator $D \subseteq M$ of a closed description (intent) $B \subseteq M$
-        is a generator of $B$ s.t. there is no generator $E \subseteq M$ of $B$ with the size smaller:
-        $D'' = B, \nexists E \subset B, |E| < |D|$.
+        A mimimUM generator
+        .. math::
+            D \subseteq M
+        of a closed description (intent)
+        .. math::
+            B \subseteq M
+        is a generator of B s.t. there is no generator
+        .. math::
+            E \subseteq M
+        of B with the smaller size:
+            D'' = B, \nexists E \subset B, | E | < | D |
 
         """
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
@@ -579,9 +601,9 @@ class FormalContext:
 
         Returns
         -------
-        data : `list of `list of `bool
+        data : `list` of `list` of `bool`
             Binary data of connections between objects and attributes
-        attribute_names : `list of `str
+        attribute_names : `list` of `str`
             Name of attributes from the context
 
         """

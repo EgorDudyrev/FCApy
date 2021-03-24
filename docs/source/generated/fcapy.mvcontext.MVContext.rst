@@ -1,7 +1,7 @@
-fcapy.mvcontext.mvcontext.MVContext
-===================================
+fcapy.mvcontext.MVContext
+=========================
 
-.. currentmodule:: fcapy.mvcontext.mvcontext
+.. currentmodule:: fcapy.mvcontext
 
 .. autoclass:: MVContext
 

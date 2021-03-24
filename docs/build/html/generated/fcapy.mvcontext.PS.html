@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fcapy.utils.utils &mdash; FCApy 0.1.0 documentation</title>
+  <title>fcapy.mvcontext.PS &mdash; FCApy 0.0.5 documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Examples" href="../examples.html" />
-    <link rel="prev" title="fcapy.algorithms.lattice_construction" href="fcapy.algorithms.lattice_construction.html" /> 
+    <link rel="next" title="fcapy.lattice.ConceptLattice" href="fcapy.lattice.ConceptLattice.html" />
+    <link rel="prev" title="fcapy.mvcontext.MVContext" href="fcapy.mvcontext.MVContext.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,15 +86,16 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../api.html#context">Context</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#mvcontext">MVContext</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mvcontext">MVContext</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="fcapy.mvcontext.MVContext.html">fcapy.mvcontext.MVContext</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">fcapy.mvcontext.PS</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#lattice">Lattice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualizer">Visualizer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#machine-learning">Machine Learning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#algorithms">Algorithms</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../api.html#utils">Utils</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">fcapy.utils.utils</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#utils">Utils</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
@@ -146,13 +147,13 @@
         
           <li><a href="../api.html">API Reference</a> &raquo;</li>
         
-      <li>fcapy.utils.utils</li>
+      <li>fcapy.mvcontext.PS</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/fcapy.utils.utils.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/fcapy.mvcontext.PS.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -189,45 +190,24 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="module-fcapy.utils.utils">
-<span id="fcapy-utils-utils"></span><h1>fcapy.utils.utils<a class="headerlink" href="#module-fcapy.utils.utils" title="Permalink to this headline">¶</a></h1>
-<p>This module provides a set of functions which can be useful in any subpackage of fcapy package</p>
-<p class="rubric">Functions</p>
+<div class="section" id="module-fcapy.mvcontext.PS">
+<span id="fcapy-mvcontext-ps"></span><h1>fcapy.mvcontext.PS<a class="headerlink" href="#module-fcapy.mvcontext.PS" title="Permalink to this headline">¶</a></h1>
+<p>This module contains classes of basic Pattern Structures (which allow FCA to work with data of any complex description)</p>
+<p class="rubric">Classes</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fcapy.utils.utils.powerset" title="fcapy.utils.utils.powerset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">powerset</span></code></a>([1,2,3]) --&gt;        (1,2,3)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AbstractPS</span></code>(data[, name])</p></td>
+<td><p>An abstract class to provide an interface for any Pattern Structure (PS)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fcapy.utils.utils.safe_tqdm" title="fcapy.utils.utils.safe_tqdm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">safe_tqdm</span></code></a>(*args, **kwargs)</p></td>
-<td><p>A decorator to used instead of basic tqdm.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fcapy.utils.utils.sparse_unique_columns" title="fcapy.utils.utils.sparse_unique_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sparse_unique_columns</span></code></a>(M)</p></td>
-<td><p>Return unique columns of sparse scipy matrix M</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntervalPS</span></code>(data[, name])</p></td>
+<td><p>An class to work with Interval Pattern Structures from FCA theory</p></td>
 </tr>
 </tbody>
 </table>
-<dl class="py function">
-<dt id="fcapy.utils.utils.powerset">
-<code class="sig-prename descclassname">fcapy.utils.utils.</code><code class="sig-name descname">powerset</code><span class="sig-paren">(</span><em class="sig-param">[1,2,3]) --&gt; () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3</em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.utils.utils.powerset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="fcapy.utils.utils.safe_tqdm">
-<code class="sig-prename descclassname">fcapy.utils.utils.</code><code class="sig-name descname">safe_tqdm</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.utils.utils.safe_tqdm" title="Permalink to this definition">¶</a></dt>
-<dd><p>A decorator to used instead of basic tqdm. Does not raise any error if tqdm package is not installed</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="fcapy.utils.utils.sparse_unique_columns">
-<code class="sig-prename descclassname">fcapy.utils.utils.</code><code class="sig-name descname">sparse_unique_columns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fcapy.utils.utils.sparse_unique_columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return unique columns of sparse scipy matrix M</p>
-<p>Sincerely copy-pasted from <a class="reference external" href="https://stackoverflow.com/questions/50419778/unique-column-of-a-sparse-matrix-in-python">https://stackoverflow.com/questions/50419778/unique-column-of-a-sparse-matrix-in-python</a></p>
-</dd></dl>
-
 </div>
 
 
@@ -238,10 +218,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fcapy.lattice.ConceptLattice.html" class="btn btn-neutral float-right" title="fcapy.lattice.ConceptLattice" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="fcapy.algorithms.lattice_construction.html" class="btn btn-neutral float-left" title="fcapy.algorithms.lattice_construction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fcapy.mvcontext.MVContext.html" class="btn btn-neutral float-left" title="fcapy.mvcontext.MVContext" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
