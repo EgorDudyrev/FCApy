@@ -110,7 +110,7 @@ def test_repr():
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
     pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types)
-    assert mvctx.__repr__() == 'MultiValuedContext (4 objects, 2 attributes)'
+    assert mvctx.__repr__() == 'ManyValuedContext (4 objects, 2 attributes)'
 
 
 def test_eq_neq():

@@ -1,8 +1,37 @@
+"""
+This module contains a number of function which take a set of formal (or pattern) concepts
+and return its subconcepts_dict
+i.e. the order of given concepts in the form {`parent_concept_index`: `child_concept_index`}.
+
+Parent_concept is a concept which is bigger (or more general) than the child concept
+and there is no other concept between these two.
+
+"""
 from copy import deepcopy
 from fcapy.utils import utils
 
 
 def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
+    """Return a dict with subconcepts relation on given ``concepts``. A slow but accurate bruteforce method
+
+    Parameters
+    ----------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to compare
+    is_concepts_sorted: `bool`
+        A flag whether the set of concepts is topologically sorted or it should be sorted inside the function
+    n_jobs: `int`
+        A number of parallel jobs to run. WARNING: It is more efficient to run just one job for some reason
+    use_tqdm: `bool`
+        A flag whether to visualize the progress of the algorithm with tqdm bar or not
+
+    Returns
+    -------
+    subconcepts_dict: `dict`
+        A dict of indexes with subconcept relation on the given concepts
+        (of type {`parent_concept_index`: `child_concept_index`})
+
+    """
     def get_subconcepts(a_i, a, concepts):
         subconcepts = set()
         for b_i, b in enumerate(concepts):
@@ -41,6 +70,27 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=F
 
 
 def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
+    """Return a spanning tree of subconcepts relation on given ``concepts``.
+
+    A spanning tree means that for each concept from ``concepts`` we look for one parent concept only
+    (even if there are actually many of them)
+
+    Parameters
+    ----------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+            A list of concepts to compare
+    is_concepts_sorted: `boot`
+            A flag whether the set of concepts is topologically sorted or it should be sorted inside the function
+    use_tqdm: `bool`
+            A flag whether to visualize the progress of the algorithm with tqdm bar or not
+
+    Returns
+    -------
+    subconcepts_dict: `dict`
+            A dict of indexes with spanning tree of subconcept relation on the given ``concepts``
+            (of type {`parent_concept_index`: `child_concept_index`})
+
+    """
     from fcapy.lattice import ConceptLattice
 
     if not is_concepts_sorted:
@@ -88,6 +138,27 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
 
 
 def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False):
+    """Return a dict with subconcepts relation on given concepts from given spanning tree of the relation.
+
+    Parameters
+    ----------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to compare
+    sptree_chains: `list` of `list` of `int`
+        A list of chains of a spanning tree of concepts subconcept relation.
+        Can be constructed with `ConceptLattice._get_chains(...)` method
+    is_concepts_sorted: `boot`
+        A flag whether the set of concepts is topologically sorted or it should be sorted inside the function
+    use_tqdm: `bool`
+        A flag whether to visualize the progress of the algorithm with `tqdm` bar or not
+
+    Returns
+    -------
+    subconcepts_dict: `dict`
+        A dict of indexes with subconcept relation on the given concepts
+        (of type {`parent_concept_index`: `child_concept_index`})
+
+    """
     from fcapy.lattice import ConceptLattice
 
     # initialize the dictionaries
@@ -191,6 +262,29 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
 
 
 def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_concepts_sorted=False, n_jobs=1):
+    """Return a dict with subconcepts relation on given ``concepts`` from given spanning tree of the relation.
+
+    WARNING: This parallelized function works slower than the original ``construct_lattice_from_spanning_tree`` function.
+
+    Parameters
+    ----------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to compare
+    sptree_chains: `list` of `list` of `int`
+        A list of chains of a spanning tree of concepts subconcept relation.
+        Can be constructed with ``ConceptLattice._get_chains(...)`` method
+    is_concepts_sorted: `boot`
+        A flag whether the set of concepts is topologically sorted or it should be sorted inside the function
+    n_jobs: `int`
+        A number of parallel jobs to run.
+
+    Returns
+    -------
+    subconcepts_dict: `dict`
+        A dict of indexes with subconcept relation on the given concepts
+        (of type {`parent_concept_index`: `child_concept_index`})
+
+    """
     from fcapy.lattice import ConceptLattice
 
     # initialize the dictionaries
@@ -317,6 +411,26 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
 
 
 def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
+    """Return a dict with subconcepts relation on given ``concepts``. Uses spanning tree approach to fasten the computation
+
+    Parameters
+    ----------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to compare
+    is_concepts_sorted: `bool`
+        A flag whether the set of concepts is topologically sorted or it should be sorted inside the function
+    n_jobs: `int`
+        A number of parallel jobs to run. WARNING: It is more efficient to run just one job for some reason
+    use_tqdm: `bool`
+        A flag whether to visualize the progress of the algorithm with `tqdm` bar or not
+
+    Returns
+    -------
+    subconcepts_dict: `dict`
+        A dict of indexes with subconcept relation on the given concepts
+        (of type {`parent_concept_index`: `child_concept_index`})
+
+    """
     from fcapy.lattice import ConceptLattice
     subconcepts_st_dict, superconcepts_st_dict = \
         construct_spanning_tree(concepts, is_concepts_sorted=is_concepts_sorted)
@@ -333,6 +447,39 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
 def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
                 top_concept_i=None, bottom_concept_i=None,
                 inplace=True):
+    """Add ``new_concept`` into a set of ``concepts`` regarding its subconcept relation
+
+    Parameters
+    ----------
+    new_concept: `FormalConcept` or `PatternConcept`
+        A concept to add
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to add a ``new_concept`` to
+    subconcepts_dict: `dict` of {`int`: `int`}
+        A dict of the current subconcept relation of the ``concepts``
+    superconcepts_dict: `dict` of {`int`: `int`}
+        A dict of the current superconcept relation of the ``concepts``
+    top_concept_i: `int`
+        An index of the top (biggest) concept from ``concepts``
+    bottom_concept_i: `int`
+        An index of the bottom (smallest) concept from ``concepts``
+    inplace: `bool`
+        A flag whether to modify the ``concepts`` list inplace or create a new one
+
+    Returns
+    -------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A modified list of concepts
+    subconcepts_dict: `dict` of {`int`: `int`}
+        A dict of modified subconcept relation of returned ``concepts``
+    superconcepts_dict: `dict` of {`int`: `int`}
+        A dict of modified superconcept relation of returned ``concepts``
+    top_concept_i: `int`
+        An index of the top (biggest) concept of returned ``concepts``
+    bottom_concept_i: `int`
+        An index of the bottom (smallest) concept of returned ``concepts``
+
+    """
     assert new_concept not in concepts, "add_concept error. New concept is already in the concepts list"
     assert len(concepts) >= 2, 'add_concept error. Concepts list should contain both top and bottom concepts'
 
@@ -343,8 +490,7 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
 
     new_concept_i = len(concepts)
 
-    # top/bottom indices are considered weird
-    # if new concept is bigger than top concept or smaller than the bottom concept
+    # top/bottom indices are considered weird if new concept is bigger than top concept or smaller than the bottom one
     # in this situation it is better to double check these indices
     def are_top_bottom_indices_weird():
         return new_concept > concepts[top_concept_i] or new_concept < concepts[bottom_concept_i]
@@ -412,6 +558,39 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
 def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
                    top_concept_i=None, bottom_concept_i=None,
                    inplace=True):
+    """Remove a ``concept_i`` from a set of ``concepts`` regarding its subconcept relation
+
+    Parameters
+    ----------
+    concept_i: `int`
+        An index of concept to be removed
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A list of concepts to remove a ``concept_i`` from
+    subconcepts_dict: `dict` of {`int`: `int`}
+        A dict of the current subconcept relation of the ``concepts``
+    superconcepts_dict: `dict` of {`int`: `int`}
+        A dict of the current superconcept relation of the ``concepts``
+    top_concept_i: `int`
+        An index of the top (biggest) concept from ``concepts``
+    bottom_concept_i: `int`
+        An index of the bottom (smallest) concept from ``concepts``
+    inplace: `bool`
+        A flag whether to modify the ``concepts`` list inplace or create a new one
+
+    Returns
+    -------
+    concepts: `list` of `FormalConcept` or `PatternConcept`
+        A modified list of concepts
+    subconcepts_dict: `dict` of {`int`: `int`}
+        A dict of modified subconcept relation of returned ``concepts``
+    superconcepts_dict: `dict` of {`int`: `int`}
+        A dict of modified superconcept relation of returned ``concepts``
+    top_concept_i: `int`
+        An index of the top (biggest) concept of returned ``concepts``
+    bottom_concept_i: `int`
+        An index of the bottom (smallest) concept of returned ``concepts``
+
+    """
     from fcapy.lattice import ConceptLattice
 
     assert concept_i < len(concepts), f"remove_concept error. There is no concept {concept_i} in a concepts list"

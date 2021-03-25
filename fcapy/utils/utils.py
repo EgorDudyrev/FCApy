@@ -1,3 +1,7 @@
+"""
+This module provides a set of functions which can be useful in any subpackage of `fcapy` package
+
+"""
 from itertools import chain, combinations
 
 from fcapy import LIB_INSTALLED
@@ -12,6 +16,10 @@ def powerset(iterable):
 
 
 def sparse_unique_columns(M):
+    """Return unique columns of sparse scipy matrix ``M``
+
+    Sincerely copy-pasted from https://stackoverflow.com/questions/50419778/unique-column-of-a-sparse-matrix-in-python
+    """
     import numpy as np
     import scipy as sp
 
@@ -53,6 +61,7 @@ def sparse_unique_columns(M):
 
 
 def safe_tqdm(*args, **kwargs):
+    """A decorator to used instead of basic tqdm. Does not raise any error if tqdm package is not installed"""
     if LIB_INSTALLED['tqdm']:
         return tqdm(*args, **kwargs)
     else:

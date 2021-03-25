@@ -36,10 +36,11 @@ def run_install(**kwargs):
         ]
     }
     extras_require['all'] = list(set(i for val in extras_require.values() for i in val))
+    extras_require['docs'] = extras_require['all']
 
     setuptools.setup(
         name="fcapy",
-        version="0.1.0",
+        version="0.1.1",
         author="Egor Dudyrev",
         author_email="egor.dudyrev@yandex.ru",
         description="A library to work with formal (and pattern) contexts, concepts, lattices",
