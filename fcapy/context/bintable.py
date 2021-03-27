@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from numbers import Integral
+from fcapy.utils.utils import slice_list
 
 
 class BinTable:
@@ -21,15 +22,6 @@ class BinTable:
             row_slice, column_slice = item
 
         data = self._data
-
-        def slice_list(lst, slicer):
-            if isinstance(slicer, slice):
-                lst = lst[slicer]
-            elif isinstance(slicer, Iterable):
-                lst = [lst[x] for x in slicer]
-            else:
-                lst = [lst[slicer]]
-            return lst
 
         if isinstance(row_slice, Integral) and isinstance(column_slice, Integral):
             data = data[row_slice][column_slice]

@@ -210,11 +210,11 @@ def test_getitem():
     assert ctx[:2, :2] == ctx_small, "FormalContext.__getitem__ failed"
 
     ctx_oneobject = FormalContext(data[:1])
-    assert ctx[0] == ctx_oneobject, "FormalContext.__getitem__ failed"
+    assert ctx[:1] == ctx_oneobject, "FormalContext.__getitem__ failed"
     assert ctx[[0]] == ctx_oneobject, "FormalContext.__getitem__ failed"
 
     ctx_oneattribute = FormalContext([row[:1] for row in data])
-    assert ctx[:, 0] == ctx_oneattribute, "FormalContext.__getitem__ failed"
+    assert ctx[:, :1] == ctx_oneattribute, "FormalContext.__getitem__ failed"
     assert ctx[:, [0]] == ctx_oneattribute, "FormalContext.__getitem__ failed"
 
 

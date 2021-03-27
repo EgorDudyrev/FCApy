@@ -5,8 +5,10 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from collections.abc import Iterable
 from itertools import combinations
+from numbers import Integral
 
 from fcapy.context.bintable import BinTable
+from fcapy.utils.utils import slice_list
 
 
 class FormalContext:
@@ -91,19 +93,24 @@ class FormalContext:
             self._n_attributes = None
             return
 
-        assert isinstance(value, list), 'FormalContext.data.setter: "value" should have type "list"'
+        assert isinstance(value, (list, BinTable)),\
+            'FormalContext.data.setter: "value" should have type "list" or "BinTable"'
         assert len(value) > 0, 'FormalContext.data.setter: "value" should have length > 0 (use [[]] for the empty data)'
 
-        length = len(value[0])
+        if not isinstance(value, BinTable):
+            value = BinTable(value)
+        data = BinTable(value) if not isinstance(value, BinTable) else value
+
+        width = data.width
         for g_ms in value:
-            assert len(g_ms) == length,\
+            assert len(g_ms) == width,\
                 'FormalContext.data.setter: All sublists of the "value" should have the same length'
             for m in g_ms:
                 assert type(m) == bool, 'FormalContext.data.setter: "Value" should consist only of boolean number'
 
-        self._data = BinTable(value)
-        self._n_objects = len(value)
-        self._n_attributes = length
+        self._data = data
+        self._n_objects = data.height
+        self._n_attributes = width
 
     @property
     def object_names(self):
@@ -545,29 +552,18 @@ class FormalContext:
 
     def __getitem__(self, item):
         if type(item) != tuple:
-            item = (item, slice(0, self._n_attributes))
-
-        def slice_list(lst, slicer):
-            if isinstance(slicer, slice):
-                lst = lst[slicer]
-            elif isinstance(slicer, Iterable):
-                lst = [lst[x] for x in slicer]
-            else:
-                lst = [lst[slicer]]
-            return lst
-
-        data = slice_list(self._data, item[0])
-        data = [list(row) for row in zip(*data)]  # transpose data
-        data = slice_list(data, item[1])
-        data = [list(row) for row in zip(*data)]  # transpose data again
-
-        if any([isinstance(i, slice) for i in item]):
-            object_names = slice_list(self._object_names, item[0])
-            attribute_names = slice_list(self._attribute_names, item[1])
-            target = slice_list(self._target, item[0]) if self._target is not None else None
-            data = FormalContext(data, object_names, attribute_names, target=target)
+            row_slice = item
+            column_slice = slice(0, self._n_attributes)
         else:
-            data = data[0][0]
+            row_slice, column_slice = item
+
+        data = self._data[row_slice, column_slice]
+
+        if not (isinstance(row_slice, Integral) and isinstance(column_slice, Integral)):
+            object_names = slice_list(self._object_names, row_slice)
+            attribute_names = slice_list(self._attribute_names, column_slice)
+            target = slice_list(self._target, row_slice) if self._target is not None else None
+            data = FormalContext(data, object_names, attribute_names, target=target)
 
         return data
 
