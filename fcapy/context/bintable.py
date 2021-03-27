@@ -4,7 +4,7 @@ from fcapy.utils.utils import slice_list
 
 
 class BinTable:
-    def __init__(self, data):
+    def __init__(self, data=None):
         self._data = data
 
     @property
