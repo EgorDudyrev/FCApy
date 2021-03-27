@@ -5,11 +5,30 @@ from fcapy.utils.utils import slice_list
 
 class BinTable:
     def __init__(self, data=None):
-        self._data = data
+        self.data = data
 
     @property
     def data(self):
         return self._data
+
+    @data.setter
+    def data(self, value):
+        if value is None or value == []:
+            self._data = []
+            return
+
+        assert isinstance(value, list), \
+            'BinTable.data.setter: "value" should have type "list"'
+        assert len(value) > 0, 'BinTable.data.setter: "value" should have length > 0 (use [] for the empty data)'
+
+        width = len(value[0])
+        for row in value:
+            assert len(row) == width, \
+                'BinTable.data.setter: All rows of the "value" should have the same length'
+            for column_val in row:
+                assert type(column_val) == bool, 'BinTable.data.setter: "Value" should consist only of boolean number'
+
+        self._data = value
 
     def __len__(self):
         return len(self._data)
@@ -47,7 +66,7 @@ class BinTable:
 
     @property
     def width(self):
-        return len(self._data[0])
+        return len(self._data[0]) if len(self._data) > 0 else 0
 
     @property
     def shape(self):

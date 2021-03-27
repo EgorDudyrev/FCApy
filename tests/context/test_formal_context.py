@@ -7,14 +7,12 @@ from operator import itemgetter
 
 def test_data_property(animal_movement_data):
     ctx = FormalContext()
+    assert ctx.data == BinTable([]), 'FormalContext.data failed'
 
     data = animal_movement_data['data']
     ctx = FormalContext(data=data)
     data_ = ctx.data
     assert BinTable(data) == data_, 'FormalContext.data has changed the initial data'
-
-    with pytest.raises(AssertionError):
-        FormalContext(data=[])
 
     with pytest.raises(AssertionError):
         FormalContext(data=[[0], [1, 2]])
@@ -77,7 +75,7 @@ def test_n_objects(animal_movement_data):
     data, obj_names = itemgetter('data', 'obj_names')(animal_movement_data)
 
     ctx = FormalContext()
-    assert ctx.n_objects is None, 'FormalContext.n_objects failed. Should be None since no data in the context'
+    assert ctx.n_objects == 0, 'FormalContext.n_objects failed. Should be 0 since no data in the context'
 
     ctx = FormalContext(data=data)
     assert ctx.n_objects == len(obj_names), f'FormalContext.n_objects failed. '\
@@ -90,7 +88,7 @@ def test_n_objects(animal_movement_data):
 def test_n_attributes(animal_movement_data):
     data, attr_names = itemgetter('data', 'attr_names')(animal_movement_data)
     ctx = FormalContext()
-    assert ctx.n_attributes is None, 'FormalContext.n_attributes failed. Should be None since no data in the context'
+    assert ctx.n_attributes == 0, 'FormalContext.n_attributes failed. Should be 0 since no data in the context'
 
     ctx = FormalContext(data=data)
     assert ctx.n_attributes == len(attr_names),\

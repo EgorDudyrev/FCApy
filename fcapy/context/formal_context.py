@@ -59,7 +59,7 @@ class FormalContext:
                 `str` with human readable description of the FormalContext (stored only in json file format)
 
         """
-        self.data = data
+        self._data = BinTable(data) if not isinstance(data, BinTable) else data
         self.object_names = object_names
         self.attribute_names = attribute_names
         self.description = kwargs.get('description')
@@ -84,33 +84,6 @@ class FormalContext:
 
         """
         return self._data
-
-    @data.setter
-    def data(self, value):
-        if value is None:
-            self._data = None
-            self._n_objects = None
-            self._n_attributes = None
-            return
-
-        assert isinstance(value, (list, BinTable)),\
-            'FormalContext.data.setter: "value" should have type "list" or "BinTable"'
-        assert len(value) > 0, 'FormalContext.data.setter: "value" should have length > 0 (use [[]] for the empty data)'
-
-        if not isinstance(value, BinTable):
-            value = BinTable(value)
-        data = BinTable(value) if not isinstance(value, BinTable) else value
-
-        width = data.width
-        for g_ms in value:
-            assert len(g_ms) == width,\
-                'FormalContext.data.setter: All sublists of the "value" should have the same length'
-            for m in g_ms:
-                assert type(m) == bool, 'FormalContext.data.setter: "Value" should consist only of boolean number'
-
-        self._data = data
-        self._n_objects = data.height
-        self._n_attributes = width
 
     @property
     def object_names(self):
@@ -192,7 +165,7 @@ class FormalContext:
             Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
-        base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
+        base_objects = list(range(self.n_objects)) if base_objects_i is None else base_objects_i
         return [g_idx for g_idx in base_objects
                 if all([self._data[g_idx][m] for m in attribute_indexes])]
 
@@ -263,7 +236,7 @@ class FormalContext:
                 raise KeyError(f'FormalContext.extension: Context does not have an attribute "{m}"')
 
         base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]\
-            if base_objects is not None else list(range(self._n_objects))
+            if base_objects is not None else list(range(self.n_objects))
 
         extension_i = self.extension_i(attr_indices, base_objects_i=base_objects_i)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
@@ -272,12 +245,12 @@ class FormalContext:
     @property
     def n_objects(self):
         """Get the number of objects in the context (i.e. len(`data`))"""
-        return self._n_objects
+        return self._data.height
 
     @property
     def n_attributes(self):
         """Get the number of attributes in the context (i.e. len(`data[0]`)"""
-        return self._n_attributes
+        return self._data.width
 
     @property
     def description(self):
@@ -553,7 +526,7 @@ class FormalContext:
     def __getitem__(self, item):
         if type(item) != tuple:
             row_slice = item
-            column_slice = slice(0, self._n_attributes)
+            column_slice = slice(0, self.n_attributes)
         else:
             row_slice, column_slice = item
 
