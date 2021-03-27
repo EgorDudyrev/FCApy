@@ -22,7 +22,7 @@ def test_read_converter(animal_movement_data):
             f'Converters.{fnc_name} failed. n_attributes should be equal {len(obj_names)}'
         assert ctx.object_names == obj_names, f'Converters.{fnc_name} failed. Objects names should be {obj_names}'
         assert ctx.attribute_names == attr_names, f'Converters.{fnc_name} failed. Attributes names should be {attr_names}'
-        assert ctx.data == data, f'Converters.{fnc_name} failed. Data should be {data}'
+        assert ctx.data.to_list() == data, f'Converters.{fnc_name} failed. Data should be {data}'
 
 
 def test_write_converter():

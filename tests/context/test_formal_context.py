@@ -1,5 +1,5 @@
 import pytest
-from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
+from fcapy.context import FormalContext, BinTable, read_cxt, read_json, read_csv, from_pandas
 from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
 from operator import itemgetter
@@ -11,7 +11,7 @@ def test_data_property(animal_movement_data):
     data = animal_movement_data['data']
     ctx = FormalContext(data=data)
     data_ = ctx.data
-    assert data == data_, 'FormalContext.data has changed the initial data'
+    assert BinTable(data) == data_, 'FormalContext.data has changed the initial data'
 
     with pytest.raises(AssertionError):
         FormalContext(data=[])

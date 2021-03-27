@@ -6,6 +6,8 @@ It contains a class FormalContext which represents a Formal Context object from 
 from collections.abc import Iterable
 from itertools import combinations
 
+from fcapy.context.bintable import BinTable
+
 
 class FormalContext:
     """
@@ -99,7 +101,7 @@ class FormalContext:
             for m in g_ms:
                 assert type(m) == bool, 'FormalContext.data.setter: "Value" should consist only of boolean number'
 
-        self._data = value
+        self._data = BinTable(value)
         self._n_objects = len(value)
         self._n_attributes = length
 
@@ -157,8 +159,8 @@ class FormalContext:
             self._attribute_names = [str(idx) for idx in range(self.n_attributes)] if self.data is not None else None
             return
 
-        assert len(value) == len(self._data[0]),\
-            'FormalContext.attribute_names.setter: Length of "value" should match length of data[0]'
+        assert len(value) == self._data.shape[1],\
+            'FormalContext.attribute_names.setter: Length of "value" should match number of columns in ``data``'
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
@@ -412,7 +414,7 @@ class FormalContext:
         """
         objs_to_print = self.object_names
         attrs_to_print = self.attribute_names
-        data_to_print = self.data
+        data_to_print = self.data.to_list()
         plot_objs_line = False
 
         if self.n_attributes > max_n_attributes:
@@ -539,8 +541,7 @@ class FormalContext:
         return is_not_equal
 
     def __hash__(self):
-        return hash((tuple(self._object_names), tuple(self._attribute_names),
-                     tuple([tuple(row) for row in self._data])))
+        return hash((tuple(self._object_names), tuple(self._attribute_names), hash(self._data)))
 
     def __getitem__(self, item):
         if type(item) != tuple:
@@ -583,4 +584,4 @@ class FormalContext:
             Name of attributes from the context
 
         """
-        return self._data, self._attribute_names
+        return self._data.to_list(), self._attribute_names
