@@ -212,11 +212,10 @@ class FormalContext:
             Names of maximal set of attributes which are shared by given ``objects``
 
         """
-        obj_idx_dict = {g: g_idx for g_idx, g in enumerate(self._object_names)}
         obj_indices = []
         for g in objects:
             try:
-                obj_indices.append(obj_idx_dict[g])
+                obj_indices.append(self._object_names_i_map[g])
             except KeyError as e:
                 raise KeyError(f'FormalContext.intention: Context does not have an object "{g}"')
 
@@ -239,16 +238,22 @@ class FormalContext:
             Names of the maximal set of objects which share given ``attributes``
 
         """
-        attr_idx_dict = {m: m_idx for m_idx, m in enumerate(self._attribute_names)}
         attr_indices = []
         for m in attributes:
             try:
-                attr_indices.append(attr_idx_dict[m])
+                attr_indices.append(self._attribute_names_i_map[m])
             except KeyError as e:
                 raise KeyError(f'FormalContext.extension: Context does not have an attribute "{m}"')
 
-        base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]\
-            if base_objects is not None else list(range(self.n_objects))
+        if base_objects is not None:
+            base_objects_i = []
+            for g in base_objects:
+                try:
+                    base_objects_i.append(self._object_names_i_map[g])
+                except KeyError as e:
+                    raise KeyError(f'FormalContext.extension: Context does not have an object "{g}"')
+        else:
+            base_objects_i = list(range(self.n_objects))
 
         extension_i = self.extension_i(attr_indices, base_objects_i=base_objects_i)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
