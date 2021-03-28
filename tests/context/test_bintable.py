@@ -142,3 +142,27 @@ def test_sum():
         assert bt[:, :0].sum() == 0
         assert bt[:, :0].sum(0) == []
         assert bt[:, :0].sum(1) == [0, 0, 0]
+
+
+def test_arrows(animal_movement_data):
+    data = animal_movement_data['data']
+    for is_bitsets in [False, True]:
+        LIB_INSTALLED['bitsets'] = is_bitsets
+
+        bt = BinTable(data=data)
+        rows = bt.arrow_down([0, 1])
+        assert set(rows) == {4, 5, 6}, 'BinTable.arrow_down failed. Should be {4, 5, 6}'
+
+        columns = bt.arrow_up([4, 5, 6])
+        assert set(columns) == {0, 1}, 'BinTable.arrow_up failed. Should be {0, 1}'
+
+        assert bt.arrow_up(bt.arrow_down(columns)) == columns,\
+            'Basic FCA theorem failed. Check BinTable.arrow_up, arrow_down'
+
+        rows = bt.arrow_down([])
+        assert set(rows) == set(range(len(data))),\
+            'BinTable.arrow_down failed. Arrow_down of emptyset is the set of all objects'
+
+        columns = bt.arrow_up([])
+        assert set(columns) == set(range(len(data[0]))),\
+            'BinTable.arrow_up failed. Arrow_up of emptyset is the set of all attributes'

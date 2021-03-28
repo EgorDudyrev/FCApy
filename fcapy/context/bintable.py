@@ -297,7 +297,7 @@ class BinTable:
             base_columns = range(self._width) if base_columns is None else base_columns
             columns = list(base_columns)
             for row_i in row_indexes:
-                column_vals = self[row_i, columns]
+                column_vals = slice_list(self._data[row_i], columns)
                 columns = [col_i for col_i, col_val in zip(columns, column_vals) if col_val]
                 if len(columns) == 0:
                     break
@@ -326,7 +326,7 @@ class BinTable:
             base_rows = range(self._height) if base_rows is None else base_rows
             rows = list(base_rows)
             for column_i in column_indexes:
-                row_vals = self[rows, column_i]
+                row_vals = [row[column_i] for row in slice_list(self._data, rows)]
                 rows = [row_i for row_i, row_val in zip(rows, row_vals) if row_val]
                 if len(rows) == 0:
                     break
