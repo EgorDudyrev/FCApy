@@ -5,11 +5,14 @@ Other modules of the subpackage are implemented to shorten FormalContext class.
 Classes
 -------
 formal_context.FormalContext
+bintable.BinTable
 
 Modules
 -------
   formal_context:
     Implements Formal Context class
+  bintable:
+    Implements BinTable class
   converters:
     Contains function to read/write a FormalContext object from/to a file
 

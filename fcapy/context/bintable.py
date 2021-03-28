@@ -1,3 +1,7 @@
+"""
+This module offers a class BinTable to work with binary table efficiently.
+
+"""
 from collections.abc import Iterable
 from numbers import Integral
 from fcapy.utils.utils import slice_list
@@ -8,8 +12,32 @@ if LIB_INSTALLED['bitsets']:
 
 
 class BinTable:
+    """
+    A class to encapsulate the work with binary tables in an efficient way
 
+    Methods
+    -------
+    all(self, axis=None)
+        Return whether all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2) are True
+    any(self, axis=None)
+        Return whether any element (``axis``=0), row in columns (``axis``=1), column in rows (``axis``=2) is True
+    sum(self, axis=None)
+        Return sum of all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2)
+    arrow_up(self, row_indexes, base_columns=None)
+        Return the maximal set of columns in which all rows (``row_indexes``) are True
+    arrow_down(self, column_indexes, base_rows=None)
+        Return the maximal set of rows in which all columns (``column_indexes``) are True
+
+    """
     def __init__(self, data=None):
+        """Initialize the BinTable
+
+        Parameters
+        ----------
+        data: `list` of `list` or `bitsets.bases.BitSets`
+            Data for the BinTable to store
+
+        """
         self.data = data
 
     @property
@@ -135,17 +163,21 @@ class BinTable:
 
     @property
     def height(self):
+        """Number of rows in the table"""
         return self._height
 
     @property
     def width(self):
+        """Number of columns in the table"""
         return self._width
 
     @property
     def shape(self):
+        """Shape of the table"""
         return self.height, self.width
 
     def to_list(self):
+        """Return BinTable data as a `list` of `list`"""
         if LIB_INSTALLED['bitsets']:
             list_data = [list(row.bools()) for row in self._data]
         else:
@@ -160,6 +192,7 @@ class BinTable:
         return hash(tuple([tuple(row) for row in self._data]))
 
     def all(self, axis=None):
+        """Return whether all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2) are True"""
         def check_all_true(ar):
             return ar.all() if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else all(ar)
 
@@ -197,6 +230,7 @@ class BinTable:
         return flag_all
 
     def any(self, axis=None):
+        """Return whether any element (``axis``=0), row in columns (``axis``=1), column in rows (``axis``=2) is True"""
         if axis is None:
             flag_any = False
             for row in self._data:
@@ -219,6 +253,7 @@ class BinTable:
         return flag_any
 
     def sum(self, axis=None):
+        """Return sum of all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2)"""
         def sum_ar(ar):
             return len(ar) if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else sum(ar)
 
@@ -240,6 +275,7 @@ class BinTable:
         return s
 
     def arrow_up(self, row_indexes, base_columns=None):
+        """Return the maximal set of columns in which all rows (``row_indexes``) are True"""
         if LIB_INSTALLED['bitsets']:
             if len(row_indexes) > 0:
                 columns = self._column_members(base_columns) if base_columns is not None else None
@@ -269,6 +305,7 @@ class BinTable:
         return columns
 
     def arrow_down(self, column_indexes, base_rows=None):
+        """Return the maximal set of rows in which all columns (``column_indexes``) are True"""
         if LIB_INSTALLED['bitsets']:
             if len(column_indexes) > 0:
                 rows = self._row_members(base_rows) if base_rows is not None else None
