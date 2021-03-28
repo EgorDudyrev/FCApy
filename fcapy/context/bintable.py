@@ -42,6 +42,7 @@ class BinTable:
 
     @property
     def data(self):
+        """Data for the BinTable to store"""
         return self._data
 
     @data.setter
@@ -253,7 +254,7 @@ class BinTable:
         return flag_any
 
     def sum(self, axis=None):
-        """Return sum of all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2)"""
+        """Return sum of all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2)"""
         def sum_ar(ar):
             return len(ar) if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else sum(ar)
 
