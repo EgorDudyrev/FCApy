@@ -7,7 +7,9 @@ def run_install(**kwargs):
 
     extras_require = {
         'context': [
-            'pandas'
+            'pandas',
+            'frozendict',
+            'bitsets',
         ],
         'mvcontext': [
             'frozendict'

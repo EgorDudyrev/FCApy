@@ -3,6 +3,7 @@ This module provides a set of functions which can be useful in any subpackage of
 
 """
 from itertools import chain, combinations
+from collections.abc import Iterable
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['tqdm']:
@@ -66,3 +67,14 @@ def safe_tqdm(*args, **kwargs):
         return tqdm(*args, **kwargs)
     else:
         return args[0]
+
+
+def slice_list(lst: list, slicer):
+    """Slice python list `lst` by any `slicer`"""
+    if isinstance(slicer, slice):
+        lst = lst[slicer]
+    elif isinstance(slicer, Iterable):
+        lst = [lst[x] for x in slicer]
+    else:
+        lst = [lst[slicer]]
+    return lst
