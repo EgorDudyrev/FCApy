@@ -8,6 +8,7 @@ if LIB_INSTALLED['bitsets']:
 
 
 class BinTable:
+
     def __init__(self, data=None):
         self.data = data
 
@@ -76,18 +77,24 @@ class BinTable:
         def slice_to_range(slc: slice):
             return range(slc.start, slc.stop)
 
+        def is_slice_number(slc):
+            return isinstance(slc, Integral) and not isinstance(slc, bitsets.bases.BitSet)
+
         row_slice, column_slice = item if isinstance(item, tuple) else (item, slice(None, None))
         row_slice = fix_slice(row_slice, self._height) if isinstance(row_slice, slice) else row_slice
         column_slice = fix_slice(column_slice, self._width) if isinstance(column_slice, slice) else column_slice
 
-        if isinstance(row_slice, Integral) and isinstance(column_slice, Integral):
+        is_row_slice_number = is_slice_number(row_slice)
+        is_column_slice_number = is_slice_number(column_slice)
+        if is_row_slice_number and is_column_slice_number:
             data = self._data[row_slice]
 
             if LIB_INSTALLED['bitsets']:
                 data = (data & (2**column_slice)) > 0
             else:
                 data = data[column_slice]
-        elif isinstance(row_slice, Integral):
+
+        elif is_row_slice_number:
             # therefore column_slice is slice or Iterable
             data = self._data[row_slice]
 
@@ -96,7 +103,8 @@ class BinTable:
                 data = data.intersection(column_slice)
             else:
                 data = slice_list(data, column_slice)
-        elif isinstance(column_slice, Integral):
+
+        elif is_column_slice_number:
             # therefore row_slice is slice or Iterable
             if LIB_INSTALLED['bitsets']:
                 data = self._data_columns[column_slice]
@@ -105,6 +113,7 @@ class BinTable:
             else:
                 data = [row[column_slice] for row in self._data]
                 data = data[row_slice]
+
         else:
             # therefore both row_slice and column_slice are slice or Iterable
             data = slice_list(self._data, row_slice)
@@ -229,3 +238,60 @@ class BinTable:
             raise ValueError(f"BinTable.all error. `axis` value can only be None, 0 or 1 (got {axis})")
 
         return s
+
+    def arrow_up(self, row_indexes, base_columns=None):
+        if LIB_INSTALLED['bitsets']:
+            if len(row_indexes) > 0:
+                columns = self._column_members(base_columns) if base_columns is not None else None
+                for row_i in row_indexes:
+                    if columns is None:
+                        columns = self._data_rows[row_i]
+                    else:
+                        columns &= self._data_rows[row_i]
+
+                    if columns == 0:
+                        break
+                columns = self._column_members.fromint(columns)
+
+            else:
+                base_columns = range(self._width) if base_columns is None else base_columns
+                columns = self._column_members(base_columns)
+
+        else:
+            base_columns = range(self._width) if base_columns is None else base_columns
+            columns = list(base_columns)
+            for row_i in row_indexes:
+                column_vals = self[row_i, columns]
+                columns = [col_i for col_i, col_val in zip(columns, column_vals) if col_val]
+                if len(columns) == 0:
+                    break
+
+        return columns
+
+    def arrow_down(self, column_indexes, base_rows=None):
+        if LIB_INSTALLED['bitsets']:
+            if len(column_indexes) > 0:
+                rows = self._row_members(base_rows) if base_rows is not None else None
+                for column_i in column_indexes:
+                    if rows is None:
+                        rows = self._data_columns[column_i]
+                    else:
+                        rows &= self._data_columns[column_i]
+
+                    if rows == 0:
+                        break
+                rows = self._row_members.fromint(rows)
+            else:
+                base_rows = range(self._height) if base_rows is None else base_rows
+                rows = self._row_members(base_rows)
+
+        else:
+            base_rows = range(self._height) if base_rows is None else base_rows
+            rows = list(base_rows)
+            for column_i in column_indexes:
+                row_vals = self[rows, column_i]
+                rows = [row_i for row_i, row_val in zip(rows, row_vals) if row_val]
+                if len(rows) == 0:
+                    break
+
+        return rows
