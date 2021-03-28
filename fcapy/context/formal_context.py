@@ -387,7 +387,7 @@ class FormalContext:
     def __repr__(self):
         data_to_print = f'FormalContext ' +\
                         f'({self.n_objects} objects, {self.n_attributes} attributes, ' +\
-                        f'{sum([sum(l) for l in self.data])} connections)\n'
+                        f'{self.data.sum()} connections)\n'
         data_to_print += self.print_data(max_n_objects=20, max_n_attributes=10)
         return data_to_print
 

@@ -9,6 +9,7 @@ def run_install(**kwargs):
         'context': [
             'pandas',
             'frozendict',
+            'bitsets',
         ],
         'mvcontext': [
             'frozendict'
