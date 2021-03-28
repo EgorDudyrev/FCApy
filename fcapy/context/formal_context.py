@@ -174,7 +174,7 @@ class FormalContext:
             Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
-        base_objects_i = list(range(self.n_objects)) if base_objects_i is None else base_objects_i
+        base_objects_i = range(self.n_objects) if base_objects_i is None else base_objects_i
         extension_flag = self._data[base_objects_i, attribute_indexes].all(1)
         extension_i = [g_idx for g_idx, flg in zip(base_objects_i, extension_flag) if flg]
         return extension_i
@@ -193,7 +193,7 @@ class FormalContext:
             Indexes of maximal set of attributes which are shared by ``objects_indexes``
 
         """
-        base_attrs_i = list(range(self.n_attributes)) if base_attrs_i is None else base_attrs_i
+        base_attrs_i = range(self.n_attributes) if base_attrs_i is None else base_attrs_i
         intention_flag = self._data[object_indexes, base_attrs_i].all(0)
         intention_i = [m_idx for m_idx, flg in zip(base_attrs_i, intention_flag) if flg]
         return intention_i

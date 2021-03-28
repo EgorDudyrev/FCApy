@@ -164,12 +164,24 @@ class BinTable:
             if self._height == 0 or self._width == 0:
                 flag_all = [True for _ in range(self._width)]
             else:
-                flag_all = [check_all_true(self[:, j]) for j in range(self.width)]
+                if LIB_INSTALLED['bitsets']:
+                    flag_all = self._data_rows[0]
+                    for row in self._data_rows[1:]:
+                        flag_all &= row
+                    flag_all = list(self._column_members.fromint(flag_all).bools())
+                else:
+                    flag_all = [all(self[:, j]) for j in range(self.width)]
         elif axis == 1:
             if self._height == 0 or self._width == 0:
                 flag_all = [True for _ in range(self._height)]
             else:
-                flag_all = [check_all_true(row) for row in self._data]
+                if LIB_INSTALLED['bitsets']:
+                    flag_all = self._data_columns[0]
+                    for column in self._data_columns[1:]:
+                        flag_all &= column
+                    flag_all = list(self._row_members.fromint(flag_all).bools())
+                else:
+                    flag_all = [all(row) for row in self._data]
         else:
             raise ValueError(f"BinTable.all error. `axis` value can only be None, 0 or 1 (got {axis})")
 
