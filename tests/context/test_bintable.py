@@ -64,13 +64,13 @@ def test_hash():
 def test_all_any():
     data = [[False, False], [False, True], [True, True]]
     bt = BinTable(data)
-    assert bt.all() is False
-    assert bt.any() is True
-    assert bt[[2]].all() is True
-    assert bt[[0]].any() is False
+    assert not bt.all()
+    assert bt.any()
+    assert bt[[2]].all()
+    assert not bt[[0]].any()
 
-    assert bt.all(0) == [False, False, True]
-    assert bt.any(0) == [False, True, True]
+    assert bt.all(0) == [False, False]
+    assert bt.any(0) == [True, True]
 
     assert bt[1:].all(1) == [False, True]
     assert bt[:2].any(1) == [False, True]
@@ -82,16 +82,16 @@ def test_all_any():
         bt.any(2)
 
     # weird thing for numpy compatibility
-    assert bt[:0].all() is True
+    assert bt[:0].all()
     assert bt[:0].all(0) == [True, True]
     assert bt[:0].all(1) == []
-    assert bt[:, :0].all() is True
+    assert bt[:, :0].all()
     assert bt[:, :0].all(0) == []
     assert bt[:, :0].all(1) == [True, True, True]
 
-    assert bt[:0].any() is False
+    assert not bt[:0].any()
     assert bt[:0].any(0) == [False, False]
     assert bt[:0].any(1) == []
-    assert bt[:, :0].any() is False
+    assert not bt[:, :0].any()
     assert bt[:, :0].any(0) == []
     assert bt[:, :0].any(1) == [False, False, False]

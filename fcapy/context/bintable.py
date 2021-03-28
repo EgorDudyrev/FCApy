@@ -100,19 +100,15 @@ class BinTable:
                     flag_all = False
                     break
         elif axis == 0:
-            if self._height == 0:
+            if self._height == 0 or self._width == 0:
                 flag_all = [True for _ in range(self._width)]
-            elif self._width == 0:
-                flag_all = []
-            else:
-                flag_all = [all(row) for row in self._data]
-        elif axis == 1:
-            if self._height == 0:
-                flag_all = []
-            elif self._width == 0:
-                flag_all = [True for _ in range(self._height)]
             else:
                 flag_all = [all(self[:, j]) for j in range(self.width)]
+        elif axis == 1:
+            if self._height == 0 or self._width == 0:
+                flag_all = [True for _ in range(self._height)]
+            else:
+                flag_all = [all(row) for row in self._data]
         else:
             raise ValueError(f"BinTable.all error. `axis` value can only be None, 0 or 1 (got {axis})")
 
@@ -126,19 +122,15 @@ class BinTable:
                     flag_any = True
                     break
         elif axis == 0:
-            if self._height == 0:
+            if self._height == 0 or self._width == 0:
                 flag_any = [False for _ in range(self._width)]
-            elif self._width == 0:
-                flag_any = []
-            else:
-                flag_any = [any(row) for row in self._data]
-        elif axis == 1:
-            if self._height == 0:
-                flag_any = []
-            elif self._width == 0:
-                flag_any = [False for _ in range(self._height)]
             else:
                 flag_any = [any(self[:, j]) for j in range(self.width)]
+        elif axis == 1:
+            if self._height == 0 or self._width == 0:
+                flag_any = [False for _ in range(self._height)]
+            else:
+                flag_any = [any(row) for row in self._data]
         else:
             raise ValueError(f"BinTable.all error. `axis` value can only be None, 0 or 1 (got {axis})")
 
