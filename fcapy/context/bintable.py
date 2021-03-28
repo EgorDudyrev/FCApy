@@ -73,11 +73,11 @@ class BinTable:
 
     @property
     def height(self):
-        return self._height #len(self._data)
+        return self._height
 
     @property
     def width(self):
-        return self._width #len(self._data[0]) if len(self._data) > 0 else 0
+        return self._width
 
     @property
     def shape(self):
