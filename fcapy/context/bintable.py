@@ -18,11 +18,11 @@ class BinTable:
     Methods
     -------
     all(self, axis=None)
-        Return whether all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2) are True
+        Return whether all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2) are True
     any(self, axis=None)
-        Return whether any element (``axis``=0), row in columns (``axis``=1), column in rows (``axis``=2) is True
+        Return whether any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True
     sum(self, axis=None)
-        Return sum of all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2)
+        Return sum of all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2)
     arrow_up(self, row_indexes, base_columns=None)
         Return the maximal set of columns in which all rows (``row_indexes``) are True
     arrow_down(self, column_indexes, base_rows=None)
@@ -192,7 +192,7 @@ class BinTable:
         return hash(tuple([tuple(row) for row in self._data]))
 
     def all(self, axis=None):
-        """Return whether all elements (``axis``=0), rows in columns (``axis``=1), columns in rows (``axis``=2) are True"""
+        """Return whether all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2) are True"""
         def check_all_true(ar):
             return ar.all() if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else all(ar)
 
@@ -230,7 +230,7 @@ class BinTable:
         return flag_all
 
     def any(self, axis=None):
-        """Return whether any element (``axis``=0), row in columns (``axis``=1), column in rows (``axis``=2) is True"""
+        """Return whether any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True"""
         if axis is None:
             flag_any = False
             for row in self._data:
