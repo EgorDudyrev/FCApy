@@ -1,3 +1,4 @@
+import pytest
 from fcapy.context.bintable import BinTable
 from .data_to_test import animal_movement_data
 
@@ -58,3 +59,39 @@ def test_hash():
     set_big = {bt1, bt2, bt3}
     set_small = {bt1, bt2}
     assert set_big == set_small, 'BinTable.__hash__ failed'
+
+
+def test_all_any():
+    data = [[False, False], [False, True], [True, True]]
+    bt = BinTable(data)
+    assert bt.all() is False
+    assert bt.any() is True
+    assert bt[[2]].all() is True
+    assert bt[[0]].any() is False
+
+    assert bt.all(0) == [False, False, True]
+    assert bt.any(0) == [False, True, True]
+
+    assert bt[1:].all(1) == [False, True]
+    assert bt[:2].any(1) == [False, True]
+
+    with pytest.raises(ValueError):
+        bt.all(2)
+
+    with pytest.raises(ValueError):
+        bt.any(2)
+
+    # weird thing for numpy compatibility
+    assert bt[:0].all() is True
+    assert bt[:0].all(0) == [True, True]
+    assert bt[:0].all(1) == []
+    assert bt[:, :0].all() is True
+    assert bt[:, :0].all(0) == []
+    assert bt[:, :0].all(1) == [True, True, True]
+
+    assert bt[:0].any() is False
+    assert bt[:0].any(0) == [False, False]
+    assert bt[:0].any(1) == []
+    assert bt[:, :0].any() is False
+    assert bt[:, :0].any(0) == []
+    assert bt[:, :0].any(1) == [False, False, False]
