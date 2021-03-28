@@ -19,10 +19,10 @@ def animal_movement_data():
             [False, False, True, False],
             [False, False, True, False],
             [False, False, False, False]]
-    obj_names = ['dove', 'hen', 'duck', 'goose', 'owl',
+    obj_names = ('dove', 'hen', 'duck', 'goose', 'owl',
                  'hawk', 'eagle', 'fox', 'dog', 'wolf',
-                 'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow']
-    attr_names = ['fly', 'hunt', 'run', 'swim']
+                 'cat', 'tiger', 'lion', 'horse', 'zebra', 'cow')
+    attr_names = ('fly', 'hunt', 'run', 'swim')
     path = 'data/animal_movement'
     repr_data = """FormalContext (16 objects, 4 attributes, 24 connections)
      |fly|hunt|run|swim|

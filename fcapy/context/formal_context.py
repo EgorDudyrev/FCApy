@@ -6,6 +6,7 @@ It contains a class FormalContext which represents a Formal Context object from 
 from collections.abc import Iterable
 from itertools import combinations
 from numbers import Integral
+from frozendict import frozendict
 
 from fcapy.context.bintable import BinTable
 from fcapy.utils.utils import slice_list
@@ -106,14 +107,18 @@ class FormalContext:
     @object_names.setter
     def object_names(self, value):
         if value is None:
-            self._object_names = [str(idx) for idx in range(self.n_objects)] if self.data is not None else None
+            self._object_names = tuple([str(idx) for idx in range(self.n_objects)]) if self.data else None
             return
+
+        value = tuple(value)
 
         assert len(value) == len(self._data),\
             'FormalContext.object_names.setter: Length of "value" should match length of data'
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._object_names = value
+
+        self._object_names_i_map = frozendict({name: idx for idx, name in enumerate(value)})
 
     @property
     def attribute_names(self):
@@ -136,14 +141,18 @@ class FormalContext:
     @attribute_names.setter
     def attribute_names(self, value):
         if value is None:
-            self._attribute_names = [str(idx) for idx in range(self.n_attributes)] if self.data is not None else None
+            self._attribute_names = tuple([str(idx) for idx in range(self.n_attributes)]) if self.data else None
             return
+
+        value = tuple(value)
 
         assert len(value) == self._data.shape[1],\
             'FormalContext.attribute_names.setter: Length of "value" should match number of columns in ``data``'
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
+
+        self._attribute_names_i_map = {name: idx for idx, name in enumerate(value)}
 
     @property
     def target(self):
@@ -395,8 +404,8 @@ class FormalContext:
             A string with the context data formatted as the table
 
         """
-        objs_to_print = self.object_names
-        attrs_to_print = self.attribute_names
+        objs_to_print = list(self.object_names)
+        attrs_to_print = list(self.attribute_names)
         data_to_print = self.data.to_list()
         plot_objs_line = False
 

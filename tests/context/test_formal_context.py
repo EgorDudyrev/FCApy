@@ -22,10 +22,10 @@ def test_object_attribute_names(animal_movement_data):
     data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
 
     ctx = FormalContext(data=data)
-    obj_names_default = [str(idx) for idx in range(len(obj_names))]
+    obj_names_default = tuple([str(idx) for idx in range(len(obj_names))])
     assert ctx.object_names == obj_names_default,\
         f'FormalContext.object_names failed. Default object names should be {obj_names_default}'
-    attr_names_default = [str(idx) for idx in range(len(attr_names))]
+    attr_names_default = tuple([str(idx) for idx in range(len(attr_names))])
     assert ctx.attribute_names == attr_names_default, \
         f'FormalContext.attribute_names failed. Default attribute names should be {attr_names_default}'
 
