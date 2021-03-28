@@ -1,5 +1,5 @@
 import pytest
-from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
+from fcapy.context import FormalContext, BinTable, read_cxt, read_json, read_csv, from_pandas
 from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
 from operator import itemgetter
@@ -7,14 +7,12 @@ from operator import itemgetter
 
 def test_data_property(animal_movement_data):
     ctx = FormalContext()
+    assert ctx.data == BinTable([]), 'FormalContext.data failed'
 
     data = animal_movement_data['data']
     ctx = FormalContext(data=data)
     data_ = ctx.data
-    assert data == data_, 'FormalContext.data has changed the initial data'
-
-    with pytest.raises(AssertionError):
-        FormalContext(data=[])
+    assert BinTable(data) == data_, 'FormalContext.data has changed the initial data'
 
     with pytest.raises(AssertionError):
         FormalContext(data=[[0], [1, 2]])
@@ -24,10 +22,10 @@ def test_object_attribute_names(animal_movement_data):
     data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
 
     ctx = FormalContext(data=data)
-    obj_names_default = [str(idx) for idx in range(len(obj_names))]
+    obj_names_default = tuple([str(idx) for idx in range(len(obj_names))])
     assert ctx.object_names == obj_names_default,\
         f'FormalContext.object_names failed. Default object names should be {obj_names_default}'
-    attr_names_default = [str(idx) for idx in range(len(attr_names))]
+    attr_names_default = tuple([str(idx) for idx in range(len(attr_names))])
     assert ctx.attribute_names == attr_names_default, \
         f'FormalContext.attribute_names failed. Default attribute names should be {attr_names_default}'
 
@@ -77,7 +75,7 @@ def test_n_objects(animal_movement_data):
     data, obj_names = itemgetter('data', 'obj_names')(animal_movement_data)
 
     ctx = FormalContext()
-    assert ctx.n_objects is None, 'FormalContext.n_objects failed. Should be None since no data in the context'
+    assert ctx.n_objects == 0, 'FormalContext.n_objects failed. Should be 0 since no data in the context'
 
     ctx = FormalContext(data=data)
     assert ctx.n_objects == len(obj_names), f'FormalContext.n_objects failed. '\
@@ -90,7 +88,7 @@ def test_n_objects(animal_movement_data):
 def test_n_attributes(animal_movement_data):
     data, attr_names = itemgetter('data', 'attr_names')(animal_movement_data)
     ctx = FormalContext()
-    assert ctx.n_attributes is None, 'FormalContext.n_attributes failed. Should be None since no data in the context'
+    assert ctx.n_attributes == 0, 'FormalContext.n_attributes failed. Should be 0 since no data in the context'
 
     ctx = FormalContext(data=data)
     assert ctx.n_attributes == len(attr_names),\
@@ -210,11 +208,11 @@ def test_getitem():
     assert ctx[:2, :2] == ctx_small, "FormalContext.__getitem__ failed"
 
     ctx_oneobject = FormalContext(data[:1])
-    assert ctx[0] == ctx_oneobject, "FormalContext.__getitem__ failed"
+    assert ctx[:1] == ctx_oneobject, "FormalContext.__getitem__ failed"
     assert ctx[[0]] == ctx_oneobject, "FormalContext.__getitem__ failed"
 
     ctx_oneattribute = FormalContext([row[:1] for row in data])
-    assert ctx[:, 0] == ctx_oneattribute, "FormalContext.__getitem__ failed"
+    assert ctx[:, :1] == ctx_oneattribute, "FormalContext.__getitem__ failed"
     assert ctx[:, [0]] == ctx_oneattribute, "FormalContext.__getitem__ failed"
 
 

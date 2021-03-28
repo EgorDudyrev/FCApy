@@ -59,7 +59,7 @@ def write_cxt(context, path=None):
     file_data += '\n'.join(context.object_names) + '\n'
     file_data += '\n'.join(context.attribute_names) + '\n'
 
-    file_data += '\n'.join([''.join(['X' if b else '.' for b in line]) for line in context.data]) + '\n'
+    file_data += '\n'.join([''.join(['X' if b else '.' for b in line]) for line in context.data.to_list()]) + '\n'
 
     if path is None:
         return file_data
@@ -132,7 +132,7 @@ def write_json(context, path=None):
     object_info['Count'] = context.n_objects
     object_info['Data'] = [
         {'Count': sum(g_ms), 'Inds': [ind for ind in range(context.n_attributes) if g_ms[ind]]}
-        for g_ms in context.data
+        for g_ms in context.data.to_list()
     ]
     file_data = json.dumps([ctx_metadata, object_info], separators=(',', ':'))
 
@@ -208,7 +208,7 @@ def write_csv(context, path=None, sep=',', word_true='True', word_false='False')
 
     """
     file_data = sep+sep.join(context.attribute_names)+'\n'
-    for obj_name, data_line in zip(context.object_names, context.data):
+    for obj_name, data_line in zip(context.object_names, context.data.to_list()):
         file_data += obj_name+sep+sep.join([word_true if val else word_false for val in data_line])+'\n'
     file_data = file_data
 
@@ -256,5 +256,5 @@ def to_pandas(context):
 
     """
     import pandas as pd
-    df = pd.DataFrame(context.data, columns=context.attribute_names, index=context.object_names)
+    df = pd.DataFrame(context.data.to_list(), columns=context.attribute_names, index=context.object_names)
     return df

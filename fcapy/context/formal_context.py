@@ -5,6 +5,11 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from collections.abc import Iterable
 from itertools import combinations
+from numbers import Integral
+from frozendict import frozendict
+
+from fcapy.context.bintable import BinTable
+from fcapy.utils.utils import slice_list
 
 
 class FormalContext:
@@ -55,7 +60,7 @@ class FormalContext:
                 `str` with human readable description of the FormalContext (stored only in json file format)
 
         """
-        self.data = data
+        self._data = BinTable(data) if not isinstance(data, BinTable) else data
         self.object_names = object_names
         self.attribute_names = attribute_names
         self.description = kwargs.get('description')
@@ -81,28 +86,6 @@ class FormalContext:
         """
         return self._data
 
-    @data.setter
-    def data(self, value):
-        if value is None:
-            self._data = None
-            self._n_objects = None
-            self._n_attributes = None
-            return
-
-        assert isinstance(value, list), 'FormalContext.data.setter: "value" should have type "list"'
-        assert len(value) > 0, 'FormalContext.data.setter: "value" should have length > 0 (use [[]] for the empty data)'
-
-        length = len(value[0])
-        for g_ms in value:
-            assert len(g_ms) == length,\
-                'FormalContext.data.setter: All sublists of the "value" should have the same length'
-            for m in g_ms:
-                assert type(m) == bool, 'FormalContext.data.setter: "Value" should consist only of boolean number'
-
-        self._data = value
-        self._n_objects = len(value)
-        self._n_attributes = length
-
     @property
     def object_names(self):
         """Get of set the names of the objects in the context
@@ -124,14 +107,18 @@ class FormalContext:
     @object_names.setter
     def object_names(self, value):
         if value is None:
-            self._object_names = [str(idx) for idx in range(self.n_objects)] if self.data is not None else None
+            self._object_names = tuple([str(idx) for idx in range(self.n_objects)]) if self.data else None
             return
+
+        value = tuple(value)
 
         assert len(value) == len(self._data),\
             'FormalContext.object_names.setter: Length of "value" should match length of data'
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._object_names = value
+
+        self._object_names_i_map = frozendict({name: idx for idx, name in enumerate(value)})
 
     @property
     def attribute_names(self):
@@ -154,14 +141,18 @@ class FormalContext:
     @attribute_names.setter
     def attribute_names(self, value):
         if value is None:
-            self._attribute_names = [str(idx) for idx in range(self.n_attributes)] if self.data is not None else None
+            self._attribute_names = tuple([str(idx) for idx in range(self.n_attributes)]) if self.data else None
             return
 
-        assert len(value) == len(self._data[0]),\
-            'FormalContext.attribute_names.setter: Length of "value" should match length of data[0]'
+        value = tuple(value)
+
+        assert len(value) == self._data.shape[1],\
+            'FormalContext.attribute_names.setter: Length of "value" should match number of columns in ``data``'
         assert all(type(name) == str for name in value),\
             'FormalContext.object_names.setter: Object names should be of type str'
         self._attribute_names = value
+
+        self._attribute_names_i_map = {name: idx for idx, name in enumerate(value)}
 
     @property
     def target(self):
@@ -183,11 +174,10 @@ class FormalContext:
             Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
-        base_objects = list(range(self._n_objects)) if base_objects_i is None else base_objects_i
-        return [g_idx for g_idx in base_objects
-                if all([self._data[g_idx][m] for m in attribute_indexes])]
+        extension_i = self._data.arrow_down(attribute_indexes, base_objects_i)
+        return extension_i
 
-    def intention_i(self, object_indexes):
+    def intention_i(self, object_indexes, base_attrs_i=None):
         """Return indexes of maximal set of attributes which are shared by given ``object_indexes``
 
         Parameters
@@ -201,8 +191,8 @@ class FormalContext:
             Indexes of maximal set of attributes which are shared by ``objects_indexes``
 
         """
-        return [m_idx for m_idx in range(len(self._data[0]))
-                if all([self._data[g_idx][m_idx] for g_idx in object_indexes])]
+        intention_i = self._data.arrow_up(object_indexes, base_attrs_i)
+        return intention_i
 
     def intention(self, objects):
         """Return maximal set of attributes which are shared by given ``objects``
@@ -218,11 +208,10 @@ class FormalContext:
             Names of maximal set of attributes which are shared by given ``objects``
 
         """
-        obj_idx_dict = {g: g_idx for g_idx, g in enumerate(self._object_names)}
         obj_indices = []
         for g in objects:
             try:
-                obj_indices.append(obj_idx_dict[g])
+                obj_indices.append(self._object_names_i_map[g])
             except KeyError as e:
                 raise KeyError(f'FormalContext.intention: Context does not have an object "{g}"')
 
@@ -245,16 +234,22 @@ class FormalContext:
             Names of the maximal set of objects which share given ``attributes``
 
         """
-        attr_idx_dict = {m: m_idx for m_idx, m in enumerate(self._attribute_names)}
         attr_indices = []
         for m in attributes:
             try:
-                attr_indices.append(attr_idx_dict[m])
+                attr_indices.append(self._attribute_names_i_map[m])
             except KeyError as e:
                 raise KeyError(f'FormalContext.extension: Context does not have an attribute "{m}"')
 
-        base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]\
-            if base_objects is not None else list(range(self._n_objects))
+        if base_objects is not None:
+            base_objects_i = []
+            for g in base_objects:
+                try:
+                    base_objects_i.append(self._object_names_i_map[g])
+                except KeyError as e:
+                    raise KeyError(f'FormalContext.extension: Context does not have an object "{g}"')
+        else:
+            base_objects_i = list(range(self.n_objects))
 
         extension_i = self.extension_i(attr_indices, base_objects_i=base_objects_i)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
@@ -263,12 +258,12 @@ class FormalContext:
     @property
     def n_objects(self):
         """Get the number of objects in the context (i.e. len(`data`))"""
-        return self._n_objects
+        return self._data.height
 
     @property
     def n_attributes(self):
         """Get the number of attributes in the context (i.e. len(`data[0]`)"""
-        return self._n_attributes
+        return self._data.width
 
     @property
     def description(self):
@@ -388,7 +383,7 @@ class FormalContext:
     def __repr__(self):
         data_to_print = f'FormalContext ' +\
                         f'({self.n_objects} objects, {self.n_attributes} attributes, ' +\
-                        f'{sum([sum(l) for l in self.data])} connections)\n'
+                        f'{self.data.sum()} connections)\n'
         data_to_print += self.print_data(max_n_objects=20, max_n_attributes=10)
         return data_to_print
 
@@ -410,9 +405,9 @@ class FormalContext:
             A string with the context data formatted as the table
 
         """
-        objs_to_print = self.object_names
-        attrs_to_print = self.attribute_names
-        data_to_print = self.data
+        objs_to_print = list(self.object_names)
+        attrs_to_print = list(self.attribute_names)
+        data_to_print = self.data.to_list()
         plot_objs_line = False
 
         if self.n_attributes > max_n_attributes:
@@ -539,34 +534,22 @@ class FormalContext:
         return is_not_equal
 
     def __hash__(self):
-        return hash((tuple(self._object_names), tuple(self._attribute_names),
-                     tuple([tuple(row) for row in self._data])))
+        return hash((tuple(self._object_names), tuple(self._attribute_names), hash(self._data)))
 
     def __getitem__(self, item):
         if type(item) != tuple:
-            item = (item, slice(0, self._n_attributes))
-
-        def slice_list(lst, slicer):
-            if isinstance(slicer, slice):
-                lst = lst[slicer]
-            elif isinstance(slicer, Iterable):
-                lst = [lst[x] for x in slicer]
-            else:
-                lst = [lst[slicer]]
-            return lst
-
-        data = slice_list(self._data, item[0])
-        data = [list(row) for row in zip(*data)]  # transpose data
-        data = slice_list(data, item[1])
-        data = [list(row) for row in zip(*data)]  # transpose data again
-
-        if any([isinstance(i, slice) for i in item]):
-            object_names = slice_list(self._object_names, item[0])
-            attribute_names = slice_list(self._attribute_names, item[1])
-            target = slice_list(self._target, item[0]) if self._target is not None else None
-            data = FormalContext(data, object_names, attribute_names, target=target)
+            row_slice = item
+            column_slice = slice(0, self.n_attributes)
         else:
-            data = data[0][0]
+            row_slice, column_slice = item
+
+        data = self._data[row_slice, column_slice]
+
+        if not (isinstance(row_slice, Integral) and isinstance(column_slice, Integral)):
+            object_names = slice_list(self._object_names, row_slice)
+            attribute_names = slice_list(self._attribute_names, column_slice)
+            target = slice_list(self._target, row_slice) if self._target is not None else None
+            data = FormalContext(data, object_names, attribute_names, target=target)
 
         return data
 
@@ -583,4 +566,4 @@ class FormalContext:
             Name of attributes from the context
 
         """
-        return self._data, self._attribute_names
+        return self._data.to_list(), self._attribute_names
