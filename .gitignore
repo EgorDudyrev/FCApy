@@ -1,5 +1,8 @@
 .idea/*
 **/__pycache__/**
 *.ipynb_checkpoints*
-*.coverage
+.coverage*
 coverage.xml
+build/*
+fcapy.egg-info/*
+dist/*
