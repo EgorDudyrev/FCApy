@@ -11,23 +11,47 @@ def test_init():
     assert s._leq_func == leq_func
 
 
+def test_leq_elements():
+    elements = ['', 'a', 'b', 'ab']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    leq = s.leq_elements(1, 2)
+    assert not leq
+
+    leq = s.leq_elements(0, 2)
+    assert leq
+
+    leq = s.leq_elements(2, 0)
+    assert not leq
+
+    leq = s.leq_elements(2, 2)
+    assert leq
+
+
 def test_join_elements():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
     join = s.join_elements([1, 2])
+    assert join == [3]
 
-    assert join == 0
+    join = s.join_elements([0, 2])
+    assert join == [2]
+
+    assert s.join_elements() == [3]
 
 
 def test_meet_elements():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    join = s.join_elements([1, 2])
+    meet = s.meet_elements([1, 2])
+    assert meet == [0]
 
-    # in the case of linear order, meet is the same as minimum
-    assert join == 3
+    meet = s.meet_elements([1, 3])
+    assert meet == [1]
+
+    assert s.meet_elements() == [0]
 
 
 def test_getitem():
@@ -38,6 +62,9 @@ def test_getitem():
     assert s[1] == 'a'
     assert s[2] == 'b'
     assert s[3] == 'ab'
+
+    assert s[:2] == elements[:2]
+    assert s[[1,2,3]] == elements[1:]
 
 
 def test_eq():
@@ -87,7 +114,7 @@ def test_xor():
     s1 = POSet(elements[:-1], leq_func)
     s2 = POSet(elements[1:], leq_func)
     s_xor = POSet(elements_xor, leq_func)
-    assert s1 | s2 == s_xor
+    assert s1 ^ s2 == s_xor
 
 
 def test_len():
@@ -121,3 +148,31 @@ def test_remove():
     s = POSet(elements, leq_func)
     s.remove(elements[-1])
     assert s.elements == elements[:-1]
+
+
+def test_super_elements():
+    elements = ['', 'a', 'b', 'ab']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    sups = s.super_elements(3)
+    assert sups == []
+
+    sups = s.super_elements(2)
+    assert sups == [3]
+
+    sups = s.super_elements(0)
+    assert sups == [1, 2, 3]
+
+
+def test_sub_elements():
+    elements = ['', 'a', 'b', 'ab']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    subs = s.sub_elements(0)
+    assert subs == []
+
+    subs = s.sub_elements(2)
+    assert subs == [0]
+
+    subs = s.sub_elements(3)
+    assert subs == [0, 1, 2]
