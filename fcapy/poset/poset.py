@@ -4,9 +4,9 @@ This module provides a POSet class. It may be considered as the main module (and
 POSet (Partially Ordered Set) is a set in which some elements are bigger then other,
 some are smaller and some are incomparable
 """
-from numbers import Integral
 from fcapy.utils.utils import slice_list
 from copy import copy
+from collections.abc import Collection
 
 
 class POSet:
@@ -22,19 +22,19 @@ class POSet:
     def leq_func(self):
         return self._leq_func
 
-    def super_elements(self, element_index:int):
+    def super_elements(self, element_index: int):
         el = self._elements[element_index]
         sup_indexes = [i for i, el_comp in enumerate(self._elements)
                        if self._leq_func(el, el_comp) and i != element_index]
         return sup_indexes
 
-    def sub_elements(self, element_index:int):
+    def sub_elements(self, element_index: int):
         el = self._elements[element_index]
         sub_indexes = [i for i, el_comp in enumerate(self._elements)
                        if self._leq_func(el_comp, el) and i != element_index]
         return sub_indexes
 
-    def join_elements(self, element_indexes=None):
+    def join_elements(self, element_indexes: Collection = None):
         if element_indexes is None or len(element_indexes)==0:
             element_indexes = list(range(len(self._elements)))
 
@@ -48,7 +48,7 @@ class POSet:
 
         return join_indexes[0] if len(join_indexes) == 1 else None
 
-    def meet_elements(self, element_indexes=None):
+    def meet_elements(self, element_indexes: Collection = None):
         if element_indexes is None or len(element_indexes) == 0:
             element_indexes = list(range(len(self._elements)))
 
@@ -62,19 +62,19 @@ class POSet:
 
         return meet_indexes[0] if len(meet_indexes) == 1 else None
 
-    def supremum(self, element_indexes=None):
+    def supremum(self, element_indexes: Collection = None):
         """Alias for `self.join_elements(element_indexes)`"""
         return self.join_elements(element_indexes)
 
-    def infimum(self, element_indexes=None):
+    def infimum(self, element_indexes: Collection = None):
         """Alias for `self.meet_elements(element_indexes)`"""
         return self.meet_elements(element_indexes)
 
-    def leq_elements(self, a_index, b_index):
+    def leq_elements(self, a_index: int, b_index: int):
         return self._leq_func(self._elements[a_index], self._elements[b_index])
 
-    def __getitem__(self, item):
-        return slice_list(self._elements, item) if not isinstance(item, Integral) else self._elements[item]
+    def __getitem__(self, item: int or slice or Collection):
+        return slice_list(self._elements, item) if not isinstance(item, int) else self._elements[item]
 
     def __and__(self, other):
         assert self._leq_func == other.leq_func,\
@@ -105,11 +105,11 @@ class POSet:
     def __delitem__(self, key):
         del self._elements[key]
 
-    def add(self, other):
-        self._elements.append(other)
+    def add(self, element):
+        self._elements.append(element)
 
-    def remove(self, other):
-        self._elements.remove(other)
+    def remove(self, element):
+        self._elements.remove(element)
 
     def __eq__(self, other):
         return self._leq_func == other._leq_func and self._elements == other._elements
