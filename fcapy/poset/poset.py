@@ -1,7 +1,7 @@
 """
 This module provides a POSet class. It may be considered as the main module (and class) of poset subpackage
 
-POSet (Partialy Ordered Set) is a set in which some elements are bigger then other,
+POSet (Partially Ordered Set) is a set in which some elements are bigger then other,
 some are smaller and some are incomparable
 """
 from numbers import Integral
@@ -46,8 +46,7 @@ class POSet:
             sups_indexes = self.super_elements(el_idx)
             join_indexes = [idx for idx in join_indexes if idx not in sups_indexes]
 
-        #TODO: Check if there may be a number of join_indexes or just one
-        return join_indexes
+        return join_indexes[0] if len(join_indexes) == 1 else None
 
     def meet_elements(self, element_indexes=None):
         if element_indexes is None or len(element_indexes) == 0:
@@ -61,8 +60,15 @@ class POSet:
             subs_indexes = self.sub_elements(el_idx)
             meet_indexes = [idx for idx in meet_indexes if idx not in subs_indexes]
 
-        # TODO: Check if there may be a number of meet_indexes or just one
-        return meet_indexes
+        return meet_indexes[0] if len(meet_indexes) == 1 else None
+
+    def supremum(self, element_indexes=None):
+        """Alias for `self.join_elements(element_indexes)`"""
+        return self.join_elements(element_indexes)
+
+    def infimum(self, element_indexes=None):
+        """Alias for `self.meet_elements(element_indexes)`"""
+        return self.meet_elements(element_indexes)
 
     def leq_elements(self, a_index, b_index):
         return self._leq_func(self._elements[a_index], self._elements[b_index])

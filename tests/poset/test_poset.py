@@ -28,30 +28,40 @@ def test_leq_elements():
     assert leq
 
 
-def test_join_elements():
-    elements = ['', 'a', 'b', 'ab']
+def test_join_elements_supremum():
+    elements = ['a', 'b', 'ab', 'c']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    join = s.join_elements([1, 2])
-    assert join == [3]
 
-    join = s.join_elements([0, 2])
-    assert join == [2]
+    for func in [s.join_elements, s.supremum]:
+        join = func([0, 1])
+        assert join == 2
 
-    assert s.join_elements() == [3]
+        join = func([0, 2])
+        assert join == 2
+
+        assert func() is None
+
+        join = func([1, 3])
+        assert join is None
 
 
-def test_meet_elements():
-    elements = ['', 'a', 'b', 'ab']
+def test_meet_elements_infimum():
+    elements = ['a', 'b', 'ab', 'ac']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    meet = s.meet_elements([1, 2])
-    assert meet == [0]
 
-    meet = s.meet_elements([1, 3])
-    assert meet == [1]
+    for func in [s.meet_elements, s.infimum]:
+        meet = func([2, 3])
+        assert meet == 0
 
-    assert s.meet_elements() == [0]
+        meet = func([0, 2])
+        assert meet == 0
+
+        assert func() is None
+
+        meet = func([1, 3])
+        assert meet is None
 
 
 def test_getitem():
