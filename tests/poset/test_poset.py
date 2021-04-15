@@ -1,5 +1,6 @@
 from fcapy.poset import POSet
 import pytest
+from copy import deepcopy
 
 
 def test_init():
@@ -227,31 +228,73 @@ def test_delitem():
     del_i = 1
     elements_del = [el for i, el in enumerate(elements) if i != del_i]
     leq_func = lambda x, y: x in y
-    s = POSet(elements, leq_func)
-    del s[del_i]
-    assert s.elements == elements_del
 
-    #TODO: Add test of caches
+    # Test if delitem operation is working
+    for use_cache in [False, True]:
+        s = POSet(elements, leq_func, use_cache=use_cache)
+        s_del_true = POSet(elements_del, leq_func, use_cache=use_cache)
+        del s[del_i]
+        assert s == s_del_true
+
+    # Test if cache is changed correctly after removing an element
+    s = POSet(elements, leq_func, use_cache=True)
+    s_del_true = POSet(elements_del, leq_func, use_cache=True)
+    s.fill_up_cache()
+    s_del_true.fill_up_cache()
+
+    del s[del_i]
+    assert s == s_del_true
+    assert s._cache == s_del_true._cache
 
 
 def test_add():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
-    s = POSet(elements[:-1], leq_func)
-    s.add(elements[-1])
-    assert s.elements == elements
 
-    #TODO: Add test of caches
+    # Test if add operation is working
+    for use_cache in [False, True]:
+        s = POSet(elements[:-1], leq_func, use_cache=use_cache)
+        s.add(elements[-1])
+        s_add_true = POSet(elements, leq_func, use_cache=use_cache)
+        assert s == s_add_true
+
+    # Test if cache is not changed after adding new element
+    s = POSet(elements[:-1], leq_func, use_cache=True)
+    s_add_true = POSet(elements, leq_func, use_cache=True)
+    s.fill_up_cache()
+    s_add_true.fill_up_cache()
+
+    cache_old = deepcopy(s._cache)
+
+    s.add(elements[-1])
+    assert s._cache == cache_old
+    s.fill_up_cache()
+    assert s == s_add_true
+    assert s._cache == s_add_true._cache
 
 
 def test_remove():
     elements = ['', 'a', 'b', 'ab']
+    remove_i = 1
+    elements_remove = [el for i, el in enumerate(elements) if i != remove_i]
     leq_func = lambda x, y: x in y
-    s = POSet(elements, leq_func)
-    s.remove(elements[-1])
-    assert s.elements == elements[:-1]
 
-    #TODO: Add test of caches
+    # Test if delitem operation is working
+    for use_cache in [False, True]:
+        s = POSet(elements, leq_func, use_cache=use_cache)
+        s_remove_true = POSet(elements_remove, leq_func, use_cache=use_cache)
+        s.remove(elements[remove_i])
+        assert s == s_remove_true
+
+    # Test if cache is changed correctly after removing an element
+    s = POSet(elements, leq_func, use_cache=True)
+    s_remove_true = POSet(elements_remove, leq_func, use_cache=True)
+    s.fill_up_cache()
+    s_remove_true.fill_up_cache()
+
+    s.remove(elements[remove_i])
+    assert s == s_remove_true
+    assert s._cache == s_remove_true._cache
 
 
 def test_super_elements():
