@@ -17,7 +17,8 @@ def test_init():
 
     s = POSet(elements, leq_func)
     assert s._use_cache
-    assert s._cache
+    assert s._cache_leq
+    assert s._cache_subelements
 
 
 def test_leq_elements():
@@ -38,22 +39,31 @@ def test_leq_elements():
         assert leq
 
 
-def test_fill_up_cache():
+def test_fill_up_caches():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func, use_cache=False)
     with pytest.raises(AssertionError):
-        s.fill_up_cache()
+        s.fill_up_caches()
 
     s = POSet(elements, leq_func, use_cache=True)
-    s.fill_up_cache()
-    cache_true = {
+    s.fill_up_leq_cache()
+    leq_cache_true = {
         0: {0: True, 1: True, 2: True, 3: True},
         1: {0: False, 1: True, 2: False, 3: True},
         2: {0: False, 1: False, 2: True, 3: True},
         3: {0: False, 1: False, 2: False, 3: True}
     }
-    assert s._cache == cache_true
+    assert s._cache_leq == leq_cache_true
+
+    s.fill_up_subelements_cache()
+    subelements_cache_true = {
+        0: set(),
+        1: {0},
+        2: {0},
+        3: {0, 1, 2},
+    }
+    assert s._cache_subelements == subelements_cache_true
 
 
 def test_join_elements_supremum():
@@ -143,15 +153,16 @@ def test_and():
 
     # Test if cache of intersection is intersection of filled up caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
-    s1.fill_up_cache()
+    s1.fill_up_caches()
     s2 = POSet(elements_2, leq_func, use_cache=True)
-    s2.fill_up_cache()
+    s2.fill_up_caches()
     s_and_true = POSet(elements_and, leq_func)
-    s_and_true.fill_up_cache()
+    s_and_true.fill_up_caches()
 
     s_and_fact = s1 & s2
     assert s_and_fact == s_and_true
-    assert s_and_fact._cache == s_and_true._cache
+    assert s_and_fact._cache_leq == s_and_true._cache_leq
+    assert s_and_fact._cache_subelements == s_and_true._cache_subelements
 
     # Test if cache of intersection is union of caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
@@ -164,7 +175,8 @@ def test_and():
 
     s_and_fact = s1 & s2
     assert s_and_fact == s_and_true
-    assert s_and_fact._cache == s_and_true._cache
+    assert s_and_fact._cache_leq == s_and_true._cache_leq
+    assert s_and_fact._cache_subelements == s_and_true._cache_subelements
 
 
 def test_or():
@@ -183,16 +195,17 @@ def test_or():
 
     # Test if cache of union is (almost) union of filled up caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
-    s1.fill_up_cache()
+    s1.fill_up_caches()
     s2 = POSet(elements_2, leq_func, use_cache=True)
-    s2.fill_up_cache()
+    s2.fill_up_caches()
     s_or_true = POSet(elements_or, leq_func, use_cache=True)
-    s_or_true.fill_up_cache()
-    del s_or_true._cache[0][3], s_or_true._cache[3][0]
+    s_or_true.fill_up_caches()
+    del s_or_true._cache_leq[0][3], s_or_true._cache_leq[3][0]
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
-    assert s_or_fact._cache == s_or_true._cache
+    assert s_or_fact._cache_leq == s_or_true._cache_leq
+    assert s_or_fact._cache_subelements == s_or_true._cache_subelements
 
 
 def test_xor():
@@ -211,16 +224,17 @@ def test_xor():
 
     # Test if cache of xor is xor of filled up caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
-    s1.fill_up_cache()
+    s1.fill_up_caches()
     s2 = POSet(elements_2, leq_func, use_cache=True)
-    s2.fill_up_cache()
+    s2.fill_up_caches()
     s_xor_true = POSet(elements_xor, leq_func, use_cache=True)
     s_xor_true.leq_elements(0, 0)
     s_xor_true.leq_elements(1, 1)
 
     s_xor_fact = s1 ^ s2
     assert s_xor_fact == s_xor_true
-    assert s_xor_fact._cache == s_xor_true._cache
+    assert s_xor_fact._cache_leq == s_xor_true._cache_leq
+    assert s_xor_fact._cache_subelements == s_xor_true._cache_subelements
 
 
 def test_subtraction():
@@ -239,15 +253,16 @@ def test_subtraction():
 
     # Test if cache of subtraction is subtraction of filled up caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
-    s1.fill_up_cache()
+    s1.fill_up_caches()
     s2 = POSet(elements_2, leq_func, use_cache=True)
-    s2.fill_up_cache()
+    s2.fill_up_caches()
     s_sub_true = POSet(elements_sub, leq_func, use_cache=True)
-    s_sub_true.fill_up_cache()
+    s_sub_true.fill_up_caches()
 
     s_sub_fact = s1 - s2
     assert s_sub_fact == s_sub_true
-    assert s_sub_fact._cache == s_sub_true._cache
+    assert s_sub_fact._cache_leq == s_sub_true._cache_leq
+    assert s_sub_fact._cache_subelements == s_sub_true._cache_subelements
 
 
 def test_len():
@@ -273,12 +288,13 @@ def test_delitem():
     # Test if cache is changed correctly after removing an element
     s = POSet(elements, leq_func, use_cache=True)
     s_del_true = POSet(elements_del, leq_func, use_cache=True)
-    s.fill_up_cache()
-    s_del_true.fill_up_cache()
+    s.fill_up_caches()
+    s_del_true.fill_up_caches()
 
     del s[del_i]
     assert s == s_del_true
-    assert s._cache == s_del_true._cache
+    assert s._cache_leq == s_del_true._cache_leq
+    assert s._cache_subelements == s_del_true._cache_subelements
 
 
 def test_add():
@@ -295,17 +311,18 @@ def test_add():
     # Test if cache is not changed after adding new element
     s = POSet(elements[:-1], leq_func, use_cache=True)
     s_add_true = POSet(elements, leq_func, use_cache=True)
-    s.fill_up_cache()
-    s_add_true.fill_up_cache()
+    s.fill_up_caches()
+    s_add_true.fill_up_caches()
 
-    cache_true = deepcopy(s._cache)
+    cache_true = deepcopy(s._cache_leq)
     cache_true[len(elements)-1] = {}
 
     s.add(elements[-1])
-    assert s._cache == cache_true
-    s.fill_up_cache()
+    assert s._cache_leq == cache_true
+    s.fill_up_caches()
     assert s == s_add_true
-    assert s._cache == s_add_true._cache
+    assert s._cache_leq == s_add_true._cache_leq
+    assert s._cache_subelements == s_add_true._cache_subelements
 
 
 def test_remove():
@@ -324,12 +341,13 @@ def test_remove():
     # Test if cache is changed correctly after removing an element
     s = POSet(elements, leq_func, use_cache=True)
     s_remove_true = POSet(elements_remove, leq_func, use_cache=True)
-    s.fill_up_cache()
-    s_remove_true.fill_up_cache()
+    s.fill_up_caches()
+    s_remove_true.fill_up_caches()
 
     s.remove(elements[remove_i])
     assert s == s_remove_true
-    assert s._cache == s_remove_true._cache
+    assert s._cache_leq == s_remove_true._cache_leq
+    assert s._cache_subelements == s_remove_true._cache_subelements
 
 
 def test_super_elements():
