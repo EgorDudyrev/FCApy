@@ -271,10 +271,11 @@ def test_add():
     s.fill_up_cache()
     s_add_true.fill_up_cache()
 
-    cache_old = deepcopy(s._cache)
+    cache_true = deepcopy(s._cache)
+    cache_true[len(elements)-1] = {}
 
     s.add(elements[-1])
-    assert s._cache == cache_old
+    assert s._cache == cache_true
     s.fill_up_cache()
     assert s == s_add_true
     assert s._cache == s_add_true._cache

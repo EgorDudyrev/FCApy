@@ -170,11 +170,23 @@ class POSet:
     def __delitem__(self, key):
         del self._elements[key]
 
+        def decr_idx(idx):
+            return idx-1 if idx > key else idx
+
+        if self._use_cache:
+            del self._cache[key]
+            self._cache = {decr_idx(idx_a): {decr_idx(idx_b): rel
+                                             for idx_b, rel in rel_dict.items() if idx_b != key}
+                           for idx_a, rel_dict in self._cache.items()}
+
     def add(self, element):
         self._elements.append(element)
+        if self._use_cache:
+            self._cache[len(self._elements)-1] = {}
 
     def remove(self, element):
-        self._elements.remove(element)
+        idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
+        del self[idx]
 
     def __eq__(self, other):
         return self._leq_func == other._leq_func and self._elements == other._elements
