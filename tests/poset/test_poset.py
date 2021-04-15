@@ -128,23 +128,25 @@ def test_eq():
 
 
 def test_and():
-    elements = ['', 'a', 'b', 'ab']
+    elements_1 = ['', 'a', 'b']
+    elements_2 = ['a', 'b', 'ab']
+    elements_and = ['a', 'b']
     leq_func = lambda x, y: x in y
 
     # Test if intersection operation is working
     for use_cache in [False, True]:
-        s1 = POSet(elements[:-1], leq_func, use_cache=use_cache)
-        s2 = POSet(elements[1:], leq_func, use_cache=use_cache)
-        s_and_true = POSet(elements[1:-1], leq_func, use_cache=use_cache)
+        s1 = POSet(elements_1, leq_func, use_cache=use_cache)
+        s2 = POSet(elements_2, leq_func, use_cache=use_cache)
+        s_and_true = POSet(elements_and, leq_func, use_cache=use_cache)
         s_and_fact = s1 & s2
         assert s_and_fact == s_and_true
 
     # Test if cache of intersection is intersection of filled up caches
-    s1 = POSet(elements[:-1], leq_func, use_cache=True)
+    s1 = POSet(elements_1, leq_func, use_cache=True)
     s1.fill_up_cache()
-    s2 = POSet(elements[1:], leq_func, use_cache=True)
+    s2 = POSet(elements_2, leq_func, use_cache=True)
     s2.fill_up_cache()
-    s_and_true = POSet(elements[1:-1], leq_func)
+    s_and_true = POSet(elements_and, leq_func)
     s_and_true.fill_up_cache()
 
     s_and_fact = s1 & s2
@@ -152,11 +154,11 @@ def test_and():
     assert s_and_fact._cache == s_and_true._cache
 
     # Test if cache of intersection is union of caches
-    s1 = POSet(elements, leq_func, use_cache=True)
+    s1 = POSet(elements_1, leq_func, use_cache=True)
     s1.leq_elements(0, 1)
-    s2 = POSet(elements[:-1], leq_func, use_cache=True)
+    s2 = POSet(elements_1, leq_func, use_cache=True)
     s2.leq_elements(1, 2)
-    s_and_true = POSet(elements[:-1], leq_func)
+    s_and_true = POSet(elements_1, leq_func)
     s_and_true.leq_elements(0,1)
     s_and_true.leq_elements(1,2)
 
@@ -166,24 +168,27 @@ def test_and():
 
 
 def test_or():
-    elements = ['', 'a', 'b', 'ab']
+    elements_1 = ['', 'a', 'b']
+    elements_2 = ['a', 'b', 'ab']
+    elements_or = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
 
     # Test if union operation is working
     for use_cache in [False, True]:
-        s1 = POSet(elements[:-1], leq_func, use_cache=use_cache)
-        s2 = POSet(elements[1:], leq_func, use_cache=use_cache)
-        s_or_true = POSet(elements, leq_func, use_cache=use_cache)
+        s1 = POSet(elements_1, leq_func, use_cache=use_cache)
+        s2 = POSet(elements_2, leq_func, use_cache=use_cache)
+        s_or_true = POSet(elements_or, leq_func, use_cache=use_cache)
         s_or_fact = s1 | s2
         assert s_or_fact == s_or_true
 
-    # Test if cache of union is union of filled up caches
-    s1 = POSet(elements[:-1], leq_func, use_cache=True)
+    # Test if cache of union is (almost) union of filled up caches
+    s1 = POSet(elements_1, leq_func, use_cache=True)
     s1.fill_up_cache()
-    s2 = POSet(elements[1:], leq_func, use_cache=True)
+    s2 = POSet(elements_2, leq_func, use_cache=True)
     s2.fill_up_cache()
-    s_or_true = POSet(elements, leq_func, use_cache=True)
+    s_or_true = POSet(elements_or, leq_func, use_cache=True)
     s_or_true.fill_up_cache()
+    del s_or_true._cache[0][3], s_or_true._cache[3][0]
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
@@ -191,25 +196,27 @@ def test_or():
 
 
 def test_xor():
-    elements = ['', 'a', 'b', 'ab']
+    elements_1 = ['', 'a', 'b']
+    elements_2 = ['a', 'b', 'ab']
     elements_xor = ['', 'ab']
     leq_func = lambda x, y: x in y
 
     # Test if xor operation is working
     for use_cache in [False, True]:
-        s1 = POSet(elements[:-1], leq_func, use_cache=use_cache)
-        s2 = POSet(elements[1:], leq_func, use_cache=use_cache)
+        s1 = POSet(elements_1, leq_func, use_cache=use_cache)
+        s2 = POSet(elements_2, leq_func, use_cache=use_cache)
         s_xor_true = POSet(elements_xor, leq_func, use_cache=use_cache)
         s_xor_fact = s1 ^ s2
         assert s_xor_fact == s_xor_true
 
     # Test if cache of xor is xor of filled up caches
-    s1 = POSet(elements[:-1], leq_func, use_cache=True)
+    s1 = POSet(elements_1, leq_func, use_cache=True)
     s1.fill_up_cache()
-    s2 = POSet(elements[1:], leq_func, use_cache=True)
+    s2 = POSet(elements_2, leq_func, use_cache=True)
     s2.fill_up_cache()
     s_xor_true = POSet(elements_xor, leq_func, use_cache=True)
-    s_xor_true.fill_up_cache()
+    s_xor_true.leq_elements(0, 0)
+    s_xor_true.leq_elements(1, 1)
 
     s_xor_fact = s1 ^ s2
     assert s_xor_fact == s_xor_true

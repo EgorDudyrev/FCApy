@@ -106,16 +106,54 @@ class POSet:
             'POSet.__and__ assertion. Compared posets have to have the same leq_func'
         elements_and = [x for x in self._elements if x in other._elements]
         s = POSet(elements_and, self._leq_func)
+
         return s
 
     def _and_cache(self, other):
-        #TODO: Rewrite to use cache
-
         assert self._leq_func == other.leq_func, \
             'POSet.__and__ assertion. Compared posets have to have the same leq_func'
         elements_and = [x for x in self._elements if x in other._elements]
-        s = POSet(elements_and, self._leq_func)
+        cache_and = self._combine_caches(self._cache, self._elements, other._cache, other._elements, elements_and)
+
+        s = POSet(elements_and, self._leq_func, use_cache=True)
+        s._cache = cache_and
         return s
+
+    @staticmethod
+    def _combine_caches(cache_a, elements_a, cache_b, elements_b, elements_combined):
+        def map_cache_to_comb_element(
+                cache_base, elements_base, el_idx_map_base,
+                el_comb, elements_comb, el_idx_map_comb
+        ):
+            if el_comb in el_idx_map_base:
+                idx_base = el_idx_map_base[el_comb]
+                cache_comb = {}
+                for idx, rel in cache_base[idx_base].items():
+                    el_base = elements_base[idx]
+                    if el_base in elements_comb:
+                        idx_comb = el_idx_map_comb[el_base]
+                        cache_comb[idx_comb] = rel
+            else:
+                cache_comb = {}
+            return cache_comb
+
+        a_el_idx_map = {el: idx for idx, el in enumerate(elements_a)}
+        b_el_idx_map = {el: idx for idx, el in enumerate(elements_b)}
+        comb_el_idx_map = {el: idx for idx, el in enumerate(elements_combined)}
+
+        cache_combined = {}
+        for idx_comb, el_comb in enumerate(elements_combined):
+            cached_a = map_cache_to_comb_element(cache_a, elements_a, a_el_idx_map,
+                                                 el_comb, elements_combined, comb_el_idx_map)
+            cached_b = map_cache_to_comb_element(cache_b, elements_b, b_el_idx_map,
+                                                 el_comb, elements_combined, comb_el_idx_map)
+
+            cached_comb = cached_a
+            for idx, rel in cached_b.items():
+                cached_comb[idx] = rel
+            cache_combined[idx_comb] = cached_comb
+
+        return cache_combined
 
     def __or__(self, other):
         """Placeholder to use instead of either self._or_nocache(...) or self._or_cache(...)"""
@@ -133,13 +171,14 @@ class POSet:
         return s
 
     def _or_cache(self, other):
-        #TODO: Rewrite to use cache
-
         assert self._leq_func == other.leq_func, \
             'POSet.__or__ assertion. Compared posets have to have the same leq_func'
         elements_or = [x for x in self._elements]
         elements_or += [x for x in other._elements if x not in elements_or]
-        s = POSet(elements_or, self._leq_func)
+        cache_or = self._combine_caches(self._cache, self._elements, other._cache, other._elements, elements_or)
+
+        s = POSet(elements_or, self._leq_func, use_cache=True)
+        s._cache = cache_or
         return s
 
     def __xor__(self, other):
@@ -152,19 +191,21 @@ class POSet:
     def _xor_nocache(self, other):
         assert self._leq_func == other.leq_func, \
             'POSet.__xor__ assertion. Compared posets have to have the same leq_func'
-        elements_or = [x for x in self._elements if x not in other._elements]
-        elements_or += [x for x in other._elements if x not in self._elements]
-        s = POSet(elements_or, self._leq_func)
+        elements_xor = [x for x in self._elements if x not in other._elements]
+        elements_xor += [x for x in other._elements if x not in self._elements]
+
+        s = POSet(elements_xor, self._leq_func)
         return s
 
     def _xor_cache(self, other):
-        #TODO: Rewrite to use cache
-
         assert self._leq_func == other.leq_func, \
             'POSet.__xor__ assertion. Compared posets have to have the same leq_func'
-        elements_or = [x for x in self._elements if x not in other._elements]
-        elements_or += [x for x in other._elements if x not in self._elements]
-        s = POSet(elements_or, self._leq_func)
+        elements_xor = [x for x in self._elements if x not in other._elements]
+        elements_xor += [x for x in other._elements if x not in self._elements]
+        cache_xor = self._combine_caches(self._cache, self._elements, other._cache, other._elements, elements_xor)
+
+        s = POSet(elements_xor, self._leq_func)
+        s._cache = cache_xor
         return s
 
     def __len__(self):
