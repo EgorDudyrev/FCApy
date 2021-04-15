@@ -223,6 +223,33 @@ def test_xor():
     assert s_xor_fact._cache == s_xor_true._cache
 
 
+def test_subtraction():
+    elements_1 = ['', 'a', 'b']
+    elements_2 = ['', 'ab']
+    elements_sub = ['a', 'b']
+    leq_func = lambda x, y: x in y
+
+    # Test if subtraction operation is working
+    for use_cache in [False, True]:
+        s1 = POSet(elements_1, leq_func, use_cache=use_cache)
+        s2 = POSet(elements_2, leq_func, use_cache=use_cache)
+        s_sub_true = POSet(elements_sub, leq_func, use_cache=use_cache)
+        s_sub_fact = s1 - s2
+        assert s_sub_fact == s_sub_true
+
+    # Test if cache of subtraction is subtraction of filled up caches
+    s1 = POSet(elements_1, leq_func, use_cache=True)
+    s1.fill_up_cache()
+    s2 = POSet(elements_2, leq_func, use_cache=True)
+    s2.fill_up_cache()
+    s_sub_true = POSet(elements_sub, leq_func, use_cache=True)
+    s_sub_true.fill_up_cache()
+
+    s_sub_fact = s1 - s2
+    assert s_sub_fact == s_sub_true
+    assert s_sub_fact._cache == s_sub_true._cache
+
+
 def test_len():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y

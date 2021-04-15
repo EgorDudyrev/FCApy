@@ -117,7 +117,6 @@ class POSet:
         return s
 
     def __xor__(self, other):
-        """Placeholder to use instead of either self._xor_nocache(...) or self._xor_cache(...)"""
         assert self._leq_func == other.leq_func, \
             'POSet.__xor__ assertion. Compared posets have to have the same leq_func'
         elements_xor = [x for x in self._elements if x not in other._elements]
@@ -126,6 +125,16 @@ class POSet:
         s = POSet(elements_xor, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
             s._cache = self._combine_caches(self._cache, self._elements, other._cache, other._elements, elements_xor)
+        return s
+
+    def __sub__(self, other):
+        assert self._leq_func == other.leq_func, \
+            'POSet.__sub__ assertion. Compared posets have to have the same leq_func'
+        elements_sub = [x for x in self._elements if x not in other._elements]
+
+        s = POSet(elements_sub, self._leq_func, use_cache=self._use_cache)
+        if self._use_cache:
+            s._cache = self._combine_caches(self._cache, self._elements, other._cache, other._elements, elements_sub)
         return s
 
     @staticmethod
