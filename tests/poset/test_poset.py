@@ -391,3 +391,13 @@ def test_direct_super_elements():
 
     dsups_fact = {idx: s.direct_super_elements(idx) for idx in range(len(elements))}
     assert dsups_fact == dsups_true
+
+
+def test_sub_elements():
+    elements = ['', 'a', 'b', 'ab']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    dsubs_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
+
+    dsubs_fact = {idx: s.direct_sub_elements(idx) for idx in range(len(elements))}
+    assert dsubs_fact == dsubs_true

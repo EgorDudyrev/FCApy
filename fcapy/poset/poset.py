@@ -76,6 +76,14 @@ class POSet:
 
         return superelement_idxs
 
+    def direct_sub_elements(self, element_index: int):
+        subelement_idxs = self.sub_elements(element_index)
+        for el_idx in list(subelement_idxs):
+            if el_idx in subelement_idxs:
+                subelement_idxs -= self.sub_elements(el_idx)
+
+        return subelement_idxs
+
     def join_elements(self, element_indexes: Collection = None):
         if element_indexes is None or len(element_indexes)==0:
             element_indexes = list(range(len(self._elements)))
