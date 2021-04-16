@@ -16,12 +16,8 @@ class POSet:
 
         self._use_cache = use_cache
         if self._use_cache:
-            if elements is not None:
-                self._cache_leq = {i: {} for i in range(len(elements))}
-                self._cache_subelements = {i: None for i in range(len(elements))}
-            else:
-                self._cache_leq = {}
-                self._cache_subelements = {}
+            self._cache_leq = {}
+            self._cache_subelements = {}
 
             self.leq_elements = self._leq_elements_cache
             self.sub_elements = self._sub_elements_cache
@@ -102,10 +98,12 @@ class POSet:
         return self._leq_func(self._elements[a_index], self._elements[b_index])
 
     def _leq_elements_cache(self, a_index: int, b_index: int):
-        res = self._cache_leq[a_index].get(b_index)
-        if res is None:
+        key = (a_index, b_index)
+        if key in self._cache_leq:
+            res = self._cache_leq[key]
+        else:
             res = self._leq_elements_nocache(a_index, b_index)
-            self._cache_leq[a_index][b_index] = res
+            self._cache_leq[key] = res
         return res
 
     def __getitem__(self, item: int or slice or Collection):
@@ -234,17 +232,16 @@ class POSet:
             return idx-1 if idx > key else idx
 
         if self._use_cache:
-            del self._cache_leq[key]
-            self._cache_leq = {decr_idx(idx_a): {decr_idx(idx_b): rel
-                                                 for idx_b, rel in rel_dict.items() if idx_b != key}
-                               for idx_a, rel_dict in self._cache_leq.items()}
+            self._cache_leq = {(decr_idx(a_idx), decr_idx(b_idx)): rel
+                               for (a_idx, b_idx), rel in self._cache_leq.items()
+                               if a_idx != key and b_idx != key}
 
     def add(self, element):
         self._elements.append(element)
         if self._use_cache:
             new_idx = len(self._elements) -1
-            self._cache_leq[new_idx] = {}
-            self._cache_subelements[new_idx] = None
+            #self._cache_leq[new_idx] = {}
+            #self._cache_subelements[new_idx] = None
 
     def remove(self, element):
         idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
@@ -260,7 +257,7 @@ class POSet:
 
         for i in range(len(self)):
             for j in range(len(self)):
-                if j not in self._cache_leq[i]:
+                if (i, j) not in self._cache_leq:
                     self.leq_elements(i, j)
 
     def fill_up_subelements_cache(self):

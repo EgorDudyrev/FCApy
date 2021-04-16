@@ -17,8 +17,8 @@ def test_init():
 
     s = POSet(elements, leq_func)
     assert s._use_cache
-    assert s._cache_leq
-    assert s._cache_subelements
+    assert s._cache_leq == {}
+    assert s._cache_subelements == {}
 
 
 def test_leq_elements():
@@ -49,10 +49,10 @@ def test_fill_up_caches():
     s = POSet(elements, leq_func, use_cache=True)
     s.fill_up_leq_cache()
     leq_cache_true = {
-        0: {0: True, 1: True, 2: True, 3: True},
-        1: {0: False, 1: True, 2: False, 3: True},
-        2: {0: False, 1: False, 2: True, 3: True},
-        3: {0: False, 1: False, 2: False, 3: True}
+        (0, 0): True,  (0, 1): True,  (0, 2): True,  (0, 3): True,
+        (1, 0): False, (1, 1): True,  (1, 2): False,  (1, 3): True,
+        (2, 0): False, (2, 1): False, (2, 2): True,  (2, 3): True,
+        (3, 0): False, (3, 1): False, (3, 2): False, (3, 3): True,
     }
     assert s._cache_leq == leq_cache_true
 
@@ -315,7 +315,7 @@ def test_add():
     s_add_true.fill_up_caches()
 
     cache_true = deepcopy(s._cache_leq)
-    cache_true[len(elements)-1] = {}
+    #cache_true[len(elements)-1] = {}
 
     s.add(elements[-1])
     assert s._cache_leq == cache_true
