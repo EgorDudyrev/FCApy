@@ -117,10 +117,10 @@ class POSet:
         s = POSet(elements_and, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements, other._cache_leq, other._elements,
-                                                elements_and, dict)
+                                                elements_and)
             s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
                                                         other._cache_subelements, other._elements,
-                                                        elements_and, set)
+                                                        elements_and)
 
         return s
 
@@ -133,7 +133,7 @@ class POSet:
         s = POSet(elements_or, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements, other._cache_leq, other._elements,
-                                                elements_or, dict)
+                                                elements_or)
         return s
 
     def __xor__(self, other):
@@ -145,10 +145,10 @@ class POSet:
         s = POSet(elements_xor, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements, other._cache_leq, other._elements,
-                                                elements_xor, dict)
+                                                elements_xor)
             s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
                                                         other._cache_subelements, other._elements,
-                                                        elements_xor, set)
+                                                        elements_xor)
         return s
 
     def __sub__(self, other):
@@ -159,66 +159,74 @@ class POSet:
         s = POSet(elements_sub, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements,
-                                                other._cache_leq, other._elements, elements_sub, dict)
+                                                other._cache_leq, other._elements, elements_sub)
             s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
                                                         other._cache_subelements, other._elements,
-                                                        elements_sub, set)
+                                                        elements_sub)
         return s
 
     @staticmethod
-    def _combine_caches(cache_a, elements_a, cache_b, elements_b, elements_combined, cache_element_type):
-        def map_cache_to_comb_element(
-                cache_base, elements_base, el_idx_map_base,
-                el_comb, elements_comb, el_idx_map_comb,
-                cache_element_type
-        ):
-            if cache_element_type is dict:
-                if el_comb in el_idx_map_base:
-                    idx_base = el_idx_map_base[el_comb]
-                    cache_comb = {}
-                    for idx, rel in cache_base[idx_base].items():
-                        el_base = elements_base[idx]
-                        if el_base in elements_comb:
-                            idx_comb = el_idx_map_comb[el_base]
-                            cache_comb[idx_comb] = rel
-                else:
-                    cache_comb = {}
+    def _combine_caches(cache_a, elements_a, cache_b, elements_b, elements_combined):
+        comb_el_idx_map = {el: idx for idx, el in enumerate(elements_combined)}
+        a_idx_comb_idx_map = {idx: comb_el_idx_map[el] for idx, el in enumerate(elements_a) if el in comb_el_idx_map}
+        b_idx_comb_idx_map = {idx: comb_el_idx_map[el] for idx, el in enumerate(elements_b) if el in comb_el_idx_map}
 
-            elif cache_element_type is set:
-                if el_comb in el_idx_map_base:
-                    idx_base = el_idx_map_base[el_comb]
-                    cache_comb = {el_idx_map_comb[elements_base[idx]] for idx in cache_base[idx_base]}
+        if len(cache_a) > 0:
+            key = list(cache_a)[0]
+            value = cache_a[key]
+        elif len(cache_b) > 0:
+            key = list(cache_b)[0]
+            value = cache_b[key]
+        else:
+            # If both caches are empty then the combined cache is empty too
+            return {}
+        key_type = type(key)
+        value_type = type(value)
+
+        def map_key_to_comb(base_key, base_idx_comb_idx_map, key_type):
+            if key_type is tuple:
+                comb_key = []
+                for base_idx in base_key:
+                    if base_idx in base_idx_comb_idx_map:
+                        comb_key.append(base_idx_comb_idx_map[base_idx])
+                    else:
+                        comb_key = None
+                        break
                 else:
-                    cache_comb = set()
+                    comb_key = tuple(comb_key)
+
+            elif key_type is int:
+                comb_key = base_idx_comb_idx_map.get(base_key)
 
             else:
-                raise NotImplementedError
+                raise TypeError
 
-            return cache_comb
+            return comb_key
 
-        a_el_idx_map = {el: idx for idx, el in enumerate(elements_a)}
-        b_el_idx_map = {el: idx for idx, el in enumerate(elements_b)}
-        comb_el_idx_map = {el: idx for idx, el in enumerate(elements_combined)}
+        def map_value_to_comb(base_value, base_idx_comb_idx_map, value_type):
+            if value_type is bool:
+                comb_value = base_value
+            elif value_type is set:
+                comb_value = {base_idx_comb_idx_map[idx] for idx in base_value if idx in base_idx_comb_idx_map}
+            else:
+                raise TypeError
+
+            return comb_value
 
         cache_combined = {}
-        for idx_comb, el_comb in enumerate(elements_combined):
-            cached_a = map_cache_to_comb_element(cache_a, elements_a, a_el_idx_map,
-                                                 el_comb, elements_combined, comb_el_idx_map,
-                                                 cache_element_type)
-            cached_b = map_cache_to_comb_element(cache_b, elements_b, b_el_idx_map,
-                                                 el_comb, elements_combined, comb_el_idx_map,
-                                                 cache_element_type)
+        for base_cache, base_idx_comb_idx_map in [(cache_a, a_idx_comb_idx_map),
+                                                  (cache_b, b_idx_comb_idx_map)]:
+            for key, value in base_cache.items():
+                comb_key = map_key_to_comb(key, base_idx_comb_idx_map, key_type)
+                comb_value = map_value_to_comb(value, base_idx_comb_idx_map, value_type)
 
-            if cache_element_type is dict:
-                cached_comb = cached_a
-                for idx, rel in cached_b.items():
-                    cached_comb[idx] = rel
-            elif cache_element_type is set:
-                cached_comb = cached_a | cached_b
-            else:
-                raise NotImplementedError
+                if (comb_key is None) or (comb_value is None):
+                    continue
 
-            cache_combined[idx_comb] = cached_comb
+                if (value_type is set) and (comb_key in cache_combined):
+                    comb_value |= cache_combined[comb_key]
+
+                cache_combined[comb_key] = comb_value
 
         return cache_combined
 

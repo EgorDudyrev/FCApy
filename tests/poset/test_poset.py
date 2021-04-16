@@ -200,7 +200,7 @@ def test_or():
     s2.fill_up_caches()
     s_or_true = POSet(elements_or, leq_func, use_cache=True)
     s_or_true.fill_up_caches()
-    del s_or_true._cache_leq[0][3], s_or_true._cache_leq[3][0]
+    del s_or_true._cache_leq[(0, 3)], s_or_true._cache_leq[(3, 0)]
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
