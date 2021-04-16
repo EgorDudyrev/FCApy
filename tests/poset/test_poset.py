@@ -367,25 +367,27 @@ def test_super_elements():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    sups = s.super_elements(3)
-    assert sups == set()
+    sups_true = {0: {1, 2, 3}, 1: {3}, 2: {3}, 3: set()}
 
-    sups = s.super_elements(2)
-    assert sups == {3}
-
-    sups = s.super_elements(0)
-    assert sups == {1, 2, 3}
+    sups_fact = {idx: s.super_elements(idx) for idx in range(len(elements))}
+    assert sups_fact == sups_true
 
 
 def test_sub_elements():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    subs = s.sub_elements(0)
-    assert subs == set()
+    subs_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}}
 
-    subs = s.sub_elements(2)
-    assert subs == {0}
+    subs_fact = {idx: s.sub_elements(idx) for idx in range(len(elements))}
+    assert subs_fact == subs_true
 
-    subs = s.sub_elements(3)
-    assert subs == {0, 1, 2}
+
+def test_direct_super_elements():
+    elements = ['', 'a', 'b', 'ab']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    dsups_true = {0: {1, 2}, 1: {3}, 2: {3}, 3: set()}
+
+    dsups_fact = {idx: s.direct_super_elements(idx) for idx in range(len(elements))}
+    assert dsups_fact == dsups_true

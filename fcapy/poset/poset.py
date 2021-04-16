@@ -68,6 +68,14 @@ class POSet:
             self._cache_subelements[element_index] = res
         return res
 
+    def direct_super_elements(self, element_index: int):
+        superelement_idxs = self.super_elements(element_index)
+        for el_idx in list(superelement_idxs):
+            if el_idx in superelement_idxs:
+                superelement_idxs -= self.super_elements(el_idx)
+
+        return superelement_idxs
+
     def join_elements(self, element_indexes: Collection = None):
         if element_indexes is None or len(element_indexes)==0:
             element_indexes = list(range(len(self._elements)))
