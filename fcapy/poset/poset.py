@@ -134,6 +134,14 @@ class POSet:
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements, other._cache_leq, other._elements,
                                                 elements_or)
+
+            elements_and = [x for x in self._elements if x in other._elements]
+            cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
+                                                        other._cache_subelements, other._elements,
+                                                        elements_or)
+            cache_subelements = {idx: subs for idx, subs in cache_subelements.items()
+                                 if elements_or[idx] in elements_and}
+            s._cache_subelements = cache_subelements
         return s
 
     def __xor__(self, other):
@@ -146,9 +154,15 @@ class POSet:
         if self._use_cache:
             s._cache_leq = self._combine_caches(self._cache_leq, self._elements, other._cache_leq, other._elements,
                                                 elements_xor)
-            s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
-                                                        other._cache_subelements, other._elements,
-                                                        elements_xor)
+
+            elements_and = [x for x in self._elements if x in other._elements]
+            cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
+                                                     other._cache_subelements, other._elements,
+                                                     elements_xor)
+            cache_subelements = {idx: subs for idx, subs in cache_subelements.items()
+                                 if elements_xor[idx] in elements_and}
+            s._cache_subelements = cache_subelements
+
         return s
 
     def __sub__(self, other):
@@ -243,6 +257,9 @@ class POSet:
             self._cache_leq = {(decr_idx(a_idx), decr_idx(b_idx)): rel
                                for (a_idx, b_idx), rel in self._cache_leq.items()
                                if a_idx != key and b_idx != key}
+            self._cache_subelements = {decr_idx(idx): {decr_idx(sub_idx) for sub_idx in subs if sub_idx != key}
+                               for idx, subs in self._cache_subelements.items()
+                               if idx != key}
 
     def add(self, element):
         self._elements.append(element)

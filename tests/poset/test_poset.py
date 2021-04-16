@@ -201,6 +201,8 @@ def test_or():
     s_or_true = POSet(elements_or, leq_func, use_cache=True)
     s_or_true.fill_up_caches()
     del s_or_true._cache_leq[(0, 3)], s_or_true._cache_leq[(3, 0)]
+    del s_or_true._cache_subelements[0], s_or_true._cache_subelements[3]
+
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
@@ -228,8 +230,9 @@ def test_xor():
     s2 = POSet(elements_2, leq_func, use_cache=True)
     s2.fill_up_caches()
     s_xor_true = POSet(elements_xor, leq_func, use_cache=True)
-    s_xor_true.leq_elements(0, 0)
-    s_xor_true.leq_elements(1, 1)
+    s_xor_true.fill_up_caches()
+    del s_xor_true._cache_leq[(0, 1)], s_xor_true._cache_leq[(1, 0)]
+    s_xor_true._cache_subelements = {}
 
     s_xor_fact = s1 ^ s2
     assert s_xor_fact == s_xor_true
