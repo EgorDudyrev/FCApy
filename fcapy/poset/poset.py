@@ -41,7 +41,6 @@ class POSet:
         raise NotImplementedError
 
     def _super_elements_nocache(self, element_index: int):
-        el = self._elements[element_index]
         sup_indexes = {i for i, el_comp in enumerate(self._elements)
                        if self.leq_elements(element_index, i) and i != element_index}
         return sup_indexes
@@ -58,7 +57,6 @@ class POSet:
         raise NotImplementedError
 
     def _sub_elements_nocache(self, element_index: int):
-        el = self._elements[element_index]
         sub_indexes = {i for i, el_comp in enumerate(self._elements)
                        if self.leq_elements(i, element_index) and i != element_index}
         return sub_indexes
