@@ -18,12 +18,15 @@ class POSet:
         if self._use_cache:
             self._cache_leq = {}
             self._cache_subelements = {}
+            self._cache_superelements = {}
 
             self.leq_elements = self._leq_elements_cache
             self.sub_elements = self._sub_elements_cache
+            self.super_elements = self._super_elements_cache
         else:
             self.leq_elements = self._leq_elements_nocache
             self.sub_elements = self._sub_elements_nocache
+            self.super_elements = self._super_elements_cache
 
     @property
     def elements(self):
@@ -34,10 +37,21 @@ class POSet:
         return self._leq_func
 
     def super_elements(self, element_index: int):
+        """Placeholder to use instead of either self._super_elements_nocache(...) or self._super_elements_cache(...)"""
+        raise NotImplementedError
+
+    def _super_elements_nocache(self, element_index: int):
         el = self._elements[element_index]
         sup_indexes = {i for i, el_comp in enumerate(self._elements)
                        if self.leq_elements(element_index, i) and i != element_index}
         return sup_indexes
+
+    def _super_elements_cache(self, element_index: int):
+        res = self._cache_superelements.get(element_index)
+        if res is None:
+            res = self._super_elements_nocache(element_index)
+            self._cache_superelements[element_index] = res
+        return res
 
     def sub_elements(self, element_index: int):
         """Placeholder to use instead of either self._sub_elements_nocache(...) or self._sub_elements_cache(...)"""
@@ -121,6 +135,9 @@ class POSet:
             s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
                                                         other._cache_subelements, other._elements,
                                                         elements_and)
+            s._cache_superelements = self._combine_caches(self._cache_superelements, self._elements,
+                                                        other._cache_superelements, other._elements,
+                                                        elements_and)
 
         return s
 
@@ -142,6 +159,14 @@ class POSet:
             cache_subelements = {idx: subs for idx, subs in cache_subelements.items()
                                  if elements_or[idx] in elements_and}
             s._cache_subelements = cache_subelements
+
+            cache_superelements = self._combine_caches(self._cache_superelements, self._elements,
+                                                        other._cache_superelements, other._elements,
+                                                        elements_or)
+            cache_superelements = {idx: subs for idx, subs in cache_superelements.items()
+                                 if elements_or[idx] in elements_and}
+            s._cache_superelements = cache_superelements
+
         return s
 
     def __xor__(self, other):
@@ -163,6 +188,13 @@ class POSet:
                                  if elements_xor[idx] in elements_and}
             s._cache_subelements = cache_subelements
 
+            cache_superelements = self._combine_caches(self._cache_superelements, self._elements,
+                                                     other._cache_superelements, other._elements,
+                                                     elements_xor)
+            cache_superelements = {idx: subs for idx, subs in cache_superelements.items()
+                                 if elements_xor[idx] in elements_and}
+            s._cache_superelements = cache_superelements
+
         return s
 
     def __sub__(self, other):
@@ -176,6 +208,9 @@ class POSet:
                                                 other._cache_leq, other._elements, elements_sub)
             s._cache_subelements = self._combine_caches(self._cache_subelements, self._elements,
                                                         other._cache_subelements, other._elements,
+                                                        elements_sub)
+            s._cache_superelements = self._combine_caches(self._cache_superelements, self._elements,
+                                                        other._cache_superelements, other._elements,
                                                         elements_sub)
         return s
 
@@ -260,9 +295,15 @@ class POSet:
             self._cache_subelements = {decr_idx(idx): {decr_idx(sub_idx) for sub_idx in subs if sub_idx != key}
                                for idx, subs in self._cache_subelements.items()
                                if idx != key}
+            self._cache_superelements = {decr_idx(idx): {decr_idx(sup_idx) for sup_idx in sups if sup_idx != key}
+                                       for idx, sups in self._cache_superelements.items()
+                                       if idx != key}
 
     def add(self, element):
         self._elements.append(element)
+        if self._use_cache:
+            self._cache_subelements = {}
+            self._cache_superelements = {}
 
     def remove(self, element):
         idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
@@ -289,6 +330,15 @@ class POSet:
         for i in range(len(self)):
             self.sub_elements(i)
 
+    def fill_up_superelements_cache(self):
+        assert self._use_cache, \
+            "POSet.fill_up_superelements_cache assertion. " \
+            "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
+
+        for i in range(len(self)):
+            self.super_elements(i)
+
     def fill_up_caches(self):
         self.fill_up_leq_cache()
         self.fill_up_subelements_cache()
+        self.fill_up_superelements_cache()
