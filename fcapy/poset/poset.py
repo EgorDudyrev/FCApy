@@ -263,10 +263,6 @@ class POSet:
 
     def add(self, element):
         self._elements.append(element)
-        if self._use_cache:
-            new_idx = len(self._elements) -1
-            #self._cache_leq[new_idx] = {}
-            #self._cache_subelements[new_idx] = None
 
     def remove(self, element):
         idx = [idx for idx, el in enumerate(self._elements) if el == element][0]

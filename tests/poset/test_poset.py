@@ -358,13 +358,13 @@ def test_super_elements():
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
     sups = s.super_elements(3)
-    assert sups == []
+    assert sups == set()
 
     sups = s.super_elements(2)
-    assert sups == [3]
+    assert sups == {3}
 
     sups = s.super_elements(0)
-    assert sups == [1, 2, 3]
+    assert sups == {1, 2, 3}
 
 
 def test_sub_elements():
@@ -372,10 +372,10 @@ def test_sub_elements():
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
     subs = s.sub_elements(0)
-    assert subs == []
+    assert subs == set()
 
     subs = s.sub_elements(2)
-    assert subs == [0]
+    assert subs == {0}
 
     subs = s.sub_elements(3)
-    assert subs == [0, 1, 2]
+    assert subs == {0, 1, 2}
