@@ -1,0 +1,34 @@
+// <Lattice object of 3 atoms 8 concepts 3 coatoms at 0x7f3a4f684be0>
+digraph Lattice {
+	node [label="" shape=circle style=filled width=.25]
+	edge [dir=none labeldistance=1.5 minlen=2]
+	c0
+	c1
+	c1 -> c1 [color=transparent headlabel="duck goose" labelangle=270]
+	c1 -> c1 [color=transparent labelangle=90 taillabel=swim]
+	c1 -> c0
+	c2
+	c2 -> c2 [color=transparent headlabel="owl hawk eagle" labelangle=270]
+	c2 -> c0
+	c3
+	c3 -> c3 [color=transparent headlabel="fox wolf cat tiger lion" labelangle=270]
+	c3 -> c0
+	c4
+	c4 -> c4 [color=transparent headlabel=dove labelangle=270]
+	c4 -> c4 [color=transparent labelangle=90 taillabel=fly]
+	c4 -> c1
+	c4 -> c2
+	c5
+	c5 -> c5 [color=transparent labelangle=90 taillabel=hunt]
+	c5 -> c2
+	c5 -> c3
+	c6
+	c6 -> c6 [color=transparent headlabel="dog horse zebra" labelangle=270]
+	c6 -> c6 [color=transparent labelangle=90 taillabel=run]
+	c6 -> c3
+	c7
+	c7 -> c7 [color=transparent headlabel="hen cow" labelangle=270]
+	c7 -> c4
+	c7 -> c5
+	c7 -> c6
+}

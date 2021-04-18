@@ -1,0 +1,248 @@
+// <Lattice object of 7 atoms 65 concepts 7 coatoms at 0x7f3a4f610400>
+digraph Lattice {
+	node [label="" shape=circle style=filled width=.25]
+	edge [dir=none labeldistance=1.5 minlen=2]
+	c0
+	c1
+	c1 -> c1 [color=transparent headlabel=Evelyn labelangle=270]
+	c1 -> c0
+	c2
+	c2 -> c2 [color=transparent headlabel=Laura labelangle=270]
+	c2 -> c0
+	c3
+	c3 -> c3 [color=transparent headlabel=Theresa labelangle=270]
+	c3 -> c0
+	c4
+	c4 -> c4 [color=transparent headlabel=Brenda labelangle=270]
+	c4 -> c0
+	c5
+	c5 -> c5 [color=transparent headlabel=Syliva labelangle=270]
+	c5 -> c0
+	c6
+	c6 -> c6 [color=transparent headlabel=Nora labelangle=270]
+	c6 -> c0
+	c7
+	c7 -> c7 [color=transparent headlabel=Helen labelangle=270]
+	c7 -> c0
+	c8
+	c8 -> c1
+	c8 -> c2
+	c9
+	c9 -> c1
+	c9 -> c3
+	c10
+	c10 -> c1
+	c10 -> c4
+	c11
+	c11 -> c2
+	c11 -> c3
+	c12
+	c12 -> c2
+	c12 -> c4
+	c13
+	c13 -> c3
+	c13 -> c4
+	c14
+	c14 -> c14 [color=transparent headlabel=Ruth labelangle=270]
+	c14 -> c3
+	c15
+	c15 -> c3
+	c15 -> c6
+	c16
+	c16 -> c16 [color=transparent headlabel=Verne labelangle=270]
+	c16 -> c5
+	c17
+	c17 -> c17 [color=transparent headlabel=Katherine labelangle=270]
+	c17 -> c5
+	c18
+	c18 -> c5
+	c18 -> c6
+	c19
+	c19 -> c5
+	c19 -> c7
+	c20
+	c20 -> c6
+	c20 -> c7
+	c21
+	c21 -> c21 [color=transparent labelangle=90 taillabel=2]
+	c21 -> c8
+	c21 -> c9
+	c21 -> c11
+	c22
+	c22 -> c22 [color=transparent labelangle=90 taillabel=1]
+	c22 -> c8
+	c22 -> c10
+	c22 -> c12
+	c23
+	c23 -> c9
+	c23 -> c10
+	c23 -> c13
+	c24
+	c24 -> c24 [color=transparent headlabel=Pearl labelangle=270]
+	c24 -> c9
+	c25
+	c25 -> c9
+	c25 -> c14
+	c26
+	c26 -> c11
+	c26 -> c12
+	c26 -> c13
+	c27
+	c27 -> c27 [color=transparent headlabel=Charlotte labelangle=270]
+	c27 -> c13
+	c28
+	c28 -> c16
+	c28 -> c18
+	c29
+	c29 -> c16
+	c29 -> c19
+	c30
+	c30 -> c30 [color=transparent headlabel=Myra labelangle=270]
+	c30 -> c17
+	c31
+	c31 -> c31 [color=transparent labelangle=90 taillabel="13 14"]
+	c31 -> c17
+	c31 -> c18
+	c32
+	c32 -> c18
+	c32 -> c19
+	c32 -> c20
+	c33
+	c33 -> c33 [color=transparent headlabel="Olivia Flora" labelangle=270]
+	c33 -> c6
+	c34
+	c34 -> c34 [color=transparent labelangle=90 taillabel=4]
+	c34 -> c23
+	c34 -> c27
+	c35
+	c35 -> c15
+	c35 -> c24
+	c36
+	c36 -> c26
+	c36 -> c27
+	c37
+	c37 -> c37 [color=transparent headlabel=Eleanor labelangle=270]
+	c37 -> c26
+	c38
+	c38 -> c14
+	c38 -> c16
+	c39
+	c39 -> c16
+	c39 -> c30
+	c40
+	c40 -> c28
+	c40 -> c29
+	c40 -> c32
+	c41
+	c41 -> c30
+	c41 -> c31
+	c42
+	c42 -> c19
+	c42 -> c30
+	c43
+	c43 -> c43 [color=transparent labelangle=90 taillabel=11]
+	c43 -> c20
+	c43 -> c33
+	c44
+	c44 -> c44 [color=transparent headlabel=Frances labelangle=270]
+	c44 -> c21
+	c44 -> c22
+	c44 -> c23
+	c44 -> c26
+	c45
+	c45 -> c14
+	c45 -> c37
+	c46
+	c46 -> c15
+	c46 -> c37
+	c47
+	c47 -> c15
+	c47 -> c28
+	c47 -> c38
+	c48
+	c48 -> c28
+	c48 -> c39
+	c48 -> c41
+	c49
+	c49 -> c29
+	c49 -> c39
+	c49 -> c42
+	c50
+	c50 -> c50 [color=transparent labelangle=90 taillabel=10]
+	c50 -> c32
+	c50 -> c41
+	c50 -> c42
+	c51
+	c51 -> c51 [color=transparent labelangle=90 taillabel=3]
+	c51 -> c34
+	c51 -> c36
+	c51 -> c44
+	c52
+	c52 -> c37
+	c52 -> c44
+	c53
+	c53 -> c36
+	c53 -> c45
+	c54
+	c54 -> c54 [color=transparent labelangle=90 taillabel=12]
+	c54 -> c40
+	c54 -> c48
+	c54 -> c49
+	c54 -> c50
+	c55
+	c55 -> c24
+	c55 -> c52
+	c56
+	c56 -> c25
+	c56 -> c45
+	c56 -> c52
+	c57
+	c57 -> c57 [color=transparent labelangle=90 taillabel=5]
+	c57 -> c51
+	c57 -> c53
+	c57 -> c56
+	c58
+	c58 -> c58 [color=transparent labelangle=90 taillabel=6]
+	c58 -> c35
+	c58 -> c46
+	c58 -> c55
+	c59
+	c59 -> c29
+	c59 -> c38
+	c59 -> c45
+	c60
+	c60 -> c60 [color=transparent headlabel=Dorothy labelangle=270]
+	c60 -> c24
+	c60 -> c25
+	c60 -> c38
+	c60 -> c39
+	c61
+	c61 -> c61 [color=transparent labelangle=90 taillabel=7]
+	c61 -> c40
+	c61 -> c46
+	c61 -> c47
+	c61 -> c53
+	c61 -> c59
+	c62
+	c62 -> c62 [color=transparent labelangle=90 taillabel=9]
+	c62 -> c33
+	c62 -> c35
+	c62 -> c47
+	c62 -> c48
+	c62 -> c60
+	c63
+	c63 -> c63 [color=transparent labelangle=90 taillabel=8]
+	c63 -> c49
+	c63 -> c55
+	c63 -> c56
+	c63 -> c59
+	c63 -> c60
+	c64
+	c64 -> c43
+	c64 -> c54
+	c64 -> c57
+	c64 -> c58
+	c64 -> c61
+	c64 -> c62
+	c64 -> c63
+}
