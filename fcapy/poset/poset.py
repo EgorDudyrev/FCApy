@@ -170,17 +170,7 @@ class POSet:
 
         s = POSet(elements_and, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
-            caches_to_combine = [
-                (self._cache_leq, other._cache_leq),
-                (self._cache_subelements, other._cache_subelements),
-                (self._cache_superelements, other._cache_superelements),
-                (self._cache_direct_subelements, other._cache_direct_subelements),
-                (self._cache_direct_superelements, other._cache_direct_superelements)
-            ]
-            caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_and)
-                           for cache_a, cache_b in caches_to_combine]
-            s._cache_leq, s._cache_subelements, s._cache_superelements,\
-                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
+            self._combine_multiple_caches(other, s, drop_notcommon_elements=False)
 
         return s
 
@@ -192,25 +182,7 @@ class POSet:
 
         s = POSet(elements_or, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
-            caches_to_combine = [
-                (self._cache_leq, other._cache_leq),
-                (self._cache_subelements, other._cache_subelements),
-                (self._cache_superelements, other._cache_superelements),
-                (self._cache_direct_subelements, other._cache_direct_subelements),
-                (self._cache_direct_superelements, other._cache_direct_superelements)
-            ]
-            caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_or)
-                           for cache_a, cache_b in caches_to_combine]
-            s._cache_leq = caches_comb[0]
-
-            caches_comb = caches_comb[1:]
-            elements_and = [x for x in self._elements if x in other._elements]
-            for i in range(len(caches_comb)):
-                caches_comb[i] = {idx: vals for idx, vals in caches_comb[i].items()
-                         if elements_or[idx] in elements_and}
-
-            s._cache_subelements, s._cache_superelements,\
-                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
+            self._combine_multiple_caches(other, s, drop_notcommon_elements=True)
 
         return s
 
@@ -222,21 +194,7 @@ class POSet:
 
         s = POSet(elements_xor, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
-            caches_to_combine = [
-                (self._cache_leq, other._cache_leq),
-                (self._cache_subelements, other._cache_subelements),
-                (self._cache_superelements, other._cache_superelements),
-            ]
-            caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_xor)
-                           for cache_a, cache_b in caches_to_combine]
-            s._cache_leq = caches_comb[0]
-
-            caches_comb = caches_comb[1:]
-            elements_and = [x for x in self._elements if x in other._elements]
-            for i in range(len(caches_comb)):
-                caches_comb[i] = {idx: vals for idx, vals in caches_comb[i].items()
-                         if elements_xor[idx] in elements_and}
-            s._cache_subelements, s._cache_superelements = caches_comb
+            self._combine_multiple_caches(other, s, drop_notcommon_elements=True)
 
         return s
 
@@ -247,17 +205,8 @@ class POSet:
 
         s = POSet(elements_sub, self._leq_func, use_cache=self._use_cache)
         if self._use_cache:
-            caches_to_combine = [
-                (self._cache_leq, other._cache_leq),
-                (self._cache_subelements, other._cache_subelements),
-                (self._cache_superelements, other._cache_superelements),
-                (self._cache_direct_subelements, other._cache_direct_subelements),
-                (self._cache_direct_superelements, other._cache_direct_superelements),
-            ]
-            caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_sub)
-                           for cache_a, cache_b in caches_to_combine]
-            s._cache_leq, s._cache_subelements, s._cache_superelements,\
-                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
+            self._combine_multiple_caches(other, s, drop_notcommon_elements=False)
+
         return s
 
     @staticmethod
@@ -324,6 +273,24 @@ class POSet:
                 cache_combined[comb_key] = comb_value
 
         return cache_combined
+
+    def _combine_multiple_caches(self, other, poset_combined, drop_notcommon_elements: bool):
+        elements_and = {x for x in self._elements if x in other._elements}
+        cache_names = ['_cache_leq', '_cache_subelements', '_cache_superelements',
+                       '_cache_direct_subelements', '_cache_direct_superelements']
+
+        for cache_name in cache_names:
+            cache_comb = self._combine_caches(
+                self.__dict__[cache_name], self._elements,
+                other.__dict__[cache_name], other._elements,
+                poset_combined._elements)
+
+            if drop_notcommon_elements and ('superelements' in cache_name or 'subelements' in cache_name):
+                for idx in list(cache_comb):
+                    if poset_combined._elements[idx] not in elements_and:
+                        del cache_comb[idx]
+
+            poset_combined.__dict__[cache_name] = cache_comb
 
     def __len__(self):
         return len(self._elements)
