@@ -20,16 +20,19 @@ class POSet:
             self._cache_subelements = {}
             self._cache_superelements = {}
             self._cache_direct_subelements = {}
+            self._cache_direct_superelements = {}
 
             self.leq_elements = self._leq_elements_cache
             self.sub_elements = self._sub_elements_cache
             self.super_elements = self._super_elements_cache
             self.direct_sub_elements = self._direct_sub_elements_cache
+            self.direct_super_elements = self._direct_super_elements_cache
         else:
             self.leq_elements = self._leq_elements_nocache
             self.sub_elements = self._sub_elements_nocache
             self.super_elements = self._super_elements_nocache
             self.direct_sub_elements = self._direct_sub_elements_nocache
+            self.direct_super_elements = self._direct_super_elements_nocache
 
     @property
     def elements(self):
@@ -72,12 +75,22 @@ class POSet:
         return res
 
     def direct_super_elements(self, element_index: int):
+        """Placeholder to use instead of self._direct_super_elements_nocache(.) or self._direct_super_elements_cache(.)"""
+
+    def _direct_super_elements_nocache(self, element_index: int):
         superelement_idxs = self.super_elements(element_index)
         for el_idx in list(superelement_idxs):
             if el_idx in superelement_idxs:
                 superelement_idxs -= self.super_elements(el_idx)
 
         return superelement_idxs
+
+    def _direct_super_elements_cache(self, element_index: int):
+        res = self._cache_direct_superelements.get(element_index)
+        if res is None:
+            res = self._direct_super_elements_nocache(element_index)
+            self._cache_direct_superelements[element_index] = res
+        return res
 
     def direct_sub_elements(self, element_index: int):
         """Placeholder to use instead of self._direct_sub_elements_nocache(.) or self._direct_sub_elements_cache(.)"""
@@ -162,10 +175,12 @@ class POSet:
                 (self._cache_subelements, other._cache_subelements),
                 (self._cache_superelements, other._cache_superelements),
                 (self._cache_direct_subelements, other._cache_direct_subelements),
+                (self._cache_direct_superelements, other._cache_direct_superelements)
             ]
             caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_and)
                            for cache_a, cache_b in caches_to_combine]
-            s._cache_leq, s._cache_subelements, s._cache_superelements, s._cache_direct_subelements = caches_comb
+            s._cache_leq, s._cache_subelements, s._cache_superelements,\
+                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
 
         return s
 
@@ -182,6 +197,7 @@ class POSet:
                 (self._cache_subelements, other._cache_subelements),
                 (self._cache_superelements, other._cache_superelements),
                 (self._cache_direct_subelements, other._cache_direct_subelements),
+                (self._cache_direct_superelements, other._cache_direct_superelements)
             ]
             caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_or)
                            for cache_a, cache_b in caches_to_combine]
@@ -193,7 +209,8 @@ class POSet:
                 caches_comb[i] = {idx: vals for idx, vals in caches_comb[i].items()
                          if elements_or[idx] in elements_and}
 
-            s._cache_subelements, s._cache_superelements, s._cache_direct_subelements = caches_comb
+            s._cache_subelements, s._cache_superelements,\
+                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
 
         return s
 
@@ -235,10 +252,12 @@ class POSet:
                 (self._cache_subelements, other._cache_subelements),
                 (self._cache_superelements, other._cache_superelements),
                 (self._cache_direct_subelements, other._cache_direct_subelements),
+                (self._cache_direct_superelements, other._cache_direct_superelements),
             ]
             caches_comb = [self._combine_caches(cache_a, self._elements, cache_b, other._elements, elements_sub)
                            for cache_a, cache_b in caches_to_combine]
-            s._cache_leq, s._cache_subelements, s._cache_superelements, s._cache_direct_subelements = caches_comb
+            s._cache_leq, s._cache_subelements, s._cache_superelements,\
+                s._cache_direct_subelements, s._cache_direct_superelements = caches_comb
         return s
 
     @staticmethod
@@ -353,16 +372,7 @@ class POSet:
             self._cache_subelements = decrement_dict(self._cache_subelements, key)
             self._cache_superelements = decrement_dict(self._cache_superelements, key)
             self._cache_direct_subelements = decrement_dict(self._cache_direct_subelements, key)
-
-            #self._cache_leq = {(decr_idx(a_idx), decr_idx(b_idx)): rel
-            #                   for (a_idx, b_idx), rel in self._cache_leq.items()
-            #                   if a_idx != key and b_idx != key}
-            #self._cache_subelements = {decr_idx(idx): {decr_idx(sub_idx) for sub_idx in subs if sub_idx != key}
-            #                   for idx, subs in self._cache_subelements.items()
-            #                   if idx != key}
-            #self._cache_superelements = {decr_idx(idx): {decr_idx(sup_idx) for sup_idx in sups if sup_idx != key}
-            #                           for idx, sups in self._cache_superelements.items()
-            #                           if idx != key}
+            self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
 
     def add(self, element):
         self._elements.append(element)
@@ -370,6 +380,7 @@ class POSet:
             self._cache_subelements = {}
             self._cache_superelements = {}
             self._cache_direct_subelements = {}
+            self._cache_direct_superelements = {}
 
     def remove(self, element):
         idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
@@ -412,8 +423,17 @@ class POSet:
         for i in range(len(self)):
             self.direct_sub_elements(i)
 
+    def fill_up_direct_superelements_cache(self):
+        assert self._use_cache, \
+            "POSet.fill_up_direct_superelements_cache assertion. " \
+            "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
+
+        for i in range(len(self)):
+            self.direct_super_elements(i)
+
     def fill_up_caches(self):
         self.fill_up_leq_cache()
         self.fill_up_subelements_cache()
         self.fill_up_superelements_cache()
         self.fill_up_direct_subelements_cache()
+        self.fill_up_direct_superelements_cache()
