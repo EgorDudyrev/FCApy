@@ -20,6 +20,7 @@ def test_init():
     assert s._cache_leq == {}
     assert s._cache_subelements == {}
     assert s._cache_superelements == {}
+    assert s._cache_direct_subelements == {}
 
 
 def test_leq_elements():
@@ -64,6 +65,10 @@ def test_fill_up_caches():
     s.fill_up_superelements_cache()
     superelements_cache_true = {0: {1, 2, 3}, 1: {3}, 2: {3}, 3: set()}
     assert s._cache_superelements == superelements_cache_true
+
+    s.fill_up_direct_subelements_cache()
+    dsubelements_cache_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
+    assert s._cache_direct_subelements == dsubelements_cache_true
 
 
 def test_join_elements_supremum():
@@ -164,6 +169,7 @@ def test_and():
     assert s_and_fact._cache_leq == s_and_true._cache_leq
     assert s_and_fact._cache_subelements == s_and_true._cache_subelements
     assert s_and_fact._cache_superelements == s_and_true._cache_superelements
+    assert s_and_fact._cache_direct_subelements == s_and_true._cache_direct_subelements
 
     # Test if cache of intersection is union of caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
@@ -179,6 +185,7 @@ def test_and():
     assert s_and_fact._cache_leq == s_and_true._cache_leq
     assert s_and_fact._cache_subelements == s_and_true._cache_subelements
     assert s_and_fact._cache_superelements == s_and_true._cache_superelements
+    assert s_and_fact._cache_direct_subelements == s_and_true._cache_direct_subelements
 
 
 def test_or():
@@ -205,12 +212,15 @@ def test_or():
     del s_or_true._cache_leq[(0, 3)], s_or_true._cache_leq[(3, 0)]
     del s_or_true._cache_subelements[0], s_or_true._cache_subelements[3]
     del s_or_true._cache_superelements[0], s_or_true._cache_superelements[3]
+    del s_or_true._cache_direct_subelements[0], s_or_true._cache_direct_subelements[3]
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
     assert s_or_fact._cache_leq == s_or_true._cache_leq
     assert s_or_fact._cache_subelements == s_or_true._cache_subelements
     assert s_or_fact._cache_superelements == s_or_true._cache_superelements
+    assert s_or_fact._cache_direct_subelements == s_or_true._cache_direct_subelements
+
 
 def test_xor():
     elements_1 = ['', 'a', 'b']
@@ -236,12 +246,14 @@ def test_xor():
     del s_xor_true._cache_leq[(0, 1)], s_xor_true._cache_leq[(1, 0)]
     s_xor_true._cache_subelements = {}
     s_xor_true._cache_superelements = {}
+    s_xor_true._cache_direct_subelements = {}
 
     s_xor_fact = s1 ^ s2
     assert s_xor_fact == s_xor_true
     assert s_xor_fact._cache_leq == s_xor_true._cache_leq
     assert s_xor_fact._cache_subelements == s_xor_true._cache_subelements
     assert s_xor_fact._cache_superelements == s_xor_true._cache_superelements
+    assert s_xor_fact._cache_direct_subelements == s_xor_fact._cache_direct_subelements
 
 
 def test_subtraction():
@@ -271,6 +283,7 @@ def test_subtraction():
     assert s_sub_fact._cache_leq == s_sub_true._cache_leq
     assert s_sub_fact._cache_subelements == s_sub_true._cache_subelements
     assert s_sub_fact._cache_superelements == s_sub_true._cache_superelements
+    assert s_sub_fact._cache_direct_subelements == s_sub_true._cache_direct_subelements
 
 
 def test_len():
@@ -304,6 +317,7 @@ def test_delitem():
     assert s._cache_leq == s_del_true._cache_leq
     assert s._cache_subelements == s_del_true._cache_subelements
     assert s._cache_superelements == s_del_true._cache_superelements
+    assert s._cache_direct_subelements == s_del_true._cache_direct_subelements
 
 
 def test_add():
@@ -335,6 +349,7 @@ def test_add():
     assert s._cache_leq == s_add_true._cache_leq
     assert s._cache_subelements == s_add_true._cache_subelements
     assert s._cache_superelements == s_add_true._cache_superelements
+    assert s._cache_direct_subelements == s_add_true._cache_direct_subelements
 
 
 def test_remove():
@@ -361,6 +376,7 @@ def test_remove():
     assert s._cache_leq == s_remove_true._cache_leq
     assert s._cache_subelements == s_remove_true._cache_subelements
     assert s._cache_superelements == s_remove_true._cache_superelements
+    assert s._cache_direct_subelements == s_remove_true._cache_direct_subelements
 
 
 def test_super_elements():
