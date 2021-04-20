@@ -55,8 +55,8 @@ class POSet:
         res = self._cache_superelements.get(element_index)
         if res is None:
             res = self._super_elements_nocache(element_index)
-            self._cache_superelements[element_index] = res
-        return res
+            self._cache_superelements[element_index] = frozenset(res)
+        return set(res)
 
     def sub_elements(self, element_index: int):
         """Placeholder to use instead of either self._sub_elements_nocache(...) or self._sub_elements_cache(...)"""
@@ -71,8 +71,8 @@ class POSet:
         res = self._cache_subelements.get(element_index)
         if res is None:
             res = self._sub_elements_nocache(element_index)
-            self._cache_subelements[element_index] = res
-        return res
+            self._cache_subelements[element_index] = frozenset(res)
+        return set(res)
 
     def direct_super_elements(self, element_index: int):
         """Placeholder to use instead of self._direct_super_elements_nocache(.) or self._direct_super_elements_cache(.)"""
@@ -89,8 +89,8 @@ class POSet:
         res = self._cache_direct_superelements.get(element_index)
         if res is None:
             res = self._direct_super_elements_nocache(element_index)
-            self._cache_direct_superelements[element_index] = res
-        return res
+            self._cache_direct_superelements[element_index] = frozenset(res)
+        return set(res)
 
     def direct_sub_elements(self, element_index: int):
         """Placeholder to use instead of self._direct_sub_elements_nocache(.) or self._direct_sub_elements_cache(.)"""
@@ -107,8 +107,8 @@ class POSet:
         res = self._cache_direct_subelements.get(element_index)
         if res is None:
             res = self._direct_sub_elements_nocache(element_index)
-            self._cache_direct_subelements[element_index] = res
-        return res
+            self._cache_direct_subelements[element_index] = frozenset(res)
+        return set(res)
 
     def join_elements(self, element_indexes: Collection = None):
         if element_indexes is None or len(element_indexes)==0:
@@ -250,7 +250,7 @@ class POSet:
         def map_value_to_comb(base_value, base_idx_comb_idx_map, value_type):
             if value_type is bool:
                 comb_value = base_value
-            elif value_type is set:
+            elif value_type in {set, frozenset}:
                 comb_value = {base_idx_comb_idx_map[idx] for idx in base_value if idx in base_idx_comb_idx_map}
             else:
                 raise TypeError
@@ -267,7 +267,7 @@ class POSet:
                 if (comb_key is None) or (comb_value is None):
                     continue
 
-                if (value_type is set) and (comb_key in cache_combined):
+                if (value_type in {set, frozenset}) and (comb_key in cache_combined):
                     comb_value |= cache_combined[comb_key]
 
                 cache_combined[comb_key] = comb_value
@@ -310,7 +310,7 @@ class POSet:
 
                 k, v = dct.popitem()
                 k_tuple_flag, k_int_flag = isinstance(k, tuple), isinstance(k, int)
-                v_set_flag, v_bool_flag = isinstance(v, set), isinstance(v, bool)
+                v_set_flag, v_bool_flag = isinstance(v, (set, frozenset)), isinstance(v, bool)
                 dct[k] = v
 
                 for k, v in dct.items():
@@ -404,3 +404,54 @@ class POSet:
         self.fill_up_superelements_cache()
         self.fill_up_direct_subelements_cache()
         self.fill_up_direct_superelements_cache()
+
+    @classmethod
+    def _closed_relation_cache_by_direct_cache(cls, direct_relation_cache):
+        direct_cache_trans = cls._transpose_hierarchy(direct_relation_cache)
+        elements_to_visit = [el_i for el_i, subelems in direct_relation_cache.items() if len(subelems) == 0]
+        closed_cache = {}
+        while len(elements_to_visit) > 0:
+            el_i = elements_to_visit.pop(0)
+
+            direct_rels = direct_relation_cache[el_i]
+
+            closed_cache[el_i] = direct_rels.copy()
+            for el_i_rel in direct_rels:
+                closed_cache[el_i] |= closed_cache[el_i_rel]
+
+            elements_to_visit += list(direct_cache_trans[el_i])
+        closed_cache = {k: frozenset(vs) for k, vs in closed_cache.items()}
+        return closed_cache
+
+    @classmethod
+    def _direct_relation_cache_by_closed_cache(cls, closed_relation_cache):
+        direct_relation_cache = {}
+        for el_i, elems_rel_all in closed_relation_cache.items():
+            direct_relation_cache[el_i] = elems_rel_all.copy()
+            for el_i_rel in elems_rel_all:
+                direct_relation_cache[el_i] -= closed_relation_cache[el_i_rel]
+
+        direct_relation_cache = {k: frozenset(vs) for k, vs in direct_relation_cache.items()}
+        return direct_relation_cache
+
+    @staticmethod
+    def _transpose_hierarchy(hierarchy_dict):
+        """Return transposed hierarchy of elements (i.e. turn superelements into subelements and vice versa)
+
+        Parameters
+        ----------
+        hierarchy_dict: `dict` of type {`int`: `list` of `int`}
+            Superelements or subelements of POSet
+
+        Returns
+        -------
+        new_dict: `dict` of type {`int`: `list` of `int`}
+            Superelements if subelements are given, subelements if superelements are given
+        """
+        new_dict = {}
+        for k, vs in hierarchy_dict.items():
+            if k not in new_dict:
+                new_dict[k] = set()
+            for v in vs:
+                new_dict[v] = new_dict.get(v, set()) | {k}
+        return new_dict

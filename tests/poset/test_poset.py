@@ -405,10 +405,10 @@ def test_super_elements():
 
 
 def test_sub_elements():
-    elements = ['', 'a', 'b', 'ab']
+    elements = ['', 'a', 'b', 'ab', 'c']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    subs_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}}
+    subs_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}, 4: {0}}
 
     subs_fact = {idx: s.sub_elements(idx) for idx in range(len(elements))}
     assert subs_fact == subs_true
@@ -425,10 +425,36 @@ def test_direct_super_elements():
 
 
 def test_direct_sub_elements():
-    elements = ['', 'a', 'b', 'ab']
+    elements = ['', 'a', 'b', 'ab', 'c']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    dsubs_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
+    dsubs_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}, 4: {0}}
 
     dsubs_fact = {idx: s.direct_sub_elements(idx) for idx in range(len(elements))}
     assert dsubs_fact == dsubs_true
+
+
+def test_closed_cache_by_direct_cache():
+    elements = ['', 'a', 'b', 'ab', 'c']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    s.fill_up_caches()
+
+    closed_subelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_direct_subelements)
+    assert closed_subelements_cache == s._cache_subelements
+
+    closed_superelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_direct_superelements)
+    assert closed_superelements_cache == s._cache_superelements
+
+
+def test_direct_cache_by_closed_cache():
+    elements = ['', 'a', 'b', 'ab', 'c']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+    s.fill_up_caches()
+
+    direct_subelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_subelements)
+    assert direct_subelements_cache == s._cache_direct_subelements
+
+    direct_superelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_superelements)
+    assert direct_superelements_cache == s._cache_direct_superelements
