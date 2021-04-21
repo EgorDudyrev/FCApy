@@ -130,7 +130,10 @@ def test_eq():
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x, y: x in y
     s = POSet(elements, leq_func)
-    other = POSet(elements, leq_func)
+
+    elements1 = ['a', 'b', 'ab', '']
+    leq_func1 = lambda a, b: a in b
+    other = POSet(elements1, leq_func1)
     assert s == other
 
     other = POSet(elements[:-1], leq_func)

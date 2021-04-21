@@ -7,6 +7,7 @@ some are smaller and some are incomparable
 from fcapy.utils.utils import slice_list
 from copy import copy
 from collections.abc import Collection
+import dis
 
 
 class POSet:
@@ -373,12 +374,32 @@ class POSet:
                 return dct_decr
 
             self._cache_leq = decrement_dict(self._cache_leq, key)
+
+            for el_i_sup in self._cache_superelements.get(key, []):
+                if el_i_sup in self._cache_subelements:
+                    self._cache_subelements[el_i_sup] |= self._cache_subelements.get(key, set())
+            for el_i_sub in self._cache_subelements.get(key, []):
+                if el_i_sub in self._cache_superelements:
+                    self._cache_superelements[el_i_sub] |= self._cache_superelements.get(key, set())
+
+#            for el_i_dsup in self._cache_direct_superelements.get(key, []):
+#                if el_i_dsup in self._cache_direct_subelements:
+#                    self._cache_direct_subelements[el_i_dsup] |= self._cache_direct_subelements.get(key,set())
+#            for el_i_dsub in self._cache_direct_subelements.get(key, []):
+#                if el_i_dsub in self._cache_direct_superelements:
+#                    self._cache_direct_superelements[el_i_dsub] |= self._cache_direct_superelements.get(key, set())
+
             self._cache_subelements = decrement_dict(self._cache_subelements, key)
             self._cache_superelements = decrement_dict(self._cache_superelements, key)
-            self._cache_direct_subelements = decrement_dict(self._cache_direct_subelements, key)
-            self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
+#            self._cache_direct_subelements = decrement_dict(self._cache_direct_subelements, key)
+#            self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
+            self._cache_direct_subelements = self._direct_relation_cache_by_closed_cache(self._cache_subelements)
+            self._cache_direct_superelements = self._direct_relation_cache_by_closed_cache(self._cache_superelements)
 
     def add(self, element):
+        if element in self._elements_to_index_map:
+            return
+
         self._elements_to_index_map[element] = len(self._elements)
         self._elements.append(element)
         if self._use_cache:
@@ -392,7 +413,18 @@ class POSet:
         del self[idx]
 
     def __eq__(self, other):
-        return self._leq_func == other._leq_func and self._elements == other._elements
+        same_elements = set(self._elements) == set(other._elements)
+        if not same_elements:
+            return False
+        self_i_other_i_map = {self_i: other.index(el) for self_i, el in enumerate(self._elements)}
+        other_i_self_i_map = {other_i: self_i for self_i, other_i in self_i_other_i_map.items()}
+        for self_i, el in enumerate(self._elements):
+            self_subs = self.sub_elements(self_i)
+            other_subs = other.sub_elements(self_i_other_i_map[self_i])
+            other_subs = {other_i_self_i_map[other_i] for other_i in other_subs}
+            if self_subs != other_subs:
+                return False
+        return True
 
     def fill_up_leq_cache(self):
         assert self._use_cache,\
