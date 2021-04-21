@@ -6,6 +6,7 @@ import json
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.mvcontext.mvcontext import MVContext
+from fcapy.poset.poset import POSet
 from fcapy.utils import utils
 import warnings
 import inspect
@@ -18,7 +19,11 @@ if LIB_INSTALLED['numpy']:
     import numpy as np
 
 
-class ConceptLattice:
+class ConceptLattice(POSet):
+    pass
+
+
+class ConceptLatticeOld:
     r"""A class used to represent Concept Lattice object from FCA theory
 
     Methods
