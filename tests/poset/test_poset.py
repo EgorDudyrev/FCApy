@@ -492,3 +492,14 @@ def test_index():
     s_xor = s1 ^ s2
     assert all([s_xor.elements[s_xor.index(el)] == el for el in s_xor.elements])
     assert max(s_xor._elements_to_index_map.values()) == len(s_xor.elements) - 1
+
+
+def test_top_bottom_elements():
+    elements = ['', 'a', 'b', 'ab', 'c']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+
+    top_elements_true = [3, 4]
+    bottom_elements_true = [0]
+    assert s.top_elements == top_elements_true
+    assert s.bottom_elements == bottom_elements_true
