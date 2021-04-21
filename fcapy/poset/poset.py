@@ -51,6 +51,22 @@ class POSet:
     def index(self, element):
         return self._elements_to_index_map[element]
 
+    @property
+    def direct_super_elements_dict(self):
+        return {el_i: self.direct_super_elements(el_i) for el_i in range(len(self))}
+
+    @property
+    def super_elements_dict(self):
+        return {el_i: self.super_elements(el_i) for el_i in range(len(self))}
+
+    @property
+    def direct_sub_elements_dict(self):
+        return {el_i: self.direct_sub_elements(el_i) for el_i in range(len(self))}
+
+    @property
+    def sub_elements_dict(self):
+        return {el_i: self.sub_elements(el_i) for el_i in range(len(self))}
+
     def super_elements(self, element_index: int):
         """Placeholder to use instead of either self._super_elements_nocache(...) or self._super_elements_cache(...)"""
         raise NotImplementedError

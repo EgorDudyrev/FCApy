@@ -403,6 +403,7 @@ def test_super_elements():
 
     sups_fact = {idx: s.super_elements(idx) for idx in range(len(elements))}
     assert sups_fact == sups_true
+    assert s.super_elements_dict == sups_true
 
 
 def test_sub_elements():
@@ -413,6 +414,7 @@ def test_sub_elements():
 
     subs_fact = {idx: s.sub_elements(idx) for idx in range(len(elements))}
     assert subs_fact == subs_true
+    assert s.sub_elements_dict == subs_true
 
 
 def test_direct_super_elements():
@@ -423,6 +425,7 @@ def test_direct_super_elements():
 
     dsups_fact = {idx: s.direct_super_elements(idx) for idx in range(len(elements))}
     assert dsups_fact == dsups_true
+    assert s.direct_super_elements_dict == dsups_true
 
 
 def test_direct_sub_elements():
@@ -433,6 +436,7 @@ def test_direct_sub_elements():
 
     dsubs_fact = {idx: s.direct_sub_elements(idx) for idx in range(len(elements))}
     assert dsubs_fact == dsubs_true
+    assert s.direct_sub_elements_dict == dsubs_true
 
 
 def test_closed_cache_by_direct_cache():
