@@ -447,9 +447,14 @@ class POSet:
     def _closed_relation_cache_by_direct_cache(cls, direct_relation_cache):
         direct_cache_trans = cls._transpose_hierarchy(direct_relation_cache)
         elements_to_visit = [el_i for el_i, subelems in direct_relation_cache.items() if len(subelems) == 0]
+        elements_visited = set()
         closed_cache = {}
         while len(elements_to_visit) > 0:
-            el_i = elements_to_visit.pop(0)
+            for i, el_i in enumerate(elements_to_visit):
+                if direct_relation_cache[el_i] & elements_visited == direct_relation_cache[el_i]:
+                    idx = i
+                    break
+            el_i = elements_to_visit.pop(idx)
 
             direct_rels = direct_relation_cache[el_i]
 
@@ -458,6 +463,7 @@ class POSet:
                 closed_cache[el_i] |= closed_cache[el_i_rel]
 
             elements_to_visit += list(direct_cache_trans[el_i])
+            elements_visited.add(el_i)
         closed_cache = {k: frozenset(vs) for k, vs in closed_cache.items()}
         return closed_cache
 
