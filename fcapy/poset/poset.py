@@ -11,7 +11,13 @@ from collections.abc import Collection
 
 class POSet:
     def __init__(self, elements=None, leq_func=None, use_cache: bool = True):
-        self._elements = list(elements) if elements is not None else None
+        if elements is not None:
+            self._elements = list(elements)
+            self._elements_to_index_map = {el: idx for idx, el in enumerate(self._elements)}
+        else:
+            self._elements = None
+            self._elements_to_index_map = {}
+
         self._leq_func = leq_func
 
         self._use_cache = use_cache
@@ -41,6 +47,9 @@ class POSet:
     @property
     def leq_func(self):
         return self._leq_func
+
+    def index(self, element):
+        return self._elements_to_index_map[element]
 
     def super_elements(self, element_index: int):
         """Placeholder to use instead of either self._super_elements_nocache(...) or self._super_elements_cache(...)"""
@@ -296,11 +305,15 @@ class POSet:
         return len(self._elements)
 
     def __delitem__(self, key):
+        del self._elements_to_index_map[self._elements[key]]
         del self._elements[key]
 
+        def decr_idx(idx, threshold):
+            return idx - 1 if idx > threshold else idx
+
+        self._elements_to_index_map = {el: decr_idx(idx, key) for el, idx in self._elements_to_index_map.items()}
+
         if self._use_cache:
-            def decr_idx(idx, threshold):
-                return idx - 1 if idx > threshold else idx
 
             def decrement_dict(dct, threshold):
                 if len(dct) == 0:
@@ -342,6 +355,7 @@ class POSet:
             self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
 
     def add(self, element):
+        self._elements_to_index_map[element] = len(self._elements)
         self._elements.append(element)
         if self._use_cache:
             self._cache_subelements = {}

@@ -22,6 +22,7 @@ def test_init():
     assert s._cache_superelements == {}
     assert s._cache_direct_subelements == {}
     assert s._cache_direct_superelements == {}
+    assert s._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
 
 
 def test_leq_elements():
@@ -458,3 +459,32 @@ def test_direct_cache_by_closed_cache():
 
     direct_superelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_superelements)
     assert direct_superelements_cache == s._cache_direct_superelements
+
+
+def test_index():
+    elements = ['', 'a', 'b', 'ab', 'c']
+    leq_func = lambda x, y: x in y
+    s = POSet(elements, leq_func)
+
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
+    assert max(s._elements_to_index_map.values()) == len(s.elements)-1
+
+    s.add('d')
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
+    assert max(s._elements_to_index_map.values()) == len(s.elements) - 1
+
+    s.remove('b')
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
+    assert max(s._elements_to_index_map.values()) == len(s.elements) - 1
+
+    s1 = POSet(elements[:4], leq_func)
+    s2 = POSet(elements[3:], leq_func)
+    s_and = s1 & s2
+    assert all([s_and.elements[s_and.index(el)] == el for el in s_and.elements])
+    assert max(s_and._elements_to_index_map.values()) == len(s_and.elements) - 1
+    s_or = s1 | s2
+    assert all([s_or.elements[s_or.index(el)] == el for el in s_or.elements])
+    assert max(s_or._elements_to_index_map.values()) == len(s_or.elements) - 1
+    s_xor = s1 ^ s2
+    assert all([s_xor.elements[s_xor.index(el)] == el for el in s_xor.elements])
+    assert max(s_xor._elements_to_index_map.values()) == len(s_xor.elements) - 1
