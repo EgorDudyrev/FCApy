@@ -46,7 +46,7 @@ class DecisionLatticePredictor:
         """
         self._algo = algo
 
-        self._lattice = ConceptLattice()
+        self._lattice = None
         self._use_generators = use_generators
         self._generators_algo = generators_algo
         self._algo_params = algo_params if algo_params is not None else dict()

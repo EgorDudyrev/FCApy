@@ -8,7 +8,7 @@ from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.context.formal_context import FormalContext
-from fcapy.poset.poset import POSet
+from fcapy.poset.lattice import Lattice
 from fcapy.utils import utils
 import warnings
 import inspect
@@ -21,9 +21,9 @@ if LIB_INSTALLED['numpy']:
     import numpy as np
 
 
-class ConceptLattice(POSet):
-    def __init__(self, concepts=None, **kwargs):
-        leq_func = lambda c1, c2: c1.extent_i in c2.extent_i
+class ConceptLattice(Lattice):
+    def __init__(self, concepts, **kwargs):
+        leq_func = lambda c1, c2: c1 <= c2
         super(ConceptLattice, self).__init__(concepts, leq_func, use_cache=True)
 
         subconcepts_dict = kwargs.get('subconcepts_dict')
@@ -38,7 +38,7 @@ class ConceptLattice(POSet):
             self._cache_subelements = self._closed_relation_cache_by_direct_cache(subconcepts_dict)
             self._cache_superelements = self._closed_relation_cache_by_direct_cache(superconcepts_dict)
 
-        self._generators_dict = None
+        self._generators_dict = {}
 
     @property
     def superconcepts_dict(self):
@@ -62,27 +62,19 @@ class ConceptLattice(POSet):
 
     @property
     def top_concept_i(self):
-        top_concepts = self.top_elements
-        top_concept_i = top_concepts[0] if len(top_concepts) == 1 else None
-        return top_concept_i
+        return self.top_element
 
     @property
     def top_concept(self):
-        top_concept_i = self.top_concept_i
-        top_concept = self.concepts[top_concept_i] if top_concept_i is not None else None
-        return top_concept
+        return self.concepts[self.top_concept_i]
 
     @property
     def bottom_concept_i(self):
-        bottom_concepts = self.bottom_elements
-        bottom_concept_i = bottom_concepts[0] if len(bottom_concepts) == 1 else None
-        return bottom_concept_i
+        return self.bottom_element
 
     @property
     def bottom_concept(self):
-        bottom_concept_i = self.bottom_concept_i
-        bottom_concept = self.concepts[bottom_concept_i] if bottom_concept_i is not None else None
-        return bottom_concept
+        return self.concepts[self.bottom_concept_i]
 
     @staticmethod
     def get_top_bottom_concepts_i(concepts, is_concepts_sorted=False):
@@ -192,13 +184,13 @@ class ConceptLattice(POSet):
                     map_i_isort[c_i] : {map_i_isort[c1_i] for c1_i in ltc.__dict__[cache_name][c_i]}
                     for c_i in map_isort_i
                 }
-            #ltc._cache_direct_subelements = {
-            #    map_i_isort[c_i]: {map_i_isort[subc_i] for subc_i in ltc._cache_direct_subelements[c_i]}
-            #    for c_i in map_isort_i}
-            #ltc._cache_direct_superelements = {
-            #    map_i_isort[c_i]: {map_i_isort[supc_i] for supc_i in ltc._cache_direct_superelements[c_i]}
-            #    for c_i in map_isort_i}
 
+            ltc._generators_dict = {map_i_isort[c_i]: {map_i_isort[supc_i]: gen for supc_i, gen in gens_dict.items()}
+                                    for c_i, gens_dict in ltc._generators_dict.items()}
+            if ltc._cache_top_element is not None:
+                ltc._cache_top_element = map_i_isort[ltc._cache_top_element]
+            if ltc._cache_bottom_element is not None:
+                ltc._cache_bottom_element = map_i_isort[ltc._cache_bottom_element]
 
         else:
             raise ValueError(f'ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
@@ -260,9 +252,9 @@ class ConceptLattice(POSet):
 
     def add(self, new_concept: FormalConcept or PatternConcept):
         """Add the concept ``new_concept`` into the ConceptLattice"""
-        lca.add_concept(
+        _, _, _, self._cache_top_element, self._cache_bottom_element = lca.add_concept(
             new_concept, self._elements, self._cache_direct_subelements, self._cache_direct_superelements,
-            None, None, inplace=True)
+            self._cache_top_element, self._cache_bottom_element, inplace=True)
 
         self._cache_subelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_subelements)
         self._cache_superelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_superelements)
@@ -272,9 +264,9 @@ class ConceptLattice(POSet):
 
     def __delitem__(self, key: int):
         """Remove the concept with ``concept_i`` index from the ConceptLattice"""
-        lca.remove_concept(
+        _, _, _, self._cache_top_element, self._cache_bottom_element = lca.remove_concept(
             key, self._elements, self._cache_direct_subelements, self._cache_direct_superelements,
-            None, None, inplace=True)
+            self._cache_top_element, self._cache_bottom_element, inplace=True)
 
         self._cache_subelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_subelements)
         self._cache_superelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_superelements)

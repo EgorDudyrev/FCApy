@@ -7,6 +7,11 @@ from fcapy.mvcontext import pattern_structure as ps, mvcontext
 
 
 def test_concept_lattice_init():
+    with pytest.raises(TypeError):
+        ConceptLattice()
+    with pytest.raises(ValueError):
+        ConceptLattice([])
+
     c1 = FormalConcept((), (), (0, 1), ('a', 'b'))
     c2 = FormalConcept((0,), ('a',), (0,), ('a',))
     c3 = FormalConcept((0, 1), ('a', 'b'), (), ())
@@ -75,24 +80,19 @@ def test_from_context():
 
 
 def test_get_top_bottom_concepts_i():
-    ltc = ConceptLattice()
-    top_concept_i, bottom_concept_i = ltc.get_top_bottom_concepts_i(None)
-    assert top_concept_i is None and bottom_concept_i is None,\
-        'ConceptLattice.get_top_bottom_concepts_i failed. None values should be returned if None value is given'
-
     c1 = FormalConcept((0,), ('a',), (0,), ('a',))
     c2 = FormalConcept((), (), (0, 1), ('a', 'b'))
     c3 = FormalConcept((0, 1), ('a', 'b'), (), ())
     c4 = FormalConcept((1,), ('b',), (1,), ('b',))
     concepts = [c1, c2, c3, c4]
-    top_concept_i, bottom_concept_i = ltc.get_top_bottom_concepts_i(concepts)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
     assert top_concept_i == 2,\
         "ConceptLattice.get_top_bottom_concepts_i failed. Top concept index is wrongly assigned"
     assert bottom_concept_i == 1, \
         "ConceptLattice.get_top_bottom_concepts_i failed. Bottom concept index is wrongly assigned"
 
     concepts_sorted = [c3, c1, c4, c2]
-    top_concept_i, bottom_concept_i = ltc.get_top_bottom_concepts_i(concepts_sorted, is_concepts_sorted=True)
+    top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_sorted, is_concepts_sorted=True)
     assert top_concept_i == 0,\
         "ConceptLattice.get_top_bottom_concepts_i failed. " \
         "Top concept index is wrongly assigned when sorted concepts given"
@@ -130,8 +130,6 @@ def test__eq__():
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
 
-    ltc_none = ConceptLattice()
-    assert ltc1 != ltc_none, "ConceptLattice.__eq__ failed. The lattice should not be equal to none lattice"
     ltc3 = ConceptLattice([c1, c2, c4], subconcepts_dict={0: {1}, 1: {2}, 2: set()})
     ltc3._superconcepts_dict = None
     assert ltc1 != ltc3,\
