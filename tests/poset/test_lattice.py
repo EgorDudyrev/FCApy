@@ -23,6 +23,7 @@ def test_init_uppersemilattice():
     l = UpperSemiLattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
+    assert l._cache_top_element is None
 
     with pytest.raises(ValueError):
         UpperSemiLattice(elements[:-1], leq_func)
@@ -105,6 +106,7 @@ def test_init_lowersemilattice():
     l = LowerSemiLattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
+    assert l._cache_bottom_element is None
 
     LowerSemiLattice(elements[:-1], leq_func)
 
@@ -187,6 +189,8 @@ def test_init_lattice():
     l = Lattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
+    assert l._cache_top_element is None
+    assert l._cache_bottom_element is None
 
     with pytest.raises(ValueError):
         Lattice(elements[:-1], leq_func)
