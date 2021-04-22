@@ -400,8 +400,9 @@ class POSet:
         if element in self._elements_to_index_map:
             return
 
-        self._elements_to_index_map[element] = len(self._elements)
+        el_i_new = len(self._elements)
         self._elements.append(element)
+        self._elements_to_index_map[element] = el_i_new
         if self._use_cache:
             self._cache_subelements = {}
             self._cache_superelements = {}
@@ -474,6 +475,39 @@ class POSet:
         self.fill_up_superelements_cache()
         self.fill_up_direct_subelements_cache()
         self.fill_up_direct_superelements_cache()
+
+    def trace_element(self, element, direction: str):
+        if direction == 'down':
+            start_elements = self.top_elements
+            compare_func = self._leq_func
+            next_elements_func = self.direct_sub_elements
+        elif direction == 'up':
+            start_elements = self.bottom_elements
+            compare_func = lambda a, b: self._leq_func(b, a)
+            next_elements_func = self.direct_super_elements
+        else:
+            raise ValueError('``direction`` value should be either "up" or "down"')
+
+        return self._trace_elements_both_directions(element, start_elements, compare_func, next_elements_func)
+
+    def _trace_elements_both_directions(self, element, start_elements, compare_func, next_elements_func):
+        traced_elements, final_elements = set(), set()
+
+        elements_to_visit = [el_i for el_i in start_elements if compare_func(element, self._elements[el_i])]
+
+        while len(elements_to_visit) > 0:
+            el_i = elements_to_visit.pop(0)
+            traced_elements.add(el_i)
+
+            next_elements = {el_i_next for el_i_next in next_elements_func(el_i)
+                             if compare_func(element, self._elements[el_i_next])}
+
+            if len(next_elements) > 0:
+                elements_to_visit += list(next_elements - traced_elements - set(elements_to_visit))
+            else:
+                final_elements.add(el_i)
+
+        return final_elements, traced_elements
 
     @classmethod
     def _closed_relation_cache_by_direct_cache(cls, direct_relation_cache):

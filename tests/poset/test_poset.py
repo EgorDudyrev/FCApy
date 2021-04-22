@@ -9,7 +9,7 @@ def test_init():
     assert s._elements_to_index_map == {}
 
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
 
     for use_cache in [False, True]:
         s = POSet(elements, leq_func, use_cache=use_cache)
@@ -29,7 +29,7 @@ def test_init():
 
 def test_leq_elements():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     for use_cache in [False, True]:
         s = POSet(elements, leq_func, use_cache=use_cache)
         leq = s.leq_elements(1, 2)
@@ -47,7 +47,7 @@ def test_leq_elements():
 
 def test_fill_up_caches():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func, use_cache=False)
     with pytest.raises(AssertionError):
         s.fill_up_caches()
@@ -81,7 +81,7 @@ def test_fill_up_caches():
 
 def test_join_elements_supremum():
     elements = ['a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     for func in [s.join_elements, s.supremum]:
@@ -99,7 +99,7 @@ def test_join_elements_supremum():
 
 def test_meet_elements_infimum():
     elements = ['a', 'b', 'ab', 'ac']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     for func in [s.meet_elements, s.infimum]:
@@ -117,7 +117,7 @@ def test_meet_elements_infimum():
 
 def test_getitem():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     assert s[0] == ''
     assert s[1] == 'a'
@@ -130,11 +130,11 @@ def test_getitem():
 
 def test_eq():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     elements1 = ['a', 'b', 'ab', '']
-    leq_func1 = lambda a, b: a in b
+    leq_func1 = lambda a, b: set(a) & set(b) == set(a)
     other = POSet(elements1, leq_func1)
     assert s == other
 
@@ -145,7 +145,7 @@ def test_eq():
     other = POSet(elements_1, leq_func)
     assert s != other
 
-    leq_func_1 = lambda x, y: not x  in y
+    leq_func_1 = lambda x, y: not(set(x) & set(y) == set(x))
     other = POSet(elements, leq_func_1)
     assert s != other
 
@@ -157,7 +157,7 @@ def test_and():
     elements_1 = ['', 'a', 'b']
     elements_2 = ['a', 'b', 'ab']
     elements_and = ['a', 'b']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
 
     # Test if intersection operation is working
     for use_cache in [False, True]:
@@ -205,7 +205,7 @@ def test_or():
     elements_1 = ['', 'a', 'b']
     elements_2 = ['a', 'b', 'ab']
     elements_or = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
 
     # Test if union operation is working
     for use_cache in [False, True]:
@@ -241,7 +241,7 @@ def test_xor():
     elements_1 = ['', 'a', 'b']
     elements_2 = ['a', 'b', 'ab']
     elements_xor = ['', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
 
     # Test if xor operation is working
     for use_cache in [False, True]:
@@ -277,7 +277,7 @@ def test_subtraction():
     elements_1 = ['', 'a', 'b']
     elements_2 = ['', 'ab']
     elements_sub = ['a', 'b']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
 
     # Test if subtraction operation is working
     for use_cache in [False, True]:
@@ -306,7 +306,7 @@ def test_subtraction():
 
 def test_len():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     assert len(s) == len(elements)
 
@@ -315,7 +315,7 @@ def test_delitem():
     elements = ['', 'a', 'b', 'ab']
     del_i = 1
     elements_del = [el for i, el in enumerate(elements) if i != del_i]
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
 
     # Test if delitem operation is working
     for use_cache in [False, True]:
@@ -343,7 +343,7 @@ def test_add():
     elements = ['', 'b', 'ab']
     elements_add = ['', 'b', 'ab', 'a']
     new_element = 'a'
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
 
     # Test if add operation is working
     for use_cache in [False, True]:
@@ -376,7 +376,7 @@ def test_remove():
     elements = ['', 'a', 'b', 'ab']
     remove_i = 1
     elements_remove = [el for i, el in enumerate(elements) if i != remove_i]
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
 
     # Test if delitem operation is working
     for use_cache in [False, True]:
@@ -402,7 +402,7 @@ def test_remove():
 
 def test_super_elements():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     sups_true = {0: {1, 2, 3}, 1: {3}, 2: {3}, 3: set()}
 
@@ -413,7 +413,7 @@ def test_super_elements():
 
 def test_sub_elements():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     subs_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}, 4: {0}}
 
@@ -424,7 +424,7 @@ def test_sub_elements():
 
 def test_direct_super_elements():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     dsups_true = {0: {1, 2}, 1: {3}, 2: {3}, 3: set()}
 
@@ -435,7 +435,7 @@ def test_direct_super_elements():
 
 def test_direct_sub_elements():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     dsubs_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}, 4: {0}}
 
@@ -446,7 +446,7 @@ def test_direct_sub_elements():
 
 def test_closed_cache_by_direct_cache():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     s.fill_up_caches()
 
@@ -459,7 +459,7 @@ def test_closed_cache_by_direct_cache():
 
 def test_direct_cache_by_closed_cache():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     s.fill_up_caches()
 
@@ -472,7 +472,7 @@ def test_direct_cache_by_closed_cache():
 
 def test_index():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     assert all([s.elements[s.index(el)] == el for el in s.elements])
@@ -501,10 +501,52 @@ def test_index():
 
 def test_top_bottom_elements():
     elements = ['', 'a', 'b', 'ab', 'c']
-    leq_func = lambda x, y: x in y
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     top_elements_true = [3, 4]
     bottom_elements_true = [0]
     assert s.top_elements == top_elements_true
     assert s.bottom_elements == bottom_elements_true
+
+
+def test_trace_element():
+    elements = ['a', 'ab', 'c', 'abc']
+    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    s = POSet(elements, leq_func)
+
+    final_down_elems_true = {
+        '': {0, 2},
+        'abcd': set(),
+        'ac': {3},
+        'ab': {1},
+    }
+    traced_down_elems_true = {
+        '': {3, 1, 0, 2},
+        'abcd': set(),
+        'ac': {3},
+        'ab': {3, 1},
+    }
+    final_up_elems_true = {
+        '': set(),
+        'abcd': {3},
+        'ac': {0, 2},
+        'ab': {1}
+    }
+    traced_up_elems_true = {
+        '': set(),
+        'abcd': {0, 2, 1, 3},
+        'ac': {0, 2},
+        'ab': {0, 1},
+    }
+    for el in final_down_elems_true.keys():
+        final_down_elems, traced_down_elems = s.trace_element(el, 'down')
+        assert final_down_elems == final_down_elems_true[el], f'Error at element "{el}" when tracing down'
+        assert traced_down_elems == traced_down_elems_true[el], f'Error at element "{el}" when tracing down'
+
+        final_up_elems, traced_up_elems = s.trace_element(el, 'up')
+        assert final_up_elems == final_up_elems_true[el], f'Error at element "{el}" when tracing up'
+        assert traced_up_elems == traced_up_elems_true[el], f'Error at element "{el}" when tracing up'
+
+    with pytest.raises(ValueError):
+        s.trace_element('element', 'ThEdIrEcTiOn')
