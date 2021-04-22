@@ -193,7 +193,7 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
     lattice = ConceptLattice(concepts, subconcepts_dict=subconcepts_dict)
 
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
-    itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
+    itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice.concepts]
 
     for projection_num in utils.safe_tqdm(range(proj_to_start+1, max_projection + 1),
                                           desc='SOFIA: Iterate projections', disable=not use_tqdm):
@@ -211,29 +211,29 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
         # make the concepts comparable
         ctx_projected_hash = hash(ctx_projected)
-        for c in lattice._concepts:
+        for c in lattice.concepts:
             c._context_hash = ctx_projected_hash
 
         # concepts that were changed during projection iteration
-        concepts_delta = set(new_concepts) - set(lattice._concepts)
+        concepts_delta = set(new_concepts) - set(lattice.concepts)
         # find concepts which were just 'expanded' to the new projection:
         # their "iterset" is changed but "sideset" is the same (see the notation described in close_by_one)
         old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
-                        for c_i, c in enumerate(lattice._concepts)}
+                        for c_i, c in enumerate(lattice.concepts)}
         concepts_delta_same_sidesets = {
             c for c in concepts_delta
             if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
         for c in concepts_delta_same_sidesets:
             sideset = c.extent_i if iterate_attributes else c.intent_i
             c_i = old_sidesets[sideset]
-            lattice._concepts[c_i] = c
+            lattice.concepts[c_i] = c
 
-        top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice._concepts)
+        top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice.concepts)
 
         # find completely new concepts created while projection iteration
         # sort concepts to ensure there will be no moment with multiple top or bottom concepts
         concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
-        if len(concepts_to_add) >= 2 and concepts_to_add[-1] < lattice._concepts[bottom_concept_i]:
+        if len(concepts_to_add) >= 2 and concepts_to_add[-1] < lattice.concepts[bottom_concept_i]:
             concepts_to_add = [concepts_to_add[-1]] + concepts_to_add[:-1]
         for c_i, c in enumerate(concepts_to_add):
             lattice.add_concept(c)
@@ -248,7 +248,7 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
             for c_i in concepts_to_remove:
                 lattice.remove_concept(c_i)
 
-        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice._concepts]
+        itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice.concepts]
     return lattice
 
 

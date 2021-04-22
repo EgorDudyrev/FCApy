@@ -5,6 +5,8 @@ from copy import deepcopy
 
 def test_init():
     s = POSet()
+    assert s.elements == []
+    assert s._elements_to_index_map == {}
 
     elements = ['', 'a', 'b', 'ab']
     leq_func = lambda x,y: x in y

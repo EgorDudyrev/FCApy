@@ -16,7 +16,7 @@ class POSet:
             self._elements = list(elements)
             self._elements_to_index_map = {el: idx for idx, el in enumerate(self._elements)}
         else:
-            self._elements = None
+            self._elements = []
             self._elements_to_index_map = {}
 
         self._leq_func = leq_func

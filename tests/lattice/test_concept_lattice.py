@@ -49,6 +49,11 @@ def test_from_context():
     ctx = converters.read_csv('data/mango_bin.csv')
     ltc_cbo = ConceptLattice.from_context(ctx, algo='CbO')
     ltc_sofia = ConceptLattice.from_context(ctx, algo='Sofia')
+    assert all([idx == ltc_cbo.index(el) for idx, el in enumerate(ltc_cbo)]),\
+        "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
+    assert all([idx == ltc_sofia.index(el) for idx, el in enumerate(ltc_sofia)]),\
+        "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
+
     assert ltc_cbo == ltc_sofia,\
         "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms"
 
