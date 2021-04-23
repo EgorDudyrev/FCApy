@@ -353,17 +353,18 @@ def test_add():
         assert s == s_add_true
 
     # Test if cache is not changed after adding new element
-    s = POSet(elements, leq_func, use_cache=True)
     s_add_true = POSet(elements_add, leq_func, use_cache=True)
-    s.fill_up_caches()
     s_add_true.fill_up_caches()
 
-    cache_true = deepcopy(s._cache_leq)
-    #cache_true[len(elements)-1] = {}
-
-    s.add(new_element)
-    assert s._cache_leq == cache_true
+    s = POSet(elements, leq_func, use_cache=True)
     s.fill_up_caches()
+    cache_true = deepcopy(s._cache_leq)
+    s.add(new_element, fill_up_cache=False)
+    assert s._cache_leq == cache_true
+
+    s = POSet(elements, leq_func, use_cache=True)
+    s.fill_up_caches()
+    s.add(new_element, fill_up_cache=True)
     assert s == s_add_true
     assert s._cache_leq == s_add_true._cache_leq
     assert s._cache_subelements == s_add_true._cache_subelements

@@ -396,27 +396,65 @@ class POSet:
             self._cache_direct_subelements = self._direct_relation_cache_by_closed_cache(self._cache_subelements)
             self._cache_direct_superelements = self._direct_relation_cache_by_closed_cache(self._cache_superelements)
 
-    def add(self, element):
+    def add(self, element, fill_up_cache=True):
         if element in self._elements_to_index_map:
             return
 
         el_i_new = len(self._elements)
+        if self._use_cache:
+            if fill_up_cache:
+                final_down_elements, traced_down_elements = self.trace_element(element, 'down')
+                final_up_elements, traced_up_elements = self.trace_element(element, 'up')
+
+                self._cache_subelements[el_i_new] = frozenset(traced_up_elements)
+                self._cache_superelements[el_i_new] = frozenset(traced_down_elements)
+                self._cache_direct_subelements[el_i_new] = frozenset(final_up_elements)
+                self._cache_direct_superelements[el_i_new] = frozenset(final_down_elements)
+                self._cache_leq[(el_i_new, el_i_new)] = True
+
+                for el_i in range(len(self._elements)):
+                    if el_i in traced_up_elements: # then el_i is subelement of el_i_new
+                        self._cache_superelements[el_i] = frozenset(self._cache_superelements[el_i] | {el_i_new})
+                        self._cache_leq[(el_i, el_i_new)] = True
+                        self._cache_leq[(el_i_new, el_i)] = False
+                    elif el_i in traced_down_elements: # then el_i is superelement of el_i_new
+                        self._cache_subelements[el_i] = frozenset(self._cache_subelements[el_i] | {el_i_new})
+                        self._cache_leq[(el_i, el_i_new)] = False
+                        self._cache_leq[(el_i_new, el_i)] = True
+                    else: # then el_i and el_i_new are incomparable
+                        self._cache_leq[(el_i, el_i_new)] = False
+                        self._cache_leq[(el_i_new, el_i)] = False
+
+                for el_i in final_up_elements:
+                    self._cache_direct_superelements[el_i] =\
+                        frozenset(self._cache_direct_superelements[el_i] | {el_i_new} - final_down_elements)
+
+                for el_i in final_down_elements:
+                    self._cache_direct_subelements[el_i] =\
+                        frozenset(self._cache_direct_subelements[el_i] | {el_i_new} - final_up_elements)
+
+
+            else:
+                self._cache_subelements = {}
+                self._cache_superelements = {}
+                self._cache_direct_subelements = {}
+                self._cache_direct_superelements = {}
+
         self._elements.append(element)
         self._elements_to_index_map[element] = el_i_new
-        if self._use_cache:
-            self._cache_subelements = {}
-            self._cache_superelements = {}
-            self._cache_direct_subelements = {}
-            self._cache_direct_superelements = {}
 
     def remove(self, element):
         idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
         del self[idx]
 
     def __eq__(self, other):
+        # Test if two POSets contain the same elements
         same_elements = set(self._elements) == set(other._elements)
         if not same_elements:
             return False
+
+        # Empirically test is two POSets have the same leq_func
+        # (i.e. corresponding elements have the same set of corresponding subelements)
         self_i_other_i_map = {self_i: other.index(el) for self_i, el in enumerate(self._elements)}
         other_i_self_i_map = {other_i: self_i for self_i, other_i in self_i_other_i_map.items()}
         for self_i, el in enumerate(self._elements):
