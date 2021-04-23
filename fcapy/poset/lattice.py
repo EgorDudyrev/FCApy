@@ -30,13 +30,13 @@ class UpperSemiLattice(POSet):
     def top_elements(self):
         return [self.top_element]
 
-    def add(self, element):
+    def add(self, element, fill_up_cache=True):
         is_smaller_than_top = self.leq_func(self._elements[self.top_element], element)
         is_bigger_than_top = self.leq_func(element, self._elements[self.top_element])
 
         if not (is_smaller_than_top or is_bigger_than_top):
             raise ValueError(f"New element {element} is incomparable with the top element of {self.CLASS_NAME}")
-        super(UpperSemiLattice, self).add(element)
+        super(UpperSemiLattice, self).add(element, fill_up_cache)
 
         if self._use_cache:
             if is_bigger_than_top:
@@ -85,13 +85,13 @@ class LowerSemiLattice(POSet):
     def bottom_elements(self):
         return [self.bottom_element]
 
-    def add(self, element):
+    def add(self, element, fill_up_cache=True):
         is_smaller_than_bottom = self.leq_func(element, self._elements[self.bottom_element])
         is_bigger_than_bottom = self.leq_func(self._elements[self.bottom_element], element)
 
         if not (is_smaller_than_bottom or is_bigger_than_bottom):
             raise ValueError(f"New element {element} is incomparable with the bottom element of {self.CLASS_NAME}")
-        super(LowerSemiLattice, self).add(element)
+        super(LowerSemiLattice, self).add(element, fill_up_cache)
 
         if self._use_cache:
             if is_smaller_than_bottom:
