@@ -250,26 +250,8 @@ class ConceptLattice(Lattice):
     def add_concept(self, new_concept: FormalConcept or PatternConcept):
         self.add(new_concept)
 
-    def add(self, new_concept: FormalConcept or PatternConcept):
-        """Add the concept ``new_concept`` into the ConceptLattice"""
-        _, _, _, self._cache_top_element, self._cache_bottom_element = lca.add_concept(
-            new_concept, self._elements, self._cache_direct_subelements, self._cache_direct_superelements,
-            self._cache_top_element, self._cache_bottom_element, inplace=True)
-
-        self._cache_subelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_subelements)
-        self._cache_superelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_superelements)
-
     def remove_concept(self, concept_i):
         del self[concept_i]
-
-    def __delitem__(self, key: int):
-        """Remove the concept with ``concept_i`` index from the ConceptLattice"""
-        _, _, _, self._cache_top_element, self._cache_bottom_element = lca.remove_concept(
-            key, self._elements, self._cache_direct_subelements, self._cache_direct_superelements,
-            self._cache_top_element, self._cache_bottom_element, inplace=True)
-
-        self._cache_subelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_subelements)
-        self._cache_superelements = self._closed_relation_cache_by_direct_cache(self._cache_direct_superelements)
 
     def calc_concepts_measures(self, measure: str, context: FormalContext or MVContext = None):
         """Calculate the values of ``measure`` for each concept in a lattice
@@ -362,7 +344,6 @@ class ConceptLattice(Lattice):
             for subc_i in subconcepts_dict[c_i]:
                 all_subconcepts[c_i] |= all_subconcepts[subc_i]
         return all_subconcepts
-
 
     def trace_context(self, context: FormalContext or MVContext,
                       use_object_indices=False, use_generators=False, use_tqdm=False):

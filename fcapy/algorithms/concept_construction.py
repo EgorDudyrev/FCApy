@@ -226,7 +226,19 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
         for c in concepts_delta_same_sidesets:
             sideset = c.extent_i if iterate_attributes else c.intent_i
             c_i = old_sidesets[sideset]
-            lattice.concepts[c_i] = c
+            #lattice.concepts[c_i] = c
+
+            del lattice._elements_to_index_map[lattice._elements[c_i]]
+            lattice._elements[c_i] = c  # concepts[c_i] = c
+            lattice._elements_to_index_map[c] = c_i
+
+            #if iterate_attributes:
+            #    lattice.concepts[c_i]._intent_i = c.intent_i
+            #    lattice.concepts[c_i]._intent = c.intent
+            #else:
+            #    lattice.concepts[c_i]._extent_i = c.extent_i
+            #    lattice.concepts[c_i]._extent = c.extent
+
 
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice.concepts)
 

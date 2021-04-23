@@ -452,7 +452,7 @@ class POSet:
         self._elements_to_index_map[element] = el_i_new
 
     def remove(self, element):
-        idx = [idx for idx, el in enumerate(self._elements) if el == element][0]
+        idx = self.index(element)
         del self[idx]
 
     def __eq__(self, other):

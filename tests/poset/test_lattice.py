@@ -213,6 +213,10 @@ def test_add_lattice():
     leq_func = lambda x, y: x in y
     l = Lattice(elements, leq_func)
     l.add('abc')
+    assert all([l.elements[l.index(el)] == el for el in l.elements])
+    l_added = Lattice(elements+['abc'], leq_func)
+    assert l == l_added
+    assert l.top_element == l_added.top_element
 
     elements = ['', 'a', 'b', 'ab']
     l = Lattice(elements, leq_func)
@@ -232,6 +236,8 @@ def test_remove_lattice():
     l.remove('a')
     l_removed = Lattice(['', 'b', 'ab'], leq_func)
     assert l == l_removed
+    assert all([l.elements[l.index(el)] == el for el in l.elements])
+
 
     l = Lattice(elements, leq_func)
     with pytest.raises(ValueError):

@@ -361,6 +361,7 @@ def test_add():
     cache_true = deepcopy(s._cache_leq)
     s.add(new_element, fill_up_cache=False)
     assert s._cache_leq == cache_true
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
 
     s = POSet(elements, leq_func, use_cache=True)
     s.fill_up_caches()
@@ -371,6 +372,7 @@ def test_add():
     assert s._cache_superelements == s_add_true._cache_superelements
     assert s._cache_direct_subelements == s_add_true._cache_direct_subelements
     assert s._cache_direct_superelements == s_add_true._cache_direct_superelements
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
 
 
 def test_remove():
@@ -399,6 +401,7 @@ def test_remove():
     assert s._cache_superelements == s_remove_true._cache_superelements
     assert s._cache_direct_subelements == s_remove_true._cache_direct_subelements
     assert s._cache_direct_superelements == s_remove_true._cache_direct_superelements
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
 
 
 def test_super_elements():

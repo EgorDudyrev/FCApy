@@ -31,8 +31,8 @@ class UpperSemiLattice(POSet):
         return [self.top_element]
 
     def add(self, element, fill_up_cache=True):
-        is_smaller_than_top = self.leq_func(self._elements[self.top_element], element)
-        is_bigger_than_top = self.leq_func(element, self._elements[self.top_element])
+        is_smaller_than_top = self.leq_func(element, self._elements[self.top_element])
+        is_bigger_than_top = self.leq_func(self._elements[self.top_element], element)
 
         if not (is_smaller_than_top or is_bigger_than_top):
             raise ValueError(f"New element {element} is incomparable with the top element of {self.CLASS_NAME}")
