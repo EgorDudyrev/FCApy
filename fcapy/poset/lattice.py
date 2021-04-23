@@ -9,21 +9,26 @@ class UpperSemiLattice(POSet):
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
         super(UpperSemiLattice, self).__init__(elements, leq_func, use_cache)
 
-        if len(self.top_elements) != 1:
+        top_elements = super(UpperSemiLattice, self).top_elements
+        if len(top_elements) != 1:
             raise ValueError(f"The set of ``elements`` should have a single top element")
 
         if use_cache:
-            self._cache_top_element = None
+            self._cache_top_element = top_elements[0]
 
     @property
     def top_element(self):
         if self._use_cache:
             if self._cache_top_element is None:
-                self._cache_top_element = self.top_elements[0]
+                self._cache_top_element = super(UpperSemiLattice, self).top_elements[0]
             top_element = self._cache_top_element
         else:
-            top_element = self.top_elements[0]
+            top_element = super(UpperSemiLattice, self).top_elements[0]
         return top_element
+
+    @property
+    def top_elements(self):
+        return [self.top_element]
 
     def add(self, element):
         is_smaller_than_top = self.leq_func(self._elements[self.top_element], element)
@@ -59,21 +64,26 @@ class LowerSemiLattice(POSet):
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
         super(LowerSemiLattice, self).__init__(elements, leq_func, use_cache)
 
-        if len(self.bottom_elements) != 1:
+        bottom_elements = super(LowerSemiLattice, self).bottom_elements
+        if len(bottom_elements) != 1:
             raise ValueError(f"The set of ``elements`` should have a single bottom element")
 
         if use_cache:
-            self._cache_bottom_element = None
+            self._cache_bottom_element = bottom_elements[0]
 
     @property
     def bottom_element(self):
         if self._use_cache:
             if self._cache_bottom_element is None:
-                self._cache_bottom_element = self.bottom_elements[0]
+                self._cache_bottom_element = super(LowerSemiLattice, self).bottom_elements[0]
             bottom_element = self._cache_bottom_element
         else:
-            bottom_element = self.bottom_elements[0]
+            bottom_element = super(LowerSemiLattice, self).bottom_elements[0]
         return bottom_element
+
+    @property
+    def bottom_elements(self):
+        return [self.bottom_element]
 
     def add(self, element):
         is_smaller_than_bottom = self.leq_func(element, self._elements[self.bottom_element])
