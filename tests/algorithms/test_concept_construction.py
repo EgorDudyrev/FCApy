@@ -81,7 +81,12 @@ def test_sofia_binary():
     stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
 
     ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
-    concepts_sofia = ltc_sofia.concepts
+    ltc_sofia_precalc = ConceptLattice.from_json('data/digits_sofia_lattice_22.json')
+    # TODO: Change this somewhow
+    for c in ltc_sofia_precalc.concepts:
+        c._context_hash = hash(ctx)
+    assert ltc_sofia == ltc_sofia_precalc
+
     with pytest.warns(UserWarning):
         ltc_sofia.calc_concepts_measures('stability', ctx)
     stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia.concepts]

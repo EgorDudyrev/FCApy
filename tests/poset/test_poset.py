@@ -417,6 +417,21 @@ def test_remove():
     assert s._cache_direct_superelements == s_remove_true._cache_direct_superelements
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
+    # Test if cache is changed correctly after removing an element (another case)
+    s = POSet(['', 'a', 'ab',], leq_func, use_cache=True)
+    s_remove_true = POSet(['', 'ab'], leq_func, use_cache=True)
+    s.fill_up_caches()
+    s_remove_true.fill_up_caches()
+
+    s.remove('a')
+    assert s == s_remove_true
+    assert s._cache_leq == s_remove_true._cache_leq
+    assert s._cache_subelements == s_remove_true._cache_subelements
+    assert s._cache_superelements == s_remove_true._cache_superelements
+    assert s._cache_direct_subelements == s_remove_true._cache_direct_subelements
+    assert s._cache_direct_superelements == s_remove_true._cache_direct_superelements
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
+
 
 def test_super_elements():
     elements = ['', 'a', 'b', 'ab']

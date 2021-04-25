@@ -339,69 +339,58 @@ class POSet:
         self._elements_to_index_map = {el: decr_idx(idx, key) for el, idx in self._elements_to_index_map.items()}
 
         if self._use_cache:
-
-            for el_i_sup in self._cache_superelements.get(key, []):
-                if el_i_sup in self._cache_subelements:
-                    self._cache_subelements[el_i_sup] |= self._cache_subelements.get(key, set())
-            for el_i_sub in self._cache_subelements.get(key, []):
-                if el_i_sub in self._cache_superelements:
-                    self._cache_superelements[el_i_sub] |= self._cache_superelements.get(key, set())
-
             dsups = self._cache_direct_superelements.get(key)
             dsubs = self._cache_direct_subelements.get(key)
 
             if dsubs is not None and dsups is not None:
                 for el_i_dsup in dsups:
-                    new_subs = set(dsubs)
-                    for el_i_sup_dsub in self._cache_direct_subelements[el_i_dsup]:
-                        new_subs -= self._cache_subelements.get(el_i_sup_dsub, set())
-                    self._cache_direct_subelements[el_i_dsup] =\
-                        frozenset(self._cache_direct_subelements[el_i_dsup] | new_subs)
+                    new_subs = (self._cache_direct_subelements[el_i_dsup] - {key}) | dsubs
+                    for el_i_new_sub in copy(new_subs):
+                        new_subs -= self._cache_subelements[el_i_new_sub]
+                    self._cache_direct_subelements[el_i_dsup] = frozenset(new_subs)
 
                 for el_i_dsub in dsubs:
-                    new_sups = set(dsups)
-                    for el_i_dsub_dsup in self._cache_direct_superelements[el_i_dsub]:
-                        new_sups -= self._cache_superelements[el_i_dsub_dsup]
-                    self._cache_direct_superelements[el_i_dsub] =\
-                        frozenset(self._cache_direct_superelements[el_i_dsub] | new_sups)
+                    new_sups = (self._cache_direct_superelements[el_i_dsub] - {key} ) | dsups
+                    for el_i_new_sup in copy(new_sups):
+                        new_sups -= self._cache_superelements[el_i_new_sup]
+                    self._cache_direct_superelements[el_i_dsub] = frozenset(new_sups)
 
             def decrement_dict(dct, threshold):
-                    if len(dct) == 0:
-                        return {}
+                if len(dct) == 0:
+                    return {}
 
-                    dct_decr = {}
+                dct_decr = {}
 
-                    k, v = dct.popitem()
-                    k_tuple_flag, k_int_flag = isinstance(k, tuple), isinstance(k, int)
-                    v_set_flag, v_bool_flag = isinstance(v, (set, frozenset)), isinstance(v, bool)
-                    dct[k] = v
+                k, v = dct.popitem()
+                k_tuple_flag, k_int_flag = isinstance(k, tuple), isinstance(k, int)
+                v_set_flag, v_bool_flag = isinstance(v, (set, frozenset)), isinstance(v, bool)
+                dct[k] = v
 
-                    for k, v in dct.items():
-                        if (k_tuple_flag and threshold in k) \
-                                or (k_int_flag and threshold == k):
-                            continue
+                for k, v in dct.items():
+                    if (k_tuple_flag and threshold in k) \
+                            or (k_int_flag and threshold == k):
+                        continue
 
-                        if k_tuple_flag:
-                            k_decr = tuple([decr_idx(idx, threshold) for idx in k])
-                        elif k_int_flag:
-                            k_decr = decr_idx(k, threshold)
-                        else:
-                            raise ValueError
+                    if k_tuple_flag:
+                        k_decr = tuple([decr_idx(idx, threshold) for idx in k])
+                    elif k_int_flag:
+                        k_decr = decr_idx(k, threshold)
+                    else:
+                        raise ValueError
 
-                        if v_set_flag:
-                            v_decr = frozenset({decr_idx(idx, threshold) for idx in v if idx != threshold})
-                        elif v_bool_flag:
-                            v_decr = v
-                        else:
-                            raise ValueError
+                    if v_set_flag:
+                        v_decr = frozenset({decr_idx(idx, threshold) for idx in v if idx != threshold})
+                    elif v_bool_flag:
+                        v_decr = v
+                    else:
+                        raise ValueError
 
-                        dct_decr[k_decr] = v_decr
-                    return dct_decr
+                    dct_decr[k_decr] = v_decr
+                return dct_decr
 
             self._cache_leq = decrement_dict(self._cache_leq, key)
             self._cache_subelements = decrement_dict(self._cache_subelements, key)
             self._cache_superelements = decrement_dict(self._cache_superelements, key)
-
             self._cache_direct_subelements = decrement_dict(self._cache_direct_subelements, key)
             self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
 
@@ -436,18 +425,11 @@ class POSet:
 
                 for el_i in final_up_elements:
                     self._cache_direct_superelements[el_i] =\
-                        frozenset( (self._cache_direct_superelements[el_i] | {el_i_new}) - traced_down_elements) #final_down_elements)
+                        frozenset( (self._cache_direct_superelements[el_i] | {el_i_new}) - traced_down_elements)
 
-                #print("SETUP FINAL DOWN ELEMENTS CACHE_DIRECT_SUBELEMENTS")
                 for el_i in final_down_elements:
-                    #print(f'FOr element {el_i}')
-                    #print('Old value', self._cache_direct_subelements[el_i])
-                    #print('el_i_new', el_i_new)
-                    #print('traced up elements', traced_up_elements)
                     self._cache_direct_subelements[el_i] =\
-                        frozenset( (self._cache_direct_subelements[el_i] | {el_i_new}) - traced_up_elements )
-                    #print('Final result', self._cache_direct_subelements[el_i])
-                    #print()
+                        frozenset( (self._cache_direct_subelements[el_i] | {el_i_new}) - traced_up_elements)
 
             else:
                 self._cache_subelements = {}
