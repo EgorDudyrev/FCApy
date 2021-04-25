@@ -436,11 +436,18 @@ class POSet:
 
                 for el_i in final_up_elements:
                     self._cache_direct_superelements[el_i] =\
-                        frozenset(self._cache_direct_superelements[el_i] | {el_i_new} - final_down_elements)
+                        frozenset( (self._cache_direct_superelements[el_i] | {el_i_new}) - traced_down_elements) #final_down_elements)
 
+                #print("SETUP FINAL DOWN ELEMENTS CACHE_DIRECT_SUBELEMENTS")
                 for el_i in final_down_elements:
+                    #print(f'FOr element {el_i}')
+                    #print('Old value', self._cache_direct_subelements[el_i])
+                    #print('el_i_new', el_i_new)
+                    #print('traced up elements', traced_up_elements)
                     self._cache_direct_subelements[el_i] =\
-                        frozenset(self._cache_direct_subelements[el_i] | {el_i_new} - final_up_elements)
+                        frozenset( (self._cache_direct_subelements[el_i] | {el_i_new}) - traced_up_elements )
+                    #print('Final result', self._cache_direct_subelements[el_i])
+                    #print()
 
             else:
                 self._cache_subelements = {}

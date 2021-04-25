@@ -374,6 +374,20 @@ def test_add():
     assert s._cache_direct_superelements == s_add_true._cache_direct_superelements
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
+    s = POSet(['', 'ab'], leq_func)
+    s.fill_up_caches()
+    s_add_true = POSet(['', 'ab', 'a'], leq_func)
+    s_add_true.fill_up_caches()
+
+    s.add('a')
+    assert s == s_add_true
+    assert s._cache_leq == s_add_true._cache_leq
+    assert s._cache_subelements == s_add_true._cache_subelements
+    assert s._cache_superelements == s_add_true._cache_superelements
+    assert s._cache_direct_subelements == s_add_true._cache_direct_subelements
+    assert s._cache_direct_superelements == s_add_true._cache_direct_superelements
+    assert all([s.elements[s.index(el)] == el for el in s.elements])
+
 
 def test_remove():
     elements = ['', 'a', 'b', 'ab']
