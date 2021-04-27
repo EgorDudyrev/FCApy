@@ -34,12 +34,6 @@ class POSet:
             self.super_elements = self._super_elements_cache
             self.direct_sub_elements = self._direct_sub_elements_cache
             self.direct_super_elements = self._direct_super_elements_cache
-        else:
-            self.leq_elements = self._leq_elements_nocache
-            self.sub_elements = self._sub_elements_nocache
-            self.super_elements = self._super_elements_nocache
-            self.direct_sub_elements = self._direct_sub_elements_nocache
-            self.direct_super_elements = self._direct_super_elements_nocache
 
     @property
     def elements(self):
@@ -78,7 +72,7 @@ class POSet:
 
     def super_elements(self, element_index: int):
         """Placeholder to use instead of either self._super_elements_nocache(...) or self._super_elements_cache(...)"""
-        raise NotImplementedError
+        return self._super_elements_nocache(element_index)
 
     def _super_elements_nocache(self, element_index: int):
         sup_indexes = {i for i, el_comp in enumerate(self._elements)
@@ -94,7 +88,7 @@ class POSet:
 
     def sub_elements(self, element_index: int):
         """Placeholder to use instead of either self._sub_elements_nocache(...) or self._sub_elements_cache(...)"""
-        raise NotImplementedError
+        return self._sub_elements_nocache(element_index)
 
     def _sub_elements_nocache(self, element_index: int):
         sub_indexes = {i for i, el_comp in enumerate(self._elements)
@@ -110,6 +104,7 @@ class POSet:
 
     def direct_super_elements(self, element_index: int):
         """Placeholder to use instead of self._direct_super_elements_nocache(.) or self._direct_super_elements_cache(.)"""
+        return self._direct_super_elements_nocache(element_index)
 
     def _direct_super_elements_nocache(self, element_index: int):
         superelement_idxs = self.super_elements(element_index)
@@ -128,6 +123,7 @@ class POSet:
 
     def direct_sub_elements(self, element_index: int):
         """Placeholder to use instead of self._direct_sub_elements_nocache(.) or self._direct_sub_elements_cache(.)"""
+        return self._direct_sub_elements_nocache(element_index)
 
     def _direct_sub_elements_nocache(self, element_index: int):
         subelement_idxs = self.sub_elements(element_index)
@@ -180,7 +176,7 @@ class POSet:
 
     def leq_elements(self, a_index: int, b_index: int):
         """Placeholder to use instead of either self._leq_elements_nocache(...) or self._leq_elements_cache(...)"""
-        raise NotImplementedError
+        return self._leq_elements_nocache(a_index, b_index)
 
     def _leq_elements_nocache(self, a_index: int, b_index: int):
         return self._leq_func(self._elements[a_index], self._elements[b_index])
