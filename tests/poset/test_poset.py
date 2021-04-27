@@ -1,6 +1,8 @@
 from fcapy.poset import POSet
+from fcapy import LIB_INSTALLED
 import pytest
 from copy import deepcopy
+import networkx as nx
 
 
 def test_init():
@@ -583,3 +585,38 @@ def test_trace_element():
 
     with pytest.raises(ValueError):
         s.trace_element('element', 'ThEdIrEcTiOn')
+
+
+def test_to_networkx():
+    elements = ['', 'a', 'b', 'ab', 'c']
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
+    s = POSet(elements, leq_func)
+
+    dsubs_dict = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}, 4: {0}}
+    dsups_dict = {0: {1, 2, 4}, 1: {3}, 2: {3}, 3: set(), 4: set()}
+
+    def are_equal_graphs(G1, G2):
+        same_adjs = (nx.to_numpy_array(G1) == nx.to_numpy_array(G2)).all()
+        if not same_adjs:
+            return False
+
+        same_attrs = all([G1.nodes[n_i] == G2.nodes[n_i] for n_i in G1.nodes])
+        return same_attrs
+
+    G_down = nx.DiGraph(dsubs_dict)
+    nx.set_node_attributes(G_down, dict(enumerate(elements)), 'element')
+    assert are_equal_graphs(s.to_networkx('down'), G_down)
+    G_up = nx.DiGraph(dsups_dict)
+    nx.set_node_attributes(G_up, dict(enumerate(elements)), 'element')
+    assert are_equal_graphs(s.to_networkx('up'), G_up)
+    G_none = nx.Graph(dsubs_dict)
+    nx.set_node_attributes(G_none, dict(enumerate(elements)), 'element')
+    assert are_equal_graphs(s.to_networkx(None), G_none)
+
+    with pytest.raises(ValueError):
+        s.to_networkx('ThEdIrEcTiOn')
+
+    LIB_INSTALLED['networkx'] = False
+    with pytest.raises(ModuleNotFoundError):
+        s.to_networkx('down')
+    LIB_INSTALLED['networkx'] = True
