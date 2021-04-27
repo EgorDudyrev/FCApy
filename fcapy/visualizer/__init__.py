@@ -12,4 +12,4 @@ visualizer:
     A module to visualize the `ConceptLattice`
 
 """
-from .visualizer import POSetVisualizer, LatticeVisualizer
+from .visualizer import POSetVisualizer, ConceptLatticeVisualizer

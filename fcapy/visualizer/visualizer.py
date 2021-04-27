@@ -22,7 +22,7 @@ class POSetVisualizer:
 
     def __init__(
             self, poset: POSet = None,
-            node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue',
+            node_color='lightblue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='darkblue',
             cmap_min=None, cmap_max=None
     ):
         """Initialize the Visualizer
@@ -212,7 +212,7 @@ class POSetVisualizer:
         return fig
 
 
-class LatticeVisualizer(POSetVisualizer):
+class ConceptLatticeVisualizer(POSetVisualizer):
     """
     A class for visualizing the `ConceptLattice`
 
@@ -225,7 +225,7 @@ class LatticeVisualizer(POSetVisualizer):
     """
     def __init__(
             self, lattice: ConceptLattice = None,
-            node_color='blue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='blue',
+            node_color='lightblue', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='darkblue',
             cmap_min=None, cmap_max=None
     ):
         """Initialize the Visualizer
@@ -250,7 +250,7 @@ class LatticeVisualizer(POSetVisualizer):
             The maximum value of a colormap
 
         """
-        super(LatticeVisualizer, self).__init__(lattice,
+        super(ConceptLatticeVisualizer, self).__init__(lattice,
             node_color, cmap, node_alpha, node_linewidth, node_edgecolor, cmap_min, cmap_max)
         self._lattice = lattice
 
