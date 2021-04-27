@@ -22,7 +22,52 @@ if LIB_INSTALLED['numpy']:
 
 
 class ConceptLattice(Lattice):
+    r"""A class used to represent Concept Lattice object from FCA theory
+
+    Methods
+    -------
+    from_context(context, algo, ...):
+       Construct a ConceptLattice from the given ``context`` by specified ``algo`` ('CbO','Sofia', 'RandomForest')
+    calc_concepts_measures(measure, ...):
+       Calculate interestingness ``measure`` of concepts in the ConceptLattice (like 'stability' or 'stability_bounds')
+    trace_context(context, ...):
+       Get the set of concepts from the ConceptLattice which describe objects from the given ``context``
+    add_concept(new_concept):
+       Add ``new_concept`` to the ConceptLattice
+    remove_concept(concept_i):
+       Remove a concept with ``concept_i`` index from the ConceptLattice
+
+    Notes
+    -----
+    A ConceptLattice `L` = `{(A,B) | A \\subseteq G, B \\subseteq M, A'=B, B'=A}`
+    is a set of Formal Concepts `(A,B)` contained in a Formal Context `K` = `(G, M, I)`
+
+    A Formal Concept `(A,B)` denotes the pair of subset of objects `A` and subset of attributes `B`,
+    s.t. objects `A` are all the objects described by attributes `B`
+    and attributes `B` are all the attributes which describe objects `A`.
+
+    The notion of Formal Context is described in the class `fcapy.context.formal_context.FormalContext`
+
+    A ConceptLattice idea may be applied to Many Valued Context too
+    (described in the class `fcapy.mvcontext.mvcontext.MVContext`)
+    resolving a set of Pattern Concepts `(A, d)`
+    where A is a subset of objects, d is a description from the ManyValuedContext
+    s.t. objects `A` are all the objects described by desciption `d`
+    and description `d` is the biggest (most precise) description of objects `A`
+
+    """
     def __init__(self, concepts, **kwargs):
+        """Construct a ConceptLattice based on a set of ``concepts`` and ``**kwargs`` values
+
+        Parameters
+        ----------
+        concepts: `list`[`FormalConcept` or `PatternConcept`]
+        kwargs:
+            subconcepts_dict: `dict`{`int`, `list`[`int`]}
+                A dictionary with subconcept (order) relation on the ``concepts``
+            superconcepts_dict: `dict`{`int`, `list`[`int`]}
+                A dictionary with superconcept (inverse order) relation on the ``concepts``
+        """
         leq_func = lambda c1, c2: c1 <= c2
         super(ConceptLattice, self).__init__(concepts, leq_func, use_cache=True)
 
@@ -42,38 +87,47 @@ class ConceptLattice(Lattice):
 
     @property
     def superconcepts_dict(self):
+        """A dictionary {`concept_index`: list of indexes of closest concepts bigger than concept `concept_index`}"""
         return self.direct_super_elements_dict
 
     @property
     def all_superconcepts_dict(self):
+        """A dictionary {`concept_index`: list of indexes of all concepts bigger than concept `concept_index`}"""
         return self.super_elements_dict
 
     @property
     def subconcepts_dict(self):
+        """A dictionary {`concept_index`: list of indexes of closest concepts smaller than concept `concept_index`}"""
         return self.direct_sub_elements_dict
 
     @property
     def all_subconcepts_dict(self):
+        """A dictionary {`concept_index`: list of indexes of all concepts smaller than concept `concept_index`}"""
         return self.sub_elements_dict
 
     @property
     def concepts(self):
+        """A list of concepts of the lattice"""
         return self._elements
 
     @property
     def top_concept_i(self):
+        """An index of the top (the biggest) concept"""
         return self.top_element
 
     @property
     def top_concept(self):
+        """The top (biggest) concept"""
         return self.concepts[self.top_concept_i]
 
     @property
     def bottom_concept_i(self):
+        """An index of the bottom (the smallest) concept"""
         return self.bottom_element
 
     @property
     def bottom_concept(self):
+        """The bottom (the smallest) concept"""
         return self.concepts[self.bottom_concept_i]
 
     @staticmethod
@@ -248,9 +302,11 @@ class ConceptLattice(Lattice):
         return ltc
 
     def add_concept(self, new_concept: FormalConcept or PatternConcept):
+        """Add concept ``new_concept`` into the lattice"""
         self.add(new_concept)
 
     def remove_concept(self, concept_i):
+        """Remove concept ``concept_i`` into the lattice"""
         del self[concept_i]
 
     def calc_concepts_measures(self, measure: str, context: FormalContext or MVContext = None):

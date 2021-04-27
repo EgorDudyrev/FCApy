@@ -11,7 +11,33 @@ import dis
 
 
 class POSet:
+    """A class to represent a Partially Ordered Set (POSet)
+
+     A POSet (Partially Ordered Set) is a set in which some elements are bigger then other,
+    some are smaller and some are incomparable.
+
+    Example
+    -------
+    A set of elements = [set(), {'a'}, {'b'}] with defined leq (less or equal) function = lambda a,b: a in b
+    is a POSet.
+
+    set() in {'a'} = True  <=>  set()<={'a'}  <=> element #0 is smaller than element #1
+    set() in {'b'} = True  <=>  set()<={'b'}  <=> element #0 is smaller than element #2
+    {'a'} in {'b'} = False and {'b'} in {'a'} = False  <=>  ({'a'} not <= {'b'}) and ({'b'} not <= {'a'})
+      <=> element #1 and element #2 are incomparable
+    """
     def __init__(self, elements=None, leq_func=None, use_cache: bool = True):
+        """Construct a POSet based on a set of ``elements`` and ``leq_func`` defined on this set
+
+        Parameters
+        ----------
+        elements : `list`
+            A set of elements of POSet of any kind
+        leq_func : `function` (a,b)-> True of False
+            A function to compare whether element ``a` from the POSet is smaller than ``b`` or not
+        use_cache : `bool`
+            A flag whether to save for the output of leq_func and other computations in the cache or not
+        """
         if elements is not None:
             self._elements = list(elements)
             self._elements_to_index_map = {el: idx for idx, el in enumerate(self._elements)}
@@ -37,49 +63,60 @@ class POSet:
 
     @property
     def elements(self):
+        """A set of elements of the POSet"""
         return self._elements
 
     @property
     def leq_func(self):
+        """A function to compare whether element ``a` from the POSet is smaller than ``b`` or not"""
         return self._leq_func
 
     def index(self, element):
+        """Returns an index of the ``element`` in the list of ``POSet.elements``"""
         return self._elements_to_index_map[element]
 
     @property
     def direct_super_elements_dict(self):
+        """A dictionary of kind {`element_index`: `list`[indexes of closest elements bigger than `element_index`]"""
         return {el_i: self.direct_super_elements(el_i) for el_i in range(len(self))}
 
     @property
     def super_elements_dict(self):
+        """A dictionary of kind {`element_index`: `list`[indexes of all elements bigger than `element_index`]"""
         return {el_i: self.super_elements(el_i) for el_i in range(len(self))}
 
     @property
     def direct_sub_elements_dict(self):
+        """A dictionary of kind {`element_index`: `list`[indexes of closest elements smaller than `element_index`]"""
         return {el_i: self.direct_sub_elements(el_i) for el_i in range(len(self))}
 
     @property
     def sub_elements_dict(self):
+        """A dictionary of kind {`element_index`: `list`[indexes of all elements smaller than `element_index`]"""
         return {el_i: self.sub_elements(el_i) for el_i in range(len(self))}
     
     @property
     def top_elements(self):
+        """A list of the top (the biggest) elements in a POSet"""
         return [el_i for el_i in range(len(self)) if len(self.super_elements(el_i)) == 0]
     
     @property
     def bottom_elements(self):
+        """A list of the bottom (the smallest) elements in a POSet"""
         return [el_i for el_i in range(len(self)) if len(self.sub_elements(el_i)) == 0]
 
     def super_elements(self, element_index: int):
-        """Placeholder to use instead of either self._super_elements_nocache(...) or self._super_elements_cache(...)"""
+        """Return a set of indexes of elements of POSet bigger than element #``element_index``"""
         return self._super_elements_nocache(element_index)
 
     def _super_elements_nocache(self, element_index: int):
+        """Return a set of indexes of elements of POSet bigger than element #``element_index`` (without using cache)"""
         sup_indexes = {i for i, el_comp in enumerate(self._elements)
                        if self.leq_elements(element_index, i) and i != element_index}
         return sup_indexes
 
     def _super_elements_cache(self, element_index: int):
+        """Return a set of indexes of elements of POSet bigger than element #``element_index`` (using cache)"""
         res = self._cache_superelements.get(element_index)
         if res is None:
             res = self._super_elements_nocache(element_index)
@@ -87,15 +124,17 @@ class POSet:
         return set(res)
 
     def sub_elements(self, element_index: int):
-        """Placeholder to use instead of either self._sub_elements_nocache(...) or self._sub_elements_cache(...)"""
+        """Return a set of indexes of elements of POSet smaller than element #``element_index``"""
         return self._sub_elements_nocache(element_index)
 
     def _sub_elements_nocache(self, element_index: int):
+        """Return a set of indexes of elements of POSet smaller than element #``element_index`` (without using cache)"""
         sub_indexes = {i for i, el_comp in enumerate(self._elements)
                        if self.leq_elements(i, element_index) and i != element_index}
         return sub_indexes
 
     def _sub_elements_cache(self, element_index: int):
+        """Return a set of indexes of elements of POSet smaller than element #``element_index`` (using cache)"""
         res = self._cache_subelements.get(element_index)
         if res is None:
             res = self._sub_elements_nocache(element_index)
@@ -103,10 +142,15 @@ class POSet:
         return set(res)
 
     def direct_super_elements(self, element_index: int):
-        """Placeholder to use instead of self._direct_super_elements_nocache(.) or self._direct_super_elements_cache(.)"""
+        """Return a set of indexes of closest elements of POSet bigger than element #``element_index``
+
+        Element ``a`` is a direct super element of element ``b`` if ``a``>``b``
+        and there is no element ``c`` such that ``a``>``c``>``b``
+        """
         return self._direct_super_elements_nocache(element_index)
 
     def _direct_super_elements_nocache(self, element_index: int):
+        """Return a set of indexes of closest elements of POSet bigger than ``element_index`` (w/out using cache)"""
         superelement_idxs = self.super_elements(element_index)
         for el_idx in list(superelement_idxs):
             if el_idx in superelement_idxs:
@@ -115,6 +159,7 @@ class POSet:
         return superelement_idxs
 
     def _direct_super_elements_cache(self, element_index: int):
+        """Return a set of indexes of closest elements of POSet bigger than ``element_index`` (using cache)"""
         res = self._cache_direct_superelements.get(element_index)
         if res is None:
             res = self._direct_super_elements_nocache(element_index)
@@ -122,10 +167,15 @@ class POSet:
         return set(res)
 
     def direct_sub_elements(self, element_index: int):
-        """Placeholder to use instead of self._direct_sub_elements_nocache(.) or self._direct_sub_elements_cache(.)"""
+        """Return a set of indexes of closest elements of POSet smaller than element #``element_index``
+
+        Element ``a`` is a direct sub element of element ``b`` if ``a``<``b``
+        and there is no element ``c`` such that ``a``<``c``<``b``
+        """
         return self._direct_sub_elements_nocache(element_index)
 
     def _direct_sub_elements_nocache(self, element_index: int):
+        """Return a set of indexes of closest elements of POSet smaller than ``element_index`` (w/out using cache)"""
         subelement_idxs = self.sub_elements(element_index)
         for el_idx in list(subelement_idxs):
             if el_idx in subelement_idxs:
@@ -134,6 +184,7 @@ class POSet:
         return subelement_idxs
 
     def _direct_sub_elements_cache(self, element_index: int):
+        """Return a set of indexes of closest elements of POSet smaller than ``element_index`` (using cache)"""
         res = self._cache_direct_subelements.get(element_index)
         if res is None:
             res = self._direct_sub_elements_nocache(element_index)
@@ -141,6 +192,7 @@ class POSet:
         return set(res)
 
     def join_elements(self, element_indexes: Collection = None):
+        """Return the smallest element from POSet bigger than all elements from ``element_indexes``"""
         if element_indexes is None or len(element_indexes)==0:
             element_indexes = list(range(len(self._elements)))
 
@@ -154,6 +206,7 @@ class POSet:
         return join_indexes.pop() if len(join_indexes) == 1 else None
 
     def meet_elements(self, element_indexes: Collection = None):
+        """Return the biggest element from POSet smaller than all elements from ``element_indexes``"""
         if element_indexes is None or len(element_indexes) == 0:
             element_indexes = list(range(len(self._elements)))
 
@@ -175,13 +228,15 @@ class POSet:
         return self.meet_elements(element_indexes)
 
     def leq_elements(self, a_index: int, b_index: int):
-        """Placeholder to use instead of either self._leq_elements_nocache(...) or self._leq_elements_cache(...)"""
+        """Compare two elements of POSet by their indexes"""
         return self._leq_elements_nocache(a_index, b_index)
 
     def _leq_elements_nocache(self, a_index: int, b_index: int):
+        """Compare two elements of POSet by their indexes (without using cache)"""
         return self._leq_func(self._elements[a_index], self._elements[b_index])
 
     def _leq_elements_cache(self, a_index: int, b_index: int):
+        """Compare two elements of POSet by their indexes (using cache)"""
         key = (a_index, b_index)
         if key in self._cache_leq:
             res = self._cache_leq[key]
@@ -241,6 +296,25 @@ class POSet:
 
     @staticmethod
     def _combine_caches(cache_a, elements_a, cache_b, elements_b, elements_combined):
+        """Combine caches of two POSets into one big cache
+
+        Parameters
+        ----------
+        cache_a : dict
+            A cache from POSet A (ex. A._cache_leq, A._cache_subconcepts)
+        elements_a : list
+            A list of elements from POSet A
+        cache_b : dict
+            A cache from POSet B (ex. B._cache_leq, B._cache_subconcepts)
+        elements_b : list
+            A list of elements from POSet B
+        elements_combined : list
+            A list of elements to keep in combined cache
+
+        Returns
+        -------
+        cache_combined : dict
+        """
         comb_el_idx_map = {el: idx for idx, el in enumerate(elements_combined)}
         a_idx_comb_idx_map = {idx: comb_el_idx_map[el] for idx, el in enumerate(elements_a) if el in comb_el_idx_map}
         b_idx_comb_idx_map = {idx: comb_el_idx_map[el] for idx, el in enumerate(elements_b) if el in comb_el_idx_map}
@@ -305,6 +379,7 @@ class POSet:
         return cache_combined
 
     def _combine_multiple_caches(self, other, poset_combined, drop_notcommon_elements: bool):
+        """Combine all the caches of the self POSet and ``other`` POSet at once and save them to ``poset_combined``"""
         elements_and = {x for x in self._elements if x in other._elements}
         cache_names = ['_cache_leq', '_cache_subelements', '_cache_superelements',
                        '_cache_direct_subelements', '_cache_direct_superelements']
@@ -391,6 +466,7 @@ class POSet:
             self._cache_direct_superelements = decrement_dict(self._cache_direct_superelements, key)
 
     def add(self, element, fill_up_cache=True):
+        """Add an ``element`` to POSet. Automatically fill up the comparison caches if needed"""
         if element in self._elements_to_index_map:
             return
 
@@ -437,6 +513,7 @@ class POSet:
         self._elements_to_index_map[element] = el_i_new
 
     def remove(self, element):
+        """Remove an ``element`` from POSet"""
         idx = self.index(element)
         del self[idx]
 
@@ -459,6 +536,7 @@ class POSet:
         return True
 
     def fill_up_leq_cache(self):
+        """Compare all the elements of POSet at once"""
         assert self._use_cache,\
             "POSet.fill_up_leq_cache assertion. " \
             "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
@@ -469,6 +547,7 @@ class POSet:
                     self.leq_elements(i, j)
 
     def fill_up_subelements_cache(self):
+        """Compute all subelements of each element in a POSet"""
         assert self._use_cache, \
             "POSet.fill_up_subelements_cache assertion. " \
             "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
@@ -477,6 +556,7 @@ class POSet:
             self.sub_elements(i)
 
     def fill_up_superelements_cache(self):
+        """Compute all superelements of each element in a POSet"""
         assert self._use_cache, \
             "POSet.fill_up_superelements_cache assertion. " \
             "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
@@ -485,6 +565,7 @@ class POSet:
             self.super_elements(i)
 
     def fill_up_direct_subelements_cache(self):
+        """Compute direct subelements of each element in a POSet"""
         assert self._use_cache, \
             "POSet.fill_up_direct_subelements_cache assertion. " \
             "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
@@ -493,6 +574,7 @@ class POSet:
             self.direct_sub_elements(i)
 
     def fill_up_direct_superelements_cache(self):
+        """Compute direct superelements of each element in a POSet"""
         assert self._use_cache, \
             "POSet.fill_up_direct_superelements_cache assertion. " \
             "The cache can only be filled up if it is enabled (`POSet.use_cache = True`)"
@@ -501,6 +583,7 @@ class POSet:
             self.direct_super_elements(i)
 
     def fill_up_caches(self):
+        """Fill up each cache of POSet"""
         self.fill_up_leq_cache()
         self.fill_up_subelements_cache()
         self.fill_up_superelements_cache()
@@ -508,6 +591,23 @@ class POSet:
         self.fill_up_direct_superelements_cache()
 
     def trace_element(self, element, direction: str):
+        """Get the sets of all and direct superelements (or subelements) of an ``element`` in the POSet
+
+        Parameters
+        ----------
+        element :
+            An element to compare POSet elements with (not necessary from the POSet itself)
+        direction : {'up', 'down'}
+            If set 'up' then compute all (and direct) subelements of an ``element``,
+            if set 'down' then compute all (and direct) superelements of an ``element``
+
+        Returns
+        -------
+        final_elements : set
+            A set of direct super (or sub) elements of ``element`` in the POSet
+        traced_elements : set
+            A set of all super (or sub) elements of ``element`` in the POSet
+        """
         if direction == 'down':
             start_elements = self.top_elements
             compare_func = self._leq_func
@@ -522,6 +622,7 @@ class POSet:
         return self._trace_elements_both_directions(element, start_elements, compare_func, next_elements_func)
 
     def _trace_elements_both_directions(self, element, start_elements, compare_func, next_elements_func):
+        """Get the sets of all the final and traced elements compared with ``element`` by ``compare_func``"""
         traced_elements, final_elements = set(), set()
 
         elements_to_visit = [el_i for el_i in start_elements if compare_func(element, self._elements[el_i])]
@@ -542,6 +643,9 @@ class POSet:
 
     @classmethod
     def _closed_relation_cache_by_direct_cache(cls, direct_relation_cache):
+        """Compute the cache of a "closed" relation given only "direct" one
+
+        (ex. _cache_direct_superelements -> _cache_superelements)"""
         direct_cache_trans = cls._transpose_hierarchy(direct_relation_cache)
         elements_to_visit = [el_i for el_i, subelems in direct_relation_cache.items() if len(subelems) == 0]
         elements_visited = set()
@@ -566,6 +670,10 @@ class POSet:
 
     @classmethod
     def _direct_relation_cache_by_closed_cache(cls, closed_relation_cache):
+        """Compute the cache of "direct" relation given only the "closed" one
+
+        (ex. _cache_superelements -> _cache_direct_superelements)
+        """
         direct_relation_cache = {}
         for el_i, elems_rel_all in closed_relation_cache.items():
             direct_relation_cache[el_i] = elems_rel_all.copy()
