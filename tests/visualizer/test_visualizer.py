@@ -5,7 +5,7 @@ import numpy as np
 
 
 def test__init__():
-    vsl = visualizer.Visualizer()
+    vsl = visualizer.LatticeVisualizer()
 
 
 def test_get_nodes_position():
@@ -13,7 +13,7 @@ def test_get_nodes_position():
     ctx = converters.read_json(path)
     ltc = ConceptLattice.from_context(ctx)
 
-    vsl = visualizer.Visualizer(ltc)
+    vsl = visualizer.LatticeVisualizer(ltc)
     pos = {
         0: [0.0, 1.0],
         1: [0.6666666666666666, 0.3333333333333333],
@@ -39,7 +39,7 @@ def test_draw_networkx():
     ctx = converters.read_json(path)
     ltc = ConceptLattice.from_context(ctx)
 
-    vsl = visualizer.Visualizer(ltc)
+    vsl = visualizer.LatticeVisualizer(ltc)
     vsl.draw_networkx(draw_node_indices=True)
 
 
@@ -48,5 +48,5 @@ def test_get_plotly_figure():
     ctx = converters.read_json(path)
     ltc = ConceptLattice.from_context(ctx)
 
-    vsl = visualizer.Visualizer(ltc)
+    vsl = visualizer.LatticeVisualizer(ltc)
     vsl.get_plotly_figure()
