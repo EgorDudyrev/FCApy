@@ -21,7 +21,7 @@ def test_close_by_one():
     context = read_json("data/animal_movement.json")
     concepts_loaded = [FormalConcept.from_dict(c_json) for c_json in file_data]
     for c in concepts_loaded:
-        c._context_hash = hash(context)
+        c._context_hash = context.hash_fixed()
         if c.intent == FormalConcept.JSON_BOTTOM_PLACEHOLDER['Names']:
             c._intent_i = tuple(context.intention_i(c.extent_i))
             c._intent = tuple(context.intention(c.extent))
@@ -55,10 +55,11 @@ def test_close_by_one():
     pattern_types = {'M1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
     concepts = cca.close_by_one(mvctx)
-    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, pattern_types, context_hash=hash(mvctx))
-    c1 = PatternConcept((0,), ('a',), {0: (1, 1)}, {'M1': (1, 1)}, pattern_types, context_hash=hash(mvctx))
-    c2 = PatternConcept((1,), ('b',), {0: (2, 2)}, {'M1': (2, 2)}, pattern_types, context_hash=hash(mvctx))
-    c3 = PatternConcept((), (), {0: None}, {'M1': None}, pattern_types, context_hash=hash(mvctx))
+    context_hash = mvctx.hash_fixed()
+    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, pattern_types, context_hash=context_hash)
+    c1 = PatternConcept((0,), ('a',), {0: (1, 1)}, {'M1': (1, 1)}, pattern_types, context_hash=context_hash)
+    c2 = PatternConcept((1,), ('b',), {0: (2, 2)}, {'M1': (2, 2)}, pattern_types, context_hash=context_hash)
+    c3 = PatternConcept((), (), {0: None}, {'M1': None}, pattern_types, context_hash=context_hash)
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 
@@ -82,9 +83,6 @@ def test_sofia_binary():
 
     ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
     ltc_sofia_precalc = ConceptLattice.from_json('data/digits_sofia_lattice_22.json')
-    # TODO: Change this somewhow
-    for c in ltc_sofia_precalc.concepts:
-        c._context_hash = hash(ctx)
     assert ltc_sofia == ltc_sofia_precalc
 
     with pytest.warns(UserWarning):
