@@ -36,7 +36,7 @@ def test_spanning_tree():
     np.random.shuffle(concepts)
     sub_st, sup_st = lca.construct_spanning_tree(concepts)
     sub_true = lca.complete_comparison(concepts)
-    sup_true = ConceptLattice.transpose_hierarchy(sub_true)
+    sup_true = ConceptLattice._transpose_hierarchy(sub_true)
 
     for c_i in sup_true.keys():
         assert set(sup_st[c_i]) & set(sup_true[c_i]) == set(sup_st[c_i]),\
@@ -129,7 +129,7 @@ def test_add_concept():
                [c for c_i, c in enumerate(concepts_true) if c_i not in [top_concept_i, bottom_concept_i]]
 
     subconcepts_dict_true = lca.complete_comparison(concepts_true)
-    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+    superconcepts_dict_true = ConceptLattice._transpose_hierarchy(subconcepts_dict_true)
 
     concepts = concepts_true[:2]
     subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
@@ -169,11 +169,11 @@ def test_add_concept():
 
     concepts_true = [c1, c2, c3, c4, c_newbottom, c_newtop]
     subconcepts_dict_true = {4: set(), 0: {4}, 1: {0}, 2: {0}, 3: {1, 2}, 5: {3}}
-    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+    superconcepts_dict_true = ConceptLattice._transpose_hierarchy(subconcepts_dict_true)
 
     concepts = [c1, c2, c3, c4]
     subconcepts_dict = lca.complete_comparison(concepts)
-    superconcepts_dict = ConceptLattice.transpose_hierarchy(subconcepts_dict)
+    superconcepts_dict = ConceptLattice._transpose_hierarchy(subconcepts_dict)
     for c in [c_newbottom, c_newtop]:
         lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict, inplace=True)
     error_msg = 'lattice_construction.add_concept failed. Error when adding new top_concept or bottom_concept'
@@ -193,9 +193,9 @@ def test_remove_concept():
     top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
 
     subconcepts_dict_true = lca.complete_comparison(concepts_true)
-    superconcepts_dict_true = ConceptLattice.transpose_hierarchy(subconcepts_dict_true)
+    superconcepts_dict_true = ConceptLattice._transpose_hierarchy(subconcepts_dict_true)
     subconcepts_dict_true1 = lca.complete_comparison(concepts_true1)
-    superconcepts_dict_true1 = ConceptLattice.transpose_hierarchy(subconcepts_dict_true1)
+    superconcepts_dict_true1 = ConceptLattice._transpose_hierarchy(subconcepts_dict_true1)
 
     with pytest.raises(AssertionError, match='Cannot remove the top concept of the lattice'):
         concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
@@ -212,7 +212,7 @@ def test_remove_concept():
         concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
             i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=False)
         subconcepts_dict_true_new = lca.complete_comparison(concepts)
-        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        superconcepts_dict_true_new = ConceptLattice._transpose_hierarchy(subconcepts_dict_true_new)
         assert concepts_true[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
         assert concepts_true == concepts_true1,\
             'remove_concept failed. The original concepts list has been changed during non inplace function call'
@@ -238,7 +238,7 @@ def test_remove_concept():
         concepts, subconcepts_dict, superconcepts_dict, _, _ = lca.remove_concept(
             i, concepts_true, subconcepts_dict_true, superconcepts_dict_true, inplace=True)
         subconcepts_dict_true_new = lca.complete_comparison(concepts)
-        superconcepts_dict_true_new = ConceptLattice.transpose_hierarchy(subconcepts_dict_true_new)
+        superconcepts_dict_true_new = ConceptLattice._transpose_hierarchy(subconcepts_dict_true_new)
         assert concepts_true1[i] not in concepts, 'remove_concept failed. The concept is still in the concept list'
         assert concepts_true != concepts_true1,\
             'remove_concept failed. The original concepts list should been changed during inplace function call'

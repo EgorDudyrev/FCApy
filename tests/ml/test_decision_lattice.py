@@ -12,7 +12,7 @@ def test_dlpredictor():
     dlp = dl.DecisionLatticePredictor(algo_params={'L_max': 100})
     assert dlp.algo_params['L_max'] == 100, "DecisionLatticePredictor.__init__ failed"
     assert dlp._algo == 'Sofia', "DecisionLatticePredictor.__init__ failed"
-    assert dlp.lattice == ConceptLattice(), "DecisionLatticePredictor.__init__ failed"
+    assert dlp.lattice is None, "DecisionLatticePredictor.__init__ failed"
     assert dlp.use_generators is False, "DecisionLatticePredictor.__init__ failed"
 
     with pytest.raises(NotImplementedError):
