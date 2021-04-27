@@ -5,9 +5,9 @@ POSet (Partially Ordered Set) is a set in which some elements are bigger then ot
 some are smaller and some are incomparable
 """
 from fcapy.utils.utils import slice_list
+from fcapy import LIB_INSTALLED
 from copy import copy
 from collections.abc import Collection
-import dis
 
 
 class POSet:
@@ -704,3 +704,25 @@ class POSet:
             for v in vs:
                 new_dict[v] = new_dict.get(v, set()) | {k}
         return new_dict
+
+    def to_networkx(self, direction: str or None = 'down'):
+        return self._to_networkx(direction, 'element')
+
+    def _to_networkx(self, direction, element_attr_name):
+        if not LIB_INSTALLED['networkx']:
+            class_name = self.__class__.__name__
+            msg = f"Networkx package should be installed in order to convert {class_name} to networkx graph"
+            raise ModuleNotFoundError(msg)
+
+        import networkx as nx
+        if direction == 'up':
+            G = nx.DiGraph(self.direct_super_elements_dict)
+        elif direction == 'down':
+            G = nx.DiGraph(self.direct_sub_elements_dict)
+        elif direction is None:
+            G = nx.Graph(self.direct_sub_elements_dict)
+        else:
+            raise ValueError("Unknown value for graph ``direction``. Possible values are {'up', 'down', None} ")
+
+        nx.set_node_attributes(G, dict(enumerate(self.elements)), element_attr_name)
+        return G

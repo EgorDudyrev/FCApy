@@ -27,6 +27,9 @@ def run_install(**kwargs):
             'networkx>=2.5',
             'plotly',
         ],
+        'poset': [
+            'networkx>=2.5',
+        ],
         'tests': [
             'scikit-learn'
         ],

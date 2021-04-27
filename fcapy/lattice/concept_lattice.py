@@ -56,6 +56,8 @@ class ConceptLattice(Lattice):
     and description `d` is the biggest (most precise) description of objects `A`
 
     """
+    CLASS_NAME = 'ConceptLattice'
+
     def __init__(self, concepts, **kwargs):
         """Construct a ConceptLattice based on a set of ``concepts`` and ``**kwargs`` values
 
@@ -700,3 +702,6 @@ class ConceptLattice(Lattice):
 
         with open(path, "w") as f:
             f.write(json_data)
+
+    def to_networkx(self, direction: str or None = 'down'):
+        return self._to_networkx(direction, 'concept')
