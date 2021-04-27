@@ -42,10 +42,12 @@ def test_from_context():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
 
-    c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=hash(ctx))
-    c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=hash(ctx))
-    c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=hash(ctx))
-    c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=hash(ctx))
+    context_hash = ctx.hash_fixed()
+
+    c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=context_hash)
+    c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=context_hash)
+    c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=context_hash)
+    c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=context_hash)
     concepts = [c1, c2, c3, c4]
 
     assert set(ltc.concepts) == set(concepts),\

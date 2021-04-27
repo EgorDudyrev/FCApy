@@ -5,8 +5,10 @@ This module implements the class MVContext which is used to represent a Many Val
 from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
+import zlib
 
 from fcapy import LIB_INSTALLED
+
 if LIB_INSTALLED['numpy']:
     import numpy as np
 
@@ -453,6 +455,15 @@ class MVContext:
 
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names), tuple(self._pattern_structures)))
+
+    def hash_fixed(self):
+        """Hash value of FormalContext which do not differ between sessions"""
+        str_ = str(self._object_names)
+        str_ += str(self._attribute_names)
+        str_ += str(self.data)
+
+        code = zlib.adler32(str_.encode())
+        return code
 
     def __getitem__(self, item):
         if type(item) != tuple:

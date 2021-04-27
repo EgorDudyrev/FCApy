@@ -107,7 +107,7 @@ def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=No
     if output_as_concepts:
         object_names = context.object_names
         attribute_names = context.attribute_names
-        context_hash = hash(context)
+        context_hash = context.hash_fixed()
 
         concepts = []
         for concept_data in zip(extents_i, intents_i):
@@ -210,7 +210,7 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
         )
 
         # make the concepts comparable
-        ctx_projected_hash = hash(ctx_projected)
+        ctx_projected_hash = ctx_projected.hash_fixed()
         for c in lattice.concepts:
             c._context_hash = ctx_projected_hash
 
@@ -369,7 +369,7 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
     concepts = []
 
     object_names = context.object_names
-    context_hash = hash(context)
+    context_hash = context.hash_fixed()
     for extent_i in extents_i:
         extent = [object_names[g_i] for g_i in extent_i]
         intent_i = context.intention_i(extent_i)

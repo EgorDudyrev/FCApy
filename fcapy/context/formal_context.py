@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from itertools import combinations
 from numbers import Integral
 from frozendict import frozendict
+import zlib
 
 from fcapy.context.bintable import BinTable
 from fcapy.utils.utils import slice_list
@@ -535,6 +536,15 @@ class FormalContext:
 
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names), hash(self._data)))
+
+    def hash_fixed(self):
+        """Hash value of FormalContext which do not differ between sessions"""
+        str_ = str(self._object_names)
+        str_ += str(self._attribute_names)
+        str_ += str( self._data.to_list() if isinstance(self._data, BinTable) else self._data )
+
+        code = zlib.adler32(str_.encode())
+        return code
 
     def __getitem__(self, item):
         if type(item) != tuple:
