@@ -44,7 +44,8 @@ class DecisionRule:
 
 
 class DecisionPOSet(POSet):
-    def __init__(self, decision_rules=None, premises=None, targets=None, use_cache: bool = True):
+    def __init__(self, decision_rules=None, premises=None, targets=None,
+                 use_cache: bool = True, direct_subelements_dict=None):
         if premises is not None and targets is not None:
             decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
         elif decision_rules is None:
@@ -52,7 +53,7 @@ class DecisionPOSet(POSet):
                 'Either `decision_rules` or a pair of (`premises`, `targets`) should be passed to DecisionPOSet')
 
         super(DecisionPOSet, self).__init__(elements=decision_rules, leq_func=compare_premise_function,
-                                            use_cache=use_cache)
+                                            use_cache=use_cache, direct_subelements_dict=direct_subelements_dict)
 
         assert len(set(self.premises)) == len(self.premises), 'All premises should be unique'
 
@@ -79,7 +80,7 @@ class DecisionPOSet(POSet):
     def __repr__(self):
         k = 5
         is_big = len(self) > k
-        elements_list = ', '.join([drule.tostr(False) for drule in self[:k]]) + (',...' if is_big else '')
+        elements_list = ', '.join([drule.to_str(False) for drule in self[:k]]) + (',...' if is_big else '')
         return f"{self.__class__.__name__}({len(self)} decision rules): [{elements_list}]"
 
     def __add__(self, other):

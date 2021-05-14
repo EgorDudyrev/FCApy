@@ -2,8 +2,8 @@ from fcapy.poset.lattice import UpperSemiLattice
 
 
 class BinaryTree(UpperSemiLattice):
-    def __init__(self, elements, leq_func, use_cache: bool = True):
-        super(BinaryTree, self).__init__(elements, leq_func, use_cache)
+    def __init__(self, elements, leq_func, use_cache: bool = True, direct_subelements_dict=None):
+        super(BinaryTree, self).__init__(elements, leq_func, use_cache, direct_subelements_dict)
 
         for el_i in range(len(self)):
             dsub_els_i = self.direct_sub_elements(el_i)

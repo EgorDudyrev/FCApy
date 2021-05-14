@@ -6,7 +6,7 @@ some are smaller and some are incomparable
 """
 from fcapy.utils.utils import slice_list
 from fcapy import LIB_INSTALLED
-from copy import copy
+from copy import copy, deepcopy
 from collections.abc import Collection
 
 
@@ -26,7 +26,7 @@ class POSet:
     {'a'} in {'b'} = False and {'b'} in {'a'} = False  <=>  ({'a'} not <= {'b'}) and ({'b'} not <= {'a'})
       <=> element #1 and element #2 are incomparable
     """
-    def __init__(self, elements=None, leq_func=None, use_cache: bool = True):
+    def __init__(self, elements=None, leq_func=None, use_cache: bool = True, direct_subelements_dict=None):
         """Construct a POSet based on a set of ``elements`` and ``leq_func`` defined on this set
 
         Parameters
@@ -49,17 +49,31 @@ class POSet:
 
         self._use_cache = use_cache
         if self._use_cache:
-            self._cache_leq = {}
-            self._cache_subelements = {}
-            self._cache_superelements = {}
-            self._cache_direct_subelements = {}
-            self._cache_direct_superelements = {}
+            if direct_subelements_dict is not None:
+                direct_subelements_dict = deepcopy(direct_subelements_dict)
+                subelements_dict = self._closed_relation_cache_by_direct_cache(direct_subelements_dict)
+                direct_superelements_dict = self._transpose_hierarchy(direct_subelements_dict)
+                superelements_dict = self._transpose_hierarchy(subelements_dict)
+                leq_dict = {}
+                for el_i, subels_i in subelements_dict.items():
+                    for el_i_1 in range(len(self._elements)):
+                        leq_dict[(el_i_1, el_i)] = el_i_1 in subels_i
+            else:
+                leq_dict, direct_subelements_dict, subelements_dict, direct_superelements_dict, superelements_dict =\
+                    {}, {}, {}, {}, {}
+
+            self._cache_leq = leq_dict
+            self._cache_subelements = subelements_dict
+            self._cache_superelements = superelements_dict
+            self._cache_direct_subelements = direct_subelements_dict
+            self._cache_direct_superelements = direct_superelements_dict
 
             self.leq_elements = self._leq_elements_cache
             self.sub_elements = self._sub_elements_cache
             self.super_elements = self._super_elements_cache
             self.direct_sub_elements = self._direct_sub_elements_cache
             self.direct_super_elements = self._direct_super_elements_cache
+
 
     @property
     def elements(self):
