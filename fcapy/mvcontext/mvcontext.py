@@ -511,3 +511,12 @@ class MVContext:
         gens = [frozendict({ps_i: gen_}) for ps_i, ps in enumerate(self._pattern_structures)
                 for gen_ in ps.generators_by_intent_difference(new_intent[ps_i], old_intent[ps_i])]
         return gens
+
+    def leq_descriptions(self, a:dict, b:dict)->bool:
+        """Check If description `a` is 'smaller' (more general) then description `b`"""
+        for ps_i, descr in a.items():
+            if ps_i not in b:
+                continue
+            if not self._pattern_structures[ps_i].leq_descriptions(descr, b[ps_i]):
+                return False
+        return True
