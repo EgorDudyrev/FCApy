@@ -42,7 +42,7 @@ Formal Context provides two main functions:
 These functions are also known as "prime (') operations", "arrow operations" 
 
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
-<pre>
+```python
 !wget https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
 ctx = read_csv('animal_movement.csv')
 
@@ -60,7 +60,7 @@ print(ctx.extension(['fly', 'swim']))
 
 print(ctx.intention(['dove', 'goose']))
 > ['fly']
-</pre>
+```
 
 Thus we can state that all the animals who can both 'fly' and 'swim' are 'duck' and 'goose'. 
 The only action both 'dove' and 'goose' can performs if 'fly'.
@@ -82,7 +82,7 @@ In other words:
 A concept `(A1, B1)` is bigger (more general) than a concept `(A2, B2)` if it describes the bigger set of objects (i.e. `A2` is a subset of `A1`, or (which is the same) `B1` is a subset of `B2`)
 
 Applied to 'animal_movement' context we get this ConceptLattice:
-<pre>
+```python
 from fcapy.lattice import ConceptLattice
 ltc = ConceptLattice.from_context(ctx)
 print(len(ltc.concepts))
@@ -96,7 +96,7 @@ vsl = Visualizer(ltc)
 vsl.draw_networkx(max_new_extent_count=5)
 plt.xlim(-1,1.5)
 plt.show()
-</pre> 
+```
 <p align="center">
   <img width="616" src="https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/docs/images/animal_context_lattice.png" />
 </p>
@@ -115,7 +115,7 @@ Pattern Structure `D` is a set of descriptions s.t. we can use to it to run `ext
 
 At this moment, only numerical features are supported.
 
-<pre>
+```python
 #load data from sci-kit learn
 from sklearn.datasets import fetch_california_housing
 california_data = fetch_california_housing(as_frame=True)
@@ -138,13 +138,13 @@ print( mvctx.intention(['0', '1']) )
 # Get a number of houses with an age in a closed interval [10, 21]
 print( len(mvctx.extension({'HouseAge': (10, 21)})) )
 > 5434
-</pre>
+```
 
 ### ML
 
 A number of algorithms to use FCA in a supervised ML scenario.
 
-<pre>
+```python
 #load data from sci-kit learn
 from sklearn.datasets import fetch_california_housing
 california_data = fetch_california_housing(as_frame=True)
@@ -200,8 +200,7 @@ preds_test_rf = rf.predict(df[16000:])
 
 mean_squared_error(mvctx_train.target, preds_train_rf), mean_squared_error(mvctx_test.target, preds_test_rf)
 > (0.16501598118202618, 0.48447718343174856)
-
-</pre>
+```
 
 DecisionLattice works slower and gives less accurate test predictions than a Random Forest. For now...
  
