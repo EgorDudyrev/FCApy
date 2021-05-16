@@ -27,9 +27,10 @@ def dposet_pred_sum(decision_poset, description):
 class DecisionBasedModel:
     DECISION_POSET_TYPE = DecisionPOSet
 
-    def __init__(self, decision_rules, predict_object_func):
+    def __init__(self, decision_rules, predict_object_func, leq_premise_func):
         if not isinstance(decision_rules, self.DECISION_POSET_TYPE):
-            decision_rules = self.DECISION_POSET_TYPE(list(decision_rules), use_cache=True)
+            decision_rules = self.DECISION_POSET_TYPE(
+                list(decision_rules), use_cache=True, leq_premise_func=leq_premise_func)
 
         self._decision_rules = decision_rules
         self._predict_object_func = predict_object_func
@@ -69,21 +70,25 @@ class DecisionBasedModel:
 
 
 class DecisionPosetRegressor(DecisionBasedModel):
-    def __init__(self, decision_rules):
-        super(DecisionPosetRegressor, self).__init__(decision_rules, dposet_pred_avg_min)
+    def __init__(self, decision_rules, leq_premise_func):
+        super(DecisionPosetRegressor, self).__init__(
+            decision_rules, dposet_pred_avg_min, leq_premise_func=leq_premise_func)
 
     @classmethod
     def from_diff_decision_regressor(cls, diff_dposet_regressor):
-        return cls(diff_dposet_regressor.decision_rules.integrate())
+        return cls(diff_dposet_regressor.decision_rules.integrate(),
+                   diff_dposet_regressor.decision_rules.premises.leq_func)
 
 
 class DiffDecisionPosetRegressor(DecisionBasedModel):
-    def __init__(self, decision_rules):
-        super(DiffDecisionPosetRegressor, self).__init__(decision_rules, dposet_pred_sum)
+    def __init__(self, decision_rules, leq_premise_func):
+        super(DiffDecisionPosetRegressor, self).__init__(
+            decision_rules, dposet_pred_sum, leq_premise_func=leq_premise_func)
 
     @classmethod
     def from_decision_regressor(cls, dposet_regressor):
-        return cls(dposet_regressor.decision_rules.differentiate())
+        return cls(dposet_regressor.decision_rules.differentiate(),
+                   dposet_regressor.decision_rules.premises.leq_func)
 
 
 class DecisionLatticeRegressor(DecisionPosetRegressor):

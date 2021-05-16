@@ -45,43 +45,95 @@ class DecisionRule:
 
 class DecisionPOSet(POSet):
     def __init__(self, decision_rules=None, premises=None, targets=None,
-                 use_cache: bool = True, direct_subelements_dict=None):
-        if premises is not None and targets is not None:
-            decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
-        elif decision_rules is None:
+                 use_cache: bool = True, leq_premise_func=None, direct_subelements_dict=None):
+        #if premises is not None and targets is not None:
+        #    decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
+        #elif decision_rules is None:
+        if decision_rules is not None:
+            premises = [drule.premise for drule in decision_rules]
+            targets = [drule.target for drule in decision_rules]
+        elif premises is None or targets is None:
             raise ValueError(
                 'Either `decision_rules` or a pair of (`premises`, `targets`) should be passed to DecisionPOSet')
 
-        super(DecisionPOSet, self).__init__(elements=decision_rules, leq_func=compare_premise_function,
-                                            use_cache=use_cache, direct_subelements_dict=direct_subelements_dict)
+        if not isinstance(premises, POSet):
+            premises = POSet(
+                elements=premises, leq_func=leq_premise_func,
+                use_cache=use_cache, direct_subelements_dict=direct_subelements_dict
+            )
 
-        assert len(set(self.premises)) == len(self.premises), 'All premises should be unique'
+        assert len(set(premises)) == len(premises), 'All premises should be unique'
+
+        self._premises = premises
+        self._targets = targets
+
+        self._elements_to_index_map = {p: p_i for p_i, p in enumerate(premises)}
+
+        #if decision_rules is None:
+        #    decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
+        #super(DecisionPOSet, self).__init__(
+        #    elements=decision_rules, leq_func=compare_premise_function,
+        #    use_cache=use_cache, direct_subelements_dict=direct_subelements_dict
+        #)
 
     @property
     def premises(self):
-        premise_poset = POSet([drule.premise for drule in self._elements],
-                              compare_set_function, use_cache=self._use_cache)
-        if self._use_cache:
-            for cache_name in ['leq', 'direct_subelements',
-                               'direct_superelements', 'subelements', 'superelements']:
-                cache_name = '_cache_' + cache_name
-                premise_poset.__dict__[cache_name] = deepcopy(self.__dict__[cache_name])
-
-        return premise_poset
+        return self._premises
 
     @property
     def targets(self):
-        return [drule.target for drule in self._elements]
+        return self._targets
+
+    @property
+    def elements(self):
+        return self.decision_rules
 
     @property
     def decision_rules(self):
-        return self.elements
+        return [DecisionRule(p, t) for p, t in zip(self.premises, self.targets)]
+
+    def index(self, element):
+        p_i = self.premises.index(element.premise)
+        if self._targets[p_i] == element.target:
+            return p_i
+        else:
+            return None
+
+    def leq_elements(self, a_index: int, b_index: int):
+        return self.premises.leq_elements(a_index, b_index)
 
     def __repr__(self):
         k = 5
         is_big = len(self) > k
         elements_list = ', '.join([drule.to_str(False) for drule in self[:k]]) + (',...' if is_big else '')
         return f"{self.__class__.__name__}({len(self)} decision rules): [{elements_list}]"
+
+    def __and__(self, other):
+        raise NotImplementedError
+
+    def __or__(self, other):
+        raise NotImplementedError
+
+    def __xor__(self, other):
+        raise NotImplementedError
+
+    def __sub__(self, other):
+        raise NotImplementedError
+
+    def __len__(self):
+        return len(self.premises)
+
+    def __delitem__(self, key):
+        raise NotImplementedError
+
+    def add(self, element, fill_up_cache=True):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        raise NotImplementedError
+
+    def trace_element(self, element, direction: str):
+        raise NotImplementedError
 
     def __add__(self, other):
         assert type(self) == type(other), 'Models to sum up should be of the same type'
@@ -100,24 +152,14 @@ class DecisionPOSet(POSet):
             t_b = targets_b[prems_b.index(p)] if p in prems_b else 0
             targets_sum.append(t_a + t_b)
 
-        dposet_sum = DecisionPOSet(premises=prems_sum, targets=targets_sum, use_cache=self._use_cache)
-        if self._use_cache:
-            for cache_name in ['leq', 'direct_subelements',
-                               'direct_superelements', 'subelements', 'superelements']:
-                cache_name = '_cache_' + cache_name
-                dposet_sum.__dict__[cache_name] = deepcopy(prems_sum.__dict__[cache_name])
+        dposet_sum = DecisionPOSet(premises=prems_sum, targets=targets_sum, use_cache=self._use_cache,
+                                   direct_subelements_dict=self.__dict__.get('_cache_direct_subelements'))
 
         return dposet_sum
 
     def __mul__(self, other: float):
         dposet_mul = deepcopy(self)
-        for drule_i, drule in enumerate(dposet_mul._elements):
-            drule_new = drule * other
-
-            dposet_mul._elements[drule_i] = drule_new
-            del dposet_mul._elements_to_index_map[drule]
-            dposet_mul._elements_to_index_map[drule_new] = drule_i
-
+        dposet_mul._targets = [t * other for t in dposet_mul._targets]
         return dposet_mul
 
     def differentiate(self):
