@@ -55,9 +55,10 @@ class POSet:
                 direct_superelements_dict = self._transpose_hierarchy(direct_subelements_dict)
                 superelements_dict = self._transpose_hierarchy(subelements_dict)
                 leq_dict = {}
-                for el_i, subels_i in subelements_dict.items():
-                    for el_i_1 in range(len(self._elements)):
-                        leq_dict[(el_i_1, el_i)] = el_i_1 in subels_i
+                if len(elements) < 10:
+                    for el_i, subels_i in subelements_dict.items():
+                        for el_i_1 in range(len(self._elements)):
+                            leq_dict[(el_i_1, el_i)] = el_i_1 in subels_i
             else:
                 leq_dict, direct_subelements_dict, subelements_dict, direct_superelements_dict, superelements_dict =\
                     {}, {}, {}, {}, {}
@@ -73,7 +74,6 @@ class POSet:
             self.super_elements = self._super_elements_cache
             self.direct_sub_elements = self._direct_sub_elements_cache
             self.direct_super_elements = self._direct_super_elements_cache
-
 
     @property
     def elements(self):
@@ -125,8 +125,7 @@ class POSet:
 
     def _super_elements_nocache(self, element_index: int):
         """Return a set of indexes of elements of POSet bigger than element #``element_index`` (without using cache)"""
-        sup_indexes = {i for i, el_comp in enumerate(self._elements)
-                       if self.leq_elements(element_index, i) and i != element_index}
+        sup_indexes = {i for i in range(len(self)) if self.leq_elements(element_index, i) and i != element_index}
         return sup_indexes
 
     def _super_elements_cache(self, element_index: int):
@@ -143,8 +142,7 @@ class POSet:
 
     def _sub_elements_nocache(self, element_index: int):
         """Return a set of indexes of elements of POSet smaller than element #``element_index`` (without using cache)"""
-        sub_indexes = {i for i, el_comp in enumerate(self._elements)
-                       if self.leq_elements(i, element_index) and i != element_index}
+        sub_indexes = {i for i in range(len(self)) if self.leq_elements(i, element_index) and i != element_index}
         return sub_indexes
 
     def _sub_elements_cache(self, element_index: int):
@@ -207,12 +205,12 @@ class POSet:
 
     def join_elements(self, element_indexes: Collection = None):
         """Return the smallest element from POSet bigger than all elements from ``element_indexes``"""
-        if element_indexes is None or len(element_indexes)==0:
+        if element_indexes is None or len(element_indexes) == 0:
             element_indexes = list(range(len(self._elements)))
 
         join_indexes = self.super_elements(element_indexes[0]) | {element_indexes[0]}
         for el_idx in element_indexes[1:]:
-            join_indexes &= self.super_elements(el_idx)|{el_idx}
+            join_indexes &= self.super_elements(el_idx) | {el_idx}
 
         for el_idx in copy(join_indexes):
             join_indexes -= self.super_elements(el_idx)
@@ -222,11 +220,11 @@ class POSet:
     def meet_elements(self, element_indexes: Collection = None):
         """Return the biggest element from POSet smaller than all elements from ``element_indexes``"""
         if element_indexes is None or len(element_indexes) == 0:
-            element_indexes = list(range(len(self._elements)))
+            element_indexes = list(range(len(self)))
 
         meet_indexes = self.sub_elements(element_indexes[0]) | {element_indexes[0]}
         for el_idx in element_indexes[1:]:
-            meet_indexes &= self.sub_elements(el_idx)|{el_idx}
+            meet_indexes &= self.sub_elements(el_idx) | {el_idx}
 
         for el_idx in copy(meet_indexes):
             meet_indexes -= self.sub_elements(el_idx)
@@ -254,6 +252,10 @@ class POSet:
         key = (a_index, b_index)
         if key in self._cache_leq:
             res = self._cache_leq[key]
+        elif b_index in self._cache_subelements:
+            res = a_index in self._cache_subelements[b_index]
+        elif a_index in self._cache_superelements:
+            res = b_index in self._cache_superelements[a_index]
         else:
             res = self._leq_elements_nocache(a_index, b_index)
             self._cache_leq[key] = res
@@ -740,3 +742,10 @@ class POSet:
 
         nx.set_node_attributes(G, dict(enumerate(self.elements)), element_attr_name)
         return G
+
+    def _update_element(self, old_element, new_element):
+        """Replace ``old_element`` by ``new_element``. It's assumed both elements have the same position in hierarchy"""
+        idx = self.index(old_element)
+        self._elements[idx] = new_element
+        del self._elements_to_index_map[old_element]
+        self._elements_to_index_map[new_element] = idx
