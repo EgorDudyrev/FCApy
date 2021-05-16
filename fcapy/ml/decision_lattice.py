@@ -6,6 +6,7 @@ to use 'ConceptLattice' in a DecisionTree-like manner
 from frozendict import frozendict
 import numpy as np
 from enum import Enum
+from copy import deepcopy
 
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.lattice.pattern_concept import PatternConcept
@@ -202,6 +203,14 @@ class DecisionLatticePredictor:
                          in enumerate(zip(direct_parents, direct_premises, dtargets))}
         return DL
 
+    @classmethod
+    def from_random_forest(cls, rf, context: MVContext):
+        dl_rf = cls.from_decision_tree(rf.estimators_[0], context)
+        for dtree in rf.estimators_[1:]:
+            dl_rf += cls.from_decision_tree(dtree, context)
+        dl_rf /= rf.n_estimators
+        return dl_rf
+
     def calc_concept_prediction_metrics(self, c_i, Y):
         """Abstract function to instantiate in subclasses. Calculate the concept measure used for target prediction"""
         raise NotImplementedError
@@ -250,6 +259,53 @@ class DecisionLatticePredictor:
         dtargets = np.concatenate([targets[:1], targets[1:] - targets[direct_parents[1:]]])
 
         return direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises
+
+    def __iadd__(self, other):
+        # 1. Uniting up the concepts
+        new_concepts = [c for c in other.lattice if c not in self.lattice]
+        for c in new_concepts:
+            self.lattice.add_concept(c)
+
+        other_self_c_i_map = {other_c_i: self.lattice.index(c) for other_c_i, c in enumerate(other.lattice)}
+
+        # 2. Uniting the generators
+        for other_c_i, other_gens in other.lattice._generators_dict.items():
+            self_c_i = other_self_c_i_map[other_c_i]
+            if self_c_i not in self.lattice._generators_dict:
+                self.lattice._generators_dict[self_c_i] = {}
+
+            for other_parent_i, gens in other_gens.items():
+                sum_parent_i = other_self_c_i_map[other_parent_i]
+                self.lattice._generators_dict[self_c_i][sum_parent_i] =\
+                    self.lattice._generators_dict[self_c_i].get(sum_parent_i, []) + gens
+
+        # 3. Uniting the decisions
+        for old_key, dy in other._decisions.items():
+            old_parent_i, old_c_i, gen = old_key
+            self_key = (other_self_c_i_map.get(old_parent_i), other_self_c_i_map[old_c_i], gen)
+            self._decisions[self_key] = self._decisions.get(self_key, 0) + dy
+
+        return self
+
+    def __add__(self, other):
+        dl_sum = deepcopy(self)
+        dl_sum += other
+        return dl_sum
+
+    def __imul__(self, other: float):
+        self._decisions = {k: v * other for k, v in self._decisions.items()}
+        return self
+
+    def __mul__(self, other: float):
+        dl_mul = deepcopy(self)
+        dl_mul *= other
+        return dl_mul
+
+    def __itruediv__(self, other: float):
+        return self.__imul__(1/other)
+
+    def __truediv__(self, other: float):
+        return self.__mul__(1/other)
 
 
 class DecisionLatticeClassifier(DecisionLatticePredictor):
