@@ -416,6 +416,9 @@ class POSet:
     def __len__(self):
         return len(self._elements)
 
+    def __contains__(self, item):
+        return item in self._elements_to_index_map
+
     def __delitem__(self, key):
         del self._elements_to_index_map[self._elements[key]]
         del self._elements[key]
