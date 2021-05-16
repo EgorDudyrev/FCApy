@@ -70,8 +70,8 @@ class ConceptLattice(Lattice):
             superconcepts_dict: `dict`{`int`, `list`[`int`]}
                 A dictionary with superconcept (inverse order) relation on the ``concepts``
         """
-        leq_func = lambda c1, c2: c1 <= c2
-        super(ConceptLattice, self).__init__(concepts, leq_func, use_cache=True)
+
+        super(ConceptLattice, self).__init__(concepts, self.concepts_leq_func, use_cache=True)
 
         subconcepts_dict = kwargs.get('subconcepts_dict')
         superconcepts_dict = kwargs.get('superconcepts_dict')
@@ -404,7 +404,7 @@ class ConceptLattice(Lattice):
         return all_subconcepts
 
     def trace_context(self, context: FormalContext or MVContext,
-                      use_object_indices=False, use_generators=False, use_tqdm=False):
+                      use_object_indices=False, use_generators=False, use_tqdm=False, return_generators_extents=False):
         """Return the dictionaries which map an object from ``context`` to a set of bottom/all the concepts which cover it
 
         Parameters
@@ -429,6 +429,8 @@ class ConceptLattice(Lattice):
 
         """
         concept_extents = {}
+        if return_generators_extents:
+            generators_extents = []
 
         def stored_extension(concept_i, use_generators, superconcept_i=None):
             if not use_generators:
@@ -443,6 +445,11 @@ class ConceptLattice(Lattice):
                     gen = self._generators_dict[concept_i]
                     concept_extents[concept_i] = set(context.extension_i(gen))
                     extent = concept_extents[concept_i]
+
+                    if return_generators_extents:
+                        gen_stat = {'superconcept_i': None, 'concept_i': concept_i, 'ext_': tuple(extent),
+                                    'gen': frozendict(gen)}
+                        generators_extents.append(gen_stat)
                 elif superconcept_i is None:
                     # it is assumed that the function with superconcept_i=None will be called after
                     # all generators (concept_i, superconcept_i) are computed.
@@ -465,6 +472,12 @@ class ConceptLattice(Lattice):
                                  ext_sup = ext_sup[~np.isin(ext_sup, np.array(new_ext, dtype=ext_sup.dtype))]
                             else:
                                 ext_sup = ext_sup - set(new_ext)
+
+                            if return_generators_extents:
+                                gen_stat = {'superconcept_i': superconcept_i, 'concept_i': concept_i,
+                                            'ext_': tuple(new_ext), 'gen': frozendict(gen)}
+                                generators_extents.append(gen_stat)
+
                             if len(ext_sup) == 0:
                                 break
 
@@ -512,7 +525,13 @@ class ConceptLattice(Lattice):
                                       for g_i, concepts_i in object_bottom_concepts.items()}
             object_traced_concepts = {context.object_names[g_i]: concepts_i
                                       for g_i, concepts_i in object_traced_concepts.items()}
-        return object_bottom_concepts, object_traced_concepts
+
+        if return_generators_extents:
+            generators_extents = list(set([frozendict(ge) for ge in generators_extents]))
+            output = object_bottom_concepts, object_traced_concepts, generators_extents
+        else:
+            output = object_bottom_concepts, object_traced_concepts
+        return output
 
     def get_conditional_generators_dict(self, context: MVContext, use_tqdm=False, algo='exact'):
         """Return the conditional generators of concepts from the Concept Lattice
@@ -705,3 +724,7 @@ class ConceptLattice(Lattice):
 
     def to_networkx(self, direction: str or None = 'down'):
         return self._to_networkx(direction, 'concept')
+
+    @staticmethod
+    def concepts_leq_func(a, b):
+        return a <= b
