@@ -158,59 +158,6 @@ class DecisionLatticePredictor:
         self._lattice._generators_dict = self._lattice.get_conditional_generators_dict(
                 context, use_tqdm=use_tqdm, algo=algo)
 
-    @classmethod
-    def from_decision_tree(cls, dtree, context: MVContext):
-        def concept_from_descr_i(descr_i, context: MVContext, context_hash=None):
-            ext_i = context.extension_i(descr_i)
-            int_i = context.intention_i(ext_i)
-
-            if context_hash is None:
-                context_hash = context.hash_fixed()
-
-            ext_ = [context.object_names[g_i] for g_i in ext_i]
-            int_ = {context.attribute_names[m_i]: v for m_i, v in int_i.items()}
-            c = PatternConcept(ext_i, ext_, int_i, int_, context.pattern_types, context_hash=context_hash)
-            return c
-
-        # parse all the data from the decision tree
-        direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises = \
-            cls._parse_dtsklearn_to_direct_drules(dtree, context)
-
-        # Construct concepts based on premises of decision tree
-        hash_ = context.hash_fixed()
-        concepts = [concept_from_descr_i(p, context, hash_) for p in premises]
-
-        # Check if concepts make a lattice. If not, add a bottom concept
-        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict).bottom_elements
-        if len(bottom_elements) > 1:
-            bottom_concept = concept_from_descr_i(context.intention_i([]), context)
-            bottom_concept_i = len(concepts)
-            concepts.append(bottom_concept)
-            for old_bottom_i in bottom_elements:
-                direct_subelements_dict[old_bottom_i].add(bottom_concept_i)
-            direct_subelements_dict[bottom_concept_i] = set()
-        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict,).bottom_elements
-        assert len(bottom_elements) == 1
-
-        L = ConceptLattice(concepts, subconcepts_dict=direct_subelements_dict)
-        L._generators_dict = {c_i: {parent: [dp]} if parent is not None else dp for c_i, (parent, dp) in
-                              enumerate(zip(direct_parents, direct_premises))}
-
-        DL = cls(use_generators=True, random_state=dtree.random_state, prediction_func=PredictFunctions.SUMDIFF)
-        DL._lattice = L
-        DL._decisions = {(parent_i, child_i, dpremise): dy
-                         for child_i, (parent_i, dpremise, dy)
-                         in enumerate(zip(direct_parents, direct_premises, dtargets))}
-        return DL
-
-    @classmethod
-    def from_random_forest(cls, rf, context: MVContext):
-        dl_rf = cls.from_decision_tree(rf.estimators_[0], context)
-        for dtree in rf.estimators_[1:]:
-            dl_rf += cls.from_decision_tree(dtree, context)
-        dl_rf /= rf.n_estimators
-        return dl_rf
-
     def calc_concept_prediction_metrics(self, c_i, Y):
         """Abstract function to instantiate in subclasses. Calculate the concept measure used for target prediction"""
         raise NotImplementedError
@@ -306,6 +253,18 @@ class DecisionLatticePredictor:
 
     def __truediv__(self, other: float):
         return self.__mul__(1/other)
+
+    @classmethod
+    def from_decision_tree(cls, dtree, context: MVContext):
+        raise NotImplementedError
+
+    @classmethod
+    def from_random_forest(cls, rf, context: MVContext):
+        raise NotImplementedError
+
+    @classmethod
+    def from_gradient_boosting(cls, gb, context: MVContext):
+        raise NotImplementedError
 
 
 class DecisionLatticeClassifier(DecisionLatticePredictor):
@@ -421,3 +380,67 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         predictions = [self._lattice.concepts[c_i].measures['mean_y'] for c_i in concepts_i]
         avg_prediction = sum(predictions)/len(predictions) if len(predictions) > 0 else None
         return avg_prediction
+
+    @classmethod
+    def from_decision_tree(cls, dtree, context: MVContext):
+        def concept_from_descr_i(descr_i, context: MVContext, context_hash=None):
+            ext_i = context.extension_i(descr_i)
+            int_i = context.intention_i(ext_i)
+
+            if context_hash is None:
+                context_hash = context.hash_fixed()
+
+            ext_ = [context.object_names[g_i] for g_i in ext_i]
+            int_ = {context.attribute_names[m_i]: v for m_i, v in int_i.items()}
+            c = PatternConcept(ext_i, ext_, int_i, int_, context.pattern_types, context_hash=context_hash)
+            return c
+
+        # parse all the data from the decision tree
+        direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises = \
+            cls._parse_dtsklearn_to_direct_drules(dtree, context)
+
+        # Construct concepts based on premises of decision tree
+        hash_ = context.hash_fixed()
+        concepts = [concept_from_descr_i(p, context, hash_) for p in premises]
+
+        # Check if concepts make a lattice. If not, add a bottom concept
+        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict).bottom_elements
+        if len(bottom_elements) > 1:
+            bottom_concept = concept_from_descr_i(context.intention_i([]), context)
+            bottom_concept_i = len(concepts)
+            concepts.append(bottom_concept)
+            for old_bottom_i in bottom_elements:
+                direct_subelements_dict[old_bottom_i].add(bottom_concept_i)
+            direct_subelements_dict[bottom_concept_i] = set()
+        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict,).bottom_elements
+        assert len(bottom_elements) == 1
+
+        L = ConceptLattice(concepts, subconcepts_dict=direct_subelements_dict)
+        L._generators_dict = {c_i: {parent: [dp]} if parent is not None else dp for c_i, (parent, dp) in
+                              enumerate(zip(direct_parents, direct_premises))}
+
+        DL = cls(use_generators=True, random_state=dtree.random_state, prediction_func=PredictFunctions.SUMDIFF)
+        DL._lattice = L
+        DL._decisions = {(parent_i, child_i, dpremise): dy
+                         for child_i, (parent_i, dpremise, dy)
+                         in enumerate(zip(direct_parents, direct_premises, dtargets))}
+        return DL
+
+    @classmethod
+    def from_random_forest(cls, rf, context: MVContext):
+        dl_rf = cls.from_decision_tree(rf.estimators_[0], context)
+        for dtree in rf.estimators_[1:]:
+            dl_rf += cls.from_decision_tree(dtree, context)
+        dl_rf /= rf.n_estimators
+        return dl_rf
+
+    @classmethod
+    def from_gradient_boosting(cls, gb, context: MVContext):
+        estimators = gb.estimators_.flatten()
+
+        dl_gb = cls.from_decision_tree(estimators[0], context)
+        for dtree in estimators[1:]:
+            dl_gb += cls.from_decision_tree(dtree, context)
+        dl_gb *= gb.learning_rate
+        dl_gb._decisions[(None, dl_gb.lattice.top_concept_i, frozendict({}))] += gb.init_.constant_[0, 0]
+        return dl_gb
