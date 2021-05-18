@@ -13,6 +13,9 @@ from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.lattice import ConceptLattice
 from fcapy.poset import POSet
 
+from sklearn.tree import BaseDecisionTree
+from xgboost import Booster
+
 
 class PredictFunctions(Enum):
     AVGMAX = 'avg.max'
@@ -173,26 +176,25 @@ class DecisionLatticePredictor:
         return predictions
 
     @staticmethod
-    def _parse_dtsklearn_to_direct_drules(dt, context: MVContext, eps=1e-9):
-        tree = dt.tree_
-
-        targets = tree.value.flatten()
-        parents_dict_left = {child_i: parent_i for parent_i, child_i in enumerate(tree.children_left) if child_i != -1}
-        parents_dict_right = {child_i: parent_i for parent_i, child_i in enumerate(tree.children_right) if
-                              child_i != -1}
+    def _parse_dt_arrays_to_drules(children_left, children_right, feature, threshold, target,
+                                   context: MVContext, eps):
+        parents_dict_left = {child_i: parent_i for parent_i, child_i in enumerate(children_left) if child_i != -1}
+        parents_dict_right = {child_i: parent_i for parent_i, child_i in enumerate(children_right) if child_i != -1}
         parents_dict = {**parents_dict_left, **parents_dict_right}
 
-        direct_parents = [None] + [parents_dict[node_i] for node_i in range(1, len(targets))]
-        direct_children = list(range(len(targets)))
+        n_rules = len(target)
+
+        direct_parents = [None] + [parents_dict[node_i] for node_i in range(1, n_rules)]
+        direct_children = list(range(len(target)))
         direct_premises = [frozendict({})]
         premises = [frozendict({})]
 
-        for node_i in range(1, len(targets)):
+        for node_i in range(1, n_rules):
             is_left_child = node_i in parents_dict_left
             parent_i = parents_dict[node_i]
 
-            descr = (-np.inf, tree.threshold[parent_i]) if is_left_child else (tree.threshold[parent_i]+eps, np.inf)
-            premise = {tree.feature[parent_i]: descr}
+            descr = (-np.inf, threshold[parent_i]) if is_left_child else (threshold[parent_i] + eps, np.inf)
+            premise = {feature[parent_i]: descr}
             direct_premises.append(frozendict(premise))
 
             for ps_i, parent_descr in premises[parent_i].items():
@@ -203,9 +205,42 @@ class DecisionLatticePredictor:
         direct_subelements_dict = ConceptLattice._transpose_hierarchy(
             {child_i: {parent_i} for child_i, parent_i in parents_dict.items()})
 
-        dtargets = np.concatenate([targets[:1], targets[1:] - targets[direct_parents[1:]]])
+        dtargets = np.concatenate([target[:1], target[1:] - target[direct_parents[1:]]])
 
         return direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises
+
+    @classmethod
+    def _parse_dtsklearn_to_direct_drules(cls, dt, context: MVContext, eps=1e-9):
+        return cls._parse_dt_arrays_to_drules(
+            dt.tree_.children_left, dt.tree_.children_right,
+            dt.tree_.feature, dt.tree_.threshold, dt.tree_.value.flatten(),
+            context, eps)
+
+    @classmethod
+    def _parse_xgbooster_to_direct_drules(cls, xgbooster, context: MVContext, eps=1e-9):
+        trees_df = xgbooster.trees_to_dataframe()
+        children_left = [int(n_id.split('-')[1]) if isinstance(n_id, str) else -1 for n_id in trees_df['Yes']]
+        children_right = [int(n_id.split('-')[1]) if isinstance(n_id, str) else -1 for n_id in trees_df['No']]
+        target = trees_df['Gain']
+        threshold = trees_df['Split'].values
+        feature = [int(f[1:]) if f != 'Leaf' else -2 for f in trees_df['Feature']]
+
+        direct_premises, _, direct_children, direct_parents, direct_subelements_dict, premises =\
+            cls._parse_dt_arrays_to_drules(children_left, children_right, feature, threshold, target, context, eps)
+
+        target = (trees_df['Gain'] * (trees_df['Feature'] == 'Leaf')).values
+        leaf_nodes = trees_df.index[trees_df['Feature'] == 'Leaf'].values
+        parent_nodes = sorted(set(direct_parents[n_id] for n_id in leaf_nodes))
+        while len(parent_nodes) > 0:
+            n_id = parent_nodes.pop(0)
+            if direct_parents[n_id] is not None:
+                parent_nodes.append(direct_parents[n_id])
+
+            target[n_id] = (target[children_left[n_id]] + target[children_right[n_id]]) / 2
+
+        dtarget = np.concatenate([target[:1], target[1:] - target[direct_parents[1:]]])
+
+        return direct_premises, dtarget, direct_children, direct_parents, direct_subelements_dict, premises
 
     def __iadd__(self, other):
         # 1. Uniting up the concepts
@@ -382,7 +417,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         return avg_prediction
 
     @classmethod
-    def from_decision_tree(cls, dtree, context: MVContext):
+    def from_decision_tree(cls, dtree, context: MVContext, random_state=None):
         def concept_from_descr_i(descr_i, context: MVContext, context_hash=None):
             ext_i = context.extension_i(descr_i)
             int_i = context.intention_i(ext_i)
@@ -396,8 +431,15 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
             return c
 
         # parse all the data from the decision tree
-        direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises = \
-            cls._parse_dtsklearn_to_direct_drules(dtree, context)
+        if isinstance(dtree, BaseDecisionTree):
+            direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises = \
+                cls._parse_dtsklearn_to_direct_drules(dtree, context)
+        elif isinstance(dtree, Booster):
+            direct_premises, dtargets, direct_children, direct_parents, direct_subelements_dict, premises = \
+                cls._parse_xgbooster_to_direct_drules(dtree, context)
+        else:
+            raise TypeError(f'Decision Tree of type {type(dtree)} is not supported')
+
 
         # Construct concepts based on premises of decision tree
         hash_ = context.hash_fixed()
@@ -419,7 +461,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         L._generators_dict = {c_i: {parent: [dp]} if parent is not None else dp for c_i, (parent, dp) in
                               enumerate(zip(direct_parents, direct_premises))}
 
-        DL = cls(use_generators=True, random_state=dtree.random_state, prediction_func=PredictFunctions.SUMDIFF)
+        DL = cls(use_generators=True, random_state=random_state, prediction_func=PredictFunctions.SUMDIFF)
         DL._lattice = L
         DL._decisions = {(parent_i, child_i, dpremise): dy
                          for child_i, (parent_i, dpremise, dy)
@@ -428,9 +470,9 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     @classmethod
     def from_random_forest(cls, rf, context: MVContext):
-        dl_rf = cls.from_decision_tree(rf.estimators_[0], context)
+        dl_rf = cls.from_decision_tree(rf.estimators_[0], context, random_state=rf.estimators_[0].random_state)
         for dtree in rf.estimators_[1:]:
-            dl_rf += cls.from_decision_tree(dtree, context)
+            dl_rf += cls.from_decision_tree(dtree, context, random_state=dtree.random_state)
         dl_rf /= rf.n_estimators
         return dl_rf
 
@@ -438,9 +480,20 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
     def from_gradient_boosting(cls, gb, context: MVContext):
         estimators = gb.estimators_.flatten()
 
-        dl_gb = cls.from_decision_tree(estimators[0], context)
+        dl_gb = cls.from_decision_tree(estimators[0], context, random_state=estimators[0].random_state)
         for dtree in estimators[1:]:
-            dl_gb += cls.from_decision_tree(dtree, context)
+            dl_gb += cls.from_decision_tree(dtree, context, random_state=dtree.random_state)
         dl_gb *= gb.learning_rate
         dl_gb._decisions[(None, dl_gb.lattice.top_concept_i, frozendict({}))] += gb.init_.constant_[0, 0]
         return dl_gb
+
+    @classmethod
+    def from_xgboost(cls, xgb, context: MVContext):
+        boosters = list(xgb.get_booster())
+        bias = xgb.get_params()['base_score']
+
+        dl_xgb = cls.from_decision_tree(boosters[0], context)
+        for booster in boosters[1:]:
+            dl_xgb += cls.from_decision_tree(booster, context)
+        dl_xgb._decisions[(None, dl_xgb.lattice.top_concept_i, frozendict({}))] += bias
+        return dl_xgb
