@@ -489,6 +489,8 @@ class MVContext:
             object_names = slice_list(self._object_names, item[0])
             attribute_names = slice_list(self._attribute_names, item[1])
             target = slice_list(self._target, item[0]) if self._target is not None else None
+            if LIB_INSTALLED['numpy'] and isinstance(self._target, np.ndarray):
+                target = np.array(target)
             pattern_types = {k: v for k, v in self._pattern_types.items() if k in attribute_names}
             data = MVContext(data, pattern_types, object_names, attribute_names, target=target)
         else:
