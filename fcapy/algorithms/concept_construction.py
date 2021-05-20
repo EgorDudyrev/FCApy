@@ -183,10 +183,15 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
         raise ValueError(f'Sofia_binary error. Unknown projection_sorting is given: {projection_sorting}. ' +
                          'Possible ones are "ascending", "descending", "random"')
 
-    if isinstance(measure, tuple) and len(measure) == 2:
+    if isinstance(measure, tuple) and len(measure) == 2 and type(measure[0]) == str and type(measure[1]) != str:
         measure_name = measure[0]
+        measure = [measure]
     elif isinstance(measure, str):
         measure_name = measure
+        measure = [measure]
+    elif isinstance(measure, (tuple, list)) and all([isinstance(m, str) for m in measure]):
+        measure = list(measure)
+        measure_name = measure[-1]
     else:
         raise TypeError(
             "Given type of ``measure`` is not supported. "
@@ -236,19 +241,7 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
         for c in concepts_delta_same_sidesets:
             sideset = c.extent_i if iterate_attributes else c.intent_i
             c_i = old_sidesets[sideset]
-            #lattice.concepts[c_i] = c
-
-            del lattice._elements_to_index_map[lattice._elements[c_i]]
-            lattice._elements[c_i] = c  # concepts[c_i] = c
-            lattice._elements_to_index_map[c] = c_i
-
-            #if iterate_attributes:
-            #    lattice.concepts[c_i]._intent_i = c.intent_i
-            #    lattice.concepts[c_i]._intent = c.intent
-            #else:
-            #    lattice.concepts[c_i]._extent_i = c.extent_i
-            #    lattice.concepts[c_i]._extent = c.extent
-
+            lattice._update_element(lattice[c_i], c)
 
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice.concepts)
 
@@ -261,7 +254,10 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
             lattice.add_concept(c)
 
         if len(lattice.concepts) > L_max:
-            lattice.calc_concepts_measures(measure)
+            for m in measure:
+                lattice.calc_concepts_measures(m, ctx_projected)
+
+
             metrics = [c.measures[measure_name] for c_i, c in enumerate(lattice.concepts)]
             metrics_lim = sorted(metrics)[-L_max-1]
             concepts_to_remove = [i for i in range(len(lattice.concepts)) if metrics[i] <= metrics_lim][::-1]
@@ -269,6 +265,8 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
                                   if i not in [lattice.top_concept_i, lattice.bottom_concept_i]]
             for c_i in concepts_to_remove:
                 lattice.remove_concept(c_i)
+
+
 
         itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice.concepts]
     return lattice
