@@ -183,6 +183,16 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
         raise ValueError(f'Sofia_binary error. Unknown projection_sorting is given: {projection_sorting}. ' +
                          'Possible ones are "ascending", "descending", "random"')
 
+    if isinstance(measure, tuple) and len(measure) == 2:
+        measure_name = measure[0]
+    elif isinstance(measure, str):
+        measure_name = measure
+    else:
+        raise TypeError(
+            "Given type of ``measure`` is not supported. "
+            "It should be either a measure_name: str"
+            "or a pair of (measure_name: str, measure_func: c_i, lattice, context -> float)")
+
     proj_to_start = int(math.log2(L_max)) if proj_to_start is None else proj_to_start
     if iterate_attributes:
         ctx_projected = context[:, projections_order[:proj_to_start]]
@@ -252,7 +262,7 @@ def sofia_binary(context: MVContext, L_max=100, iterate_attributes=True, measure
 
         if len(lattice.concepts) > L_max:
             lattice.calc_concepts_measures(measure)
-            metrics = [c.measures[measure] for c_i, c in enumerate(lattice.concepts)]
+            metrics = [c.measures[measure_name] for c_i, c in enumerate(lattice.concepts)]
             metrics_lim = sorted(metrics)[-L_max-1]
             concepts_to_remove = [i for i in range(len(lattice.concepts)) if metrics[i] <= metrics_lim][::-1]
             concepts_to_remove = [i for i in concepts_to_remove

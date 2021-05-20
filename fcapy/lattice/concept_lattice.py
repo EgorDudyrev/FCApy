@@ -342,10 +342,16 @@ class ConceptLattice(Lattice):
             for c_i, c in enumerate(self.concepts):
                 s = cms.stability(c_i, self, context)
                 c.measures['Stab'] = s
+        elif isinstance(measure, tuple) and len(measure) == 2:
+            name, func = measure
+            assert isinstance(name, str), 'Measure name should be a string'
+            for c_i, c in enumerate(self.concepts):
+                c.measures[name] = func(c_i, self, context)
         else:
             possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability']
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
-                             f'Possible measure values are: {",".join(possible_measures)}')
+                             f'Possible measure values are either strings: {",".join(possible_measures)}, ' 
+                             f'or a pair (measure_name: str, measure_func: c_i, lattice, context -> float)')
 
     @classmethod
     def get_all_superconcepts_dict(cls, concepts, superconcepts_dict):
