@@ -18,6 +18,10 @@ from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.context.formal_context import FormalContext
 from fcapy.utils.utils import powerset
 
+from fcapy import LIB_INSTALLED
+if LIB_INSTALLED['numpy']:
+    import numpy as np
+
 
 def stability(c_i, lattice: ConceptLattice, context: FormalContext):
     """Compute the exact stability of the concept number ``c_i`` of a ``lattice`` constructed over ``context``
@@ -52,3 +56,15 @@ def stability_bounds(c_i, lattice: ConceptLattice):
     lb = 1 - sum(inv_diff)
     ub = 1 - max(inv_diff)
     return lb, ub
+
+
+def target_entropy(c_i, lattice: ConceptLattice, context: FormalContext):
+    """Compute the entropy of target labels of objects from concept extent"""
+    target_ext = context.target[list(lattice[c_i].extent_i)]
+    return np.var(target_ext)
+
+
+def mean_information_gain(c_i, lattice: ConceptLattice):
+    h = lattice[c_i].measures['target_entropy']
+    mean_parent_h = np.mean([lattice[parent_i].measures['target_entropy'] for parent_i in lattice.super_elements(c_i)])
+    return mean_parent_h - h
