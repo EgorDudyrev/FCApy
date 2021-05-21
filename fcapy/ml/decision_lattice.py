@@ -301,6 +301,25 @@ class DecisionLatticePredictor:
     def from_gradient_boosting(cls, gb, context: MVContext):
         raise NotImplementedError
 
+    def shap_values(self, context: MVContext):
+        """WARNING!!! The function does not return True shap_values. Just the first approximation"""
+        _, _, generators_extents = self._lattice.trace_context(
+            context, use_object_indices=True, use_generators=True, use_tqdm=False,
+            return_generators_extents=True)
+        sv = np.zeros((len(context.object_names), len(context.attribute_names)))
+        for ge in generators_extents:
+            if ge['superconcept_i'] is None:
+                continue
+            ps_is = list(ge['gen'].keys())
+            dy = self._decisions[(ge['superconcept_i'], ge['concept_i'], ge['gen'])]
+
+            dy_norm = dy / len(ps_is)
+            for ps_i in ps_is:
+                sv[list(ge['ext_']), ps_i] += dy_norm
+
+        bias = self._decisions[(None, self._lattice.top_concept_i, frozendict({}))]
+        return sv, bias
+
 
 class DecisionLatticeClassifier(DecisionLatticePredictor):
     """
