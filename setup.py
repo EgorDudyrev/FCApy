@@ -30,6 +30,10 @@ def run_install(**kwargs):
         'poset': [
             'networkx>=2.5',
         ],
+        'ml': [
+            'scikit-learn',
+            'xgboost',
+        ],
         'tests': [
             'scikit-learn'
         ],

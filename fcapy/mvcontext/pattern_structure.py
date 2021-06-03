@@ -85,6 +85,21 @@ class AbstractPS:
         """Compute the set of generators to select the ``new_intent`` from ``old_intent``"""
         raise NotImplementedError
 
+    @staticmethod
+    def intersect_descriptions(a, b):
+        """Compute the maximal common description of two descriptions `a` and `b`"""
+        raise NotImplementedError
+
+    @staticmethod
+    def unite_descriptions(a, b):
+        """Compute the minimal description includes the descriptions `a` and `b`"""
+        raise NotImplementedError
+
+    @classmethod
+    def leq_descriptions(cls, a, b) -> bool:
+        """Check If description `a` is 'smaller' (more general) then description `b`"""
+        return cls.intersect_descriptions(a,b) == a
+
 
 class IntervalPS(AbstractPS):
     r"""
@@ -271,3 +286,17 @@ class IntervalPS(AbstractPS):
         if not left_eq and right_eq:
             return [(new_intent[0], math.inf)]
         return [self.generators_to_description([new_intent, old_intent])]
+
+    @staticmethod
+    def intersect_descriptions(a, b):
+        """Compute the maximal common description of two descriptions `a` and `b`"""
+        intersection = (max(a[0], b[0]), min(a[1], b[1]))
+        if intersection[0]>intersection[1]:
+            return None
+        return intersection
+
+    @staticmethod
+    def unite_descriptions(a, b):
+        """Compute the minimal description includes the descriptions `a` and `b`"""
+        unity = (min(a[0], b[0]), max(a[1], b[1]))
+        return unity

@@ -309,6 +309,11 @@ class FormalContext:
         from fcapy.context.converters import write_cxt
         return write_cxt(self, path)
 
+    @staticmethod
+    def from_cxt(path=None, data=None):
+        from fcapy.context.converters import read_cxt
+        return read_cxt(path, data)
+
     def to_json(self, path=None):
         """Convert the FormalContext into json file format (save if ``path`` is given)
 
@@ -325,6 +330,11 @@ class FormalContext:
         """
         from fcapy.context.converters import write_json
         return write_json(self, path)
+
+    @staticmethod
+    def from_json(path=None, data=None):
+        from fcapy.context.converters import read_json
+        return read_json(path, data)
 
     def to_csv(self, path=None, **kwargs):
         """Convert the FormalContext into csv file format (save if ``path`` is given)
@@ -349,6 +359,11 @@ class FormalContext:
         """
         from fcapy.context.converters import write_csv
         return write_csv(self, path=path, **kwargs)
+
+    @staticmethod
+    def from_csv(path, sep=',', word_true='True', word_false='False'):
+        from fcapy.context.converters import read_csv
+        return read_csv(path, sep, word_true, word_false)
 
     def to_pandas(self):
         """Convert the FormalContext into pandas.DataFrame object
