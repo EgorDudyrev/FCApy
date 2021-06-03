@@ -31,7 +31,7 @@ def run_install(**kwargs):
             'networkx>=2.5',
         ],
         'ml': [
-            'scikit-learn'
+            'scikit-learn',
             'xgboost',
         ],
         'tests': [
