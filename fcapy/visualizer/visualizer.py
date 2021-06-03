@@ -49,7 +49,7 @@ class POSetVisualizer:
 
         """
         self._poset = poset
-        self._pos = self.get_nodes_position() if poset is not None else None
+        self._pos = self.get_nodes_position(poset) if poset is not None else None
         self.node_color = node_color
         self.edge_color = edge_color
         self.cmap = cmap
@@ -59,26 +59,29 @@ class POSetVisualizer:
         self.node_linewidth = node_linewidth
         self.node_edgecolor = node_edgecolor
 
-    def get_nodes_position(self, poset=None):
+    def get_nodes_position(self, poset, layout='multipartite'):
         """Return a dict of nodes positions in a line diagram"""
-        poset = self._poset if poset is None else poset
-        c_levels, levels_dict = self._calc_levels()
-        n_levels = len(levels_dict)
-        digraph = nx.DiGraph(poset.direct_sub_elements_dict)
-        for c_i, l_i in enumerate(c_levels):
-            digraph.nodes[c_i]['level'] = l_i
-        pos = nx.multipartite_layout(digraph, subset_key='level', align='horizontal')
+        if layout == 'multipartite':
+            pos = self.multipartite_layout(poset)
+        else:
+            raise NotImplementedError(f'Layout "{layout}" is not supported. Possible values are: "multipartite"')
+        return pos
+
+    def multipartite_layout(self, poset):
+        c_levels, levels_dict = self._calc_levels(poset)
+        G = poset.to_networkx('down')
+        nx.set_node_attributes(G, dict(enumerate(c_levels)), 'level')
+        pos = nx.multipartite_layout(G, subset_key='level', align='horizontal')
         pos = {c_i: [p[0], -p[1]] for c_i, p in pos.items()}
         return pos
 
-    def _calc_levels(self, poset=None):
+    def _calc_levels(self, poset):
         """Return levels (y position) of nodes and dict with {`level`: `nodes`} mapping in a line diagram"""
-        poset = self._poset if poset is None else poset
         c_levels = [0] * len(poset.elements)
         nodes_to_visit = poset.top_elements
         while len(nodes_to_visit) > 0:
             node_id = nodes_to_visit.pop(0)
-            spc_ids = poset.direct_super_elements_dict[node_id]
+            spc_ids = poset.direct_super_elements(node_id)
             c_levels[node_id] = max([c_levels[spc_id] for spc_id in spc_ids]) + 1 if len(spc_ids) > 0 else 0
             nodes_to_visit += poset.direct_sub_elements_dict[node_id]
 
@@ -87,11 +90,17 @@ class POSetVisualizer:
             levels_dict[c_levels[c_i]].append(c_i)
         return c_levels, levels_dict
 
-    def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3):
+    def draw_networkx(
+            self, poset=None,
+            draw_node_indices=False, edge_radius=None,
+            max_new_extent_count=3, max_new_intent_count=3
+    ):
         """Draw line diagram of the `POSet` with `networkx` package
 
         Parameters
         ----------
+        poset: `POSet`
+            A partially ordered set to visualize (or use the POSet defined at the initialization of Visualizer)
         draw_node_indices: `bool`
             A flag whether to draw indexes of nodes inside the nodes
         edge_radius: `float`
@@ -105,20 +114,29 @@ class POSetVisualizer:
         -------
 
         """
-        graph = self._poset.to_networkx('down')
+        assert poset is not None or self._poset is not None,\
+            "Poset to visualize should be passed either in draw_networkx() or in initialization of POSetVisualizer"
+
+        if poset is not None:
+            pos = self.get_nodes_position(poset)
+        else:
+            poset = self._poset
+            pos = self._pos
+
+        G = poset.to_networkx('down')
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-        nx.draw_networkx_edges(graph, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs)
+        nx.draw_networkx_edges(G, pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs)
         nx.draw_networkx_nodes(
-            graph, self._pos,
+            G, pos,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
             linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
             vmin=self.cmap_min, vmax=self.cmap_max
         )
 
         if draw_node_indices:
-            nx.draw_networkx_labels(graph, self._pos)
+            nx.draw_networkx_labels(G, pos)
 
-    def get_plotly_figure(self, **kwargs):
+    def get_plotly_figure(self, poset=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
 
         Parameters
