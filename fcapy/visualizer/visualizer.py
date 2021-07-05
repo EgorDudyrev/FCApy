@@ -68,7 +68,6 @@ class POSetVisualizer:
         return pos
 
     def multipartite_layout(self, poset):
-        poset = self._better_arrangement(poset)
         c_levels, levels_dict = self._calc_levels(poset)
         G = poset.to_networkx('down')
         nx.set_node_attributes(G, dict(enumerate(c_levels)), 'level')
@@ -76,10 +75,10 @@ class POSetVisualizer:
         pos = {c_i: [p[0], -p[1]] for c_i, p in pos.items()}
         return pos
 
-    def _better_arrangement(self, poset, c=0.5, dpth=1):
+    def _fcart_like_arrangement(self, poset, c=0.5, dpth=1):
         c_levels, levels_dict = self._calc_levels(poset)
         id_on_lvl = [0] * len(poset)
-        new_order = []
+        
         for lvl, elems in levels_dict.items():
             if lvl != 0:
                 priority = []
@@ -92,8 +91,13 @@ class POSetVisualizer:
                 elems = [x for _, x in sorted(zip(priority, elems))]
             for i, elem in enumerate(elems):
                 id_on_lvl[elem] = i;
-            new_order += elems
-        return POSet([poset.elements[i] for i in new_order], poset.leq_func)
+                
+        x_pos = [2 * (id_on_lvl[i] + 1) / (len(levels_dict[c_levels[i]]) + 1) - 1 for i in range(len(c_levels))]
+        y_pos = [-c_levels[i] / len(levels_dict) for i in range(len(c_levels))]
+        
+        pos = {i : [x_pos[i], y_pos[i]] for i in range(len(c_levels))}
+        return pos
+        
     
     def _calc_levels(self, poset):
         """Return levels (y position) of nodes and dict with {`level`: `nodes`} mapping in a line diagram"""
