@@ -120,18 +120,15 @@ class POSetVisualizer:
         -------
 
         """
-        assert poset is not None or self._poset is not None,\
+        assert self._poset is not None,\
             "Poset to visualize should be passed either in draw_networkx() or in initialization of POSetVisualizer"
 
-        if poset is not None:
-            pos = self.get_nodes_position(poset)
-        else:
-            poset = self._poset
-            pos = self._pos
+        poset = self._poset
+        pos = self._pos
 
         G = poset.to_networkx('down')
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-        nx.draw_networkx_edges(graph, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs, ax=ax)
+        nx.draw_networkx_edges(G, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs, ax=ax)
         
         nx.draw_networkx_nodes(
             G, pos,
@@ -143,13 +140,13 @@ class POSetVisualizer:
         )
 
         if draw_node_indices:
-            nx.draw_networkx_labels(graph, self._pos, ax=ax)
+            nx.draw_networkx_labels(G, self._pos, ax=ax)
 
         if label_func is not None:
             labels = {el_i: label_func(el_i) for el_i in range(len(self._poset))}
 
             nx.draw_networkx_labels(
-                graph, self._pos, labels={el_i: l for el_i, l in labels.items() if el_i in range(len(self._poset))},
+                G, self._pos, labels={el_i: l for el_i, l in labels.items() if el_i in range(len(self._poset))},
                 horizontalalignment='center', #'left',
                 font_size=self.label_font_size,
                 ax=ax
