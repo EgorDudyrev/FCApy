@@ -78,4 +78,5 @@ def fcart_layout(poset, c=0.5, dpth=1):
 
 LAYOUTS = frozendict({
     'multipartite': multipartite_layout,
+    'fcart': fcart_layout,
 })
