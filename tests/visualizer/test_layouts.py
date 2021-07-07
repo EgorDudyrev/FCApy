@@ -36,7 +36,7 @@ def test_fcart_layout():
     K = FormalContext.from_json(path)
     L = ConceptLattice.from_context(K)
 
-    pos_fact = layouts.multipartite_layout(L)
+    pos_fact = layouts.fcart_layout(L)
     pos_true = {
         0: [0.0, 0.0], 
         1: [-0.5, -0.25], 
