@@ -70,7 +70,7 @@ def fcart_layout(poset, c=0.5, dpth=1):
             id_on_lvl[elem] = i;
 
     x_pos = [2 * (id_on_lvl[i] + 1) / (len(levels_dict[c_levels[i]]) + 1) - 1 for i in range(len(c_levels))]
-    y_pos = [-c_levels[i] / len(levels_dict) for i in range(len(c_levels))]
+    y_pos = [-2 * c_levels[i] / len(levels_dict) + 1 for i in range(len(c_levels))]
 
     pos = {i : [x_pos[i], y_pos[i]] for i in range(len(c_levels))}
     return pos
