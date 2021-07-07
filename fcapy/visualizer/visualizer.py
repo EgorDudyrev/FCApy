@@ -4,6 +4,8 @@ This module provides a class `Visualizer` to visualize a `ConceptLattice`
 """
 from fcapy.poset import POSet
 from fcapy.lattice import ConceptLattice
+from fcapy.visualizer.layouts import LAYOUTS
+
 import networkx as nx
 from collections.abc import Iterable
 
@@ -19,7 +21,6 @@ class POSetVisualizer:
     get_plotly_figure(...):
         Return a Plotly figure with the `ConceptLattice` line diagram
     """
-
     def __init__(
             self, poset: POSet = None,
             node_color='lightblue', edge_color='lightgrey',
@@ -65,37 +66,12 @@ class POSetVisualizer:
 
     def get_nodes_position(self, poset, layout='multipartite'):
         """Return a dict of nodes positions in a line diagram"""
-        if layout == 'multipartite':
-            pos = self.multipartite_layout(poset)
-        else:
-            raise NotImplementedError(f'Layout "{layout}" is not supported. Possible values are: "multipartite"')
-        return pos
-
-    def multipartite_layout(self, poset):
-        c_levels, levels_dict = self._calc_levels(poset)
-        G = poset.to_networkx('down')
-        nx.set_node_attributes(G, dict(enumerate(c_levels)), 'level')
-        pos = nx.multipartite_layout(G, subset_key='level', align='horizontal')
-        pos = {c_i: [p[0], -p[1]] for c_i, p in pos.items()}
-        return pos
-
-    def _calc_levels(self, poset):
-        """Return levels (y position) of nodes and dict with {`level`: `nodes`} mapping in a line diagram"""
-        poset = self._poset if poset is None else poset
-        c_levels = [0] * len(poset)
-        nodes_to_visit = poset.top_elements
-        nodes_visited = set()
-        while len(nodes_to_visit) > 0:
-            node_id = nodes_to_visit.pop(0)
-            nodes_visited.add(node_id)
-            dsups_ids = poset.direct_super_elements(node_id)
-            c_levels[node_id] = max([c_levels[dsup_id] for dsup_id in dsups_ids]) + 1 if len(dsups_ids) > 0 else 0
-            nodes_to_visit += [n_i for n_i in poset.direct_sub_elements(node_id) if n_i not in nodes_visited]
-
-        levels_dict = {i: [] for i in range(max(c_levels) + 1)}
-        for c_i in range(len(poset)):
-            levels_dict[c_levels[c_i]].append(c_i)
-        return c_levels, levels_dict
+        if layout not in LAYOUTS:
+            raise ValueError(
+                f'Layout "{layout}" is not supported. '
+                f'Possible layouts are: {", ".join(LAYOUTS.keys())}'
+            )
+        return LAYOUTS[layout](poset)
 
     def draw_networkx(
         self,
