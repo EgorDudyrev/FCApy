@@ -23,8 +23,8 @@ class POSetVisualizer:
     """
     def __init__(
             self, poset: POSet = None,
-            node_color='lightblue', edge_color='lightgrey',
-            cmap='Blues', node_alpha=1, node_size=300, node_linewidth=1, node_edgecolor='darkblue',
+            node_color='lightgray', edge_color='lightgray', node_edgecolor='white',
+            cmap='Blues', node_alpha=1, node_size=300, node_linewidth=1,
             cmap_min=None, cmap_max=None, label_font_size=12,
     ):
         """Initialize the Visualizer
@@ -254,7 +254,8 @@ class ConceptLatticeVisualizer(POSetVisualizer):
     """
     def __init__(
             self, lattice: ConceptLattice = None,
-            node_color='lightblue', edge_color='lightgrey', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='darkblue',
+            node_color='lightgray', edge_color='lightgrey', node_edgecolor='white',
+            cmap='Blues', node_alpha=1, node_linewidth=1,
             cmap_min=None, cmap_max=None, label_font_size=12, node_size=300,
     ):
         """Initialize the Visualizer
