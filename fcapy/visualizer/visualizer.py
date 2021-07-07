@@ -23,8 +23,8 @@ class POSetVisualizer:
     def __init__(
             self, poset: POSet = None,
             node_color='lightblue', edge_color='lightgrey',
-            cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='darkblue',
-            cmap_min=None, cmap_max=None
+            cmap='Blues', node_alpha=1, node_size=300, node_linewidth=1, node_edgecolor='darkblue',
+            cmap_min=None, cmap_max=None, label_font_size=12,
     ):
         """Initialize the Visualizer
 
@@ -58,6 +58,8 @@ class POSetVisualizer:
         self.node_alpha = node_alpha
         self.node_linewidth = node_linewidth
         self.node_edgecolor = node_edgecolor
+        self.node_size = node_size
+        self.label_font_size = label_font_size
 
     def get_nodes_position(self, poset=None):
         """Return a dict of nodes positions in a line diagram"""
@@ -74,20 +76,23 @@ class POSetVisualizer:
     def _calc_levels(self, poset=None):
         """Return levels (y position) of nodes and dict with {`level`: `nodes`} mapping in a line diagram"""
         poset = self._poset if poset is None else poset
-        c_levels = [0] * len(poset.elements)
+        c_levels = [0] * len(poset)
         nodes_to_visit = poset.top_elements
+        nodes_visited = set()
         while len(nodes_to_visit) > 0:
             node_id = nodes_to_visit.pop(0)
-            spc_ids = poset.direct_super_elements_dict[node_id]
-            c_levels[node_id] = max([c_levels[spc_id] for spc_id in spc_ids]) + 1 if len(spc_ids) > 0 else 0
-            nodes_to_visit += poset.direct_sub_elements_dict[node_id]
+            nodes_visited.add(node_id)
+            dsups_ids = poset.direct_super_elements(node_id)
+            c_levels[node_id] = max([c_levels[dsup_id] for dsup_id in dsups_ids]) + 1 if len(dsups_ids) > 0 else 0
+            nodes_to_visit += [n_i for n_i in poset.direct_sub_elements(node_id) if n_i not in nodes_visited]
 
         levels_dict = {i: [] for i in range(max(c_levels) + 1)}
-        for c_i, c in enumerate(poset.elements):
+        for c_i in range(len(poset)):
             levels_dict[c_levels[c_i]].append(c_i)
         return c_levels, levels_dict
 
-    def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3):
+    def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3,
+                      label_func=None, ax=None):
         """Draw line diagram of the `POSet` with `networkx` package
 
         Parameters
@@ -107,16 +112,28 @@ class POSetVisualizer:
         """
         graph = self._poset.to_networkx('down')
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-        nx.draw_networkx_edges(graph, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs)
+        nx.draw_networkx_edges(graph, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs, ax=ax)
         nx.draw_networkx_nodes(
             graph, self._pos,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
             linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
-            vmin=self.cmap_min, vmax=self.cmap_max
+            vmin=self.cmap_min, vmax=self.cmap_max,
+            ax=ax,
+            node_size=self.node_size
         )
 
         if draw_node_indices:
-            nx.draw_networkx_labels(graph, self._pos)
+            nx.draw_networkx_labels(graph, self._pos, ax=ax)
+
+        if label_func is not None:
+            labels = {el_i: label_func(el_i) for el_i in range(len(self._poset))}
+
+            nx.draw_networkx_labels(
+                graph, self._pos, labels={el_i: l for el_i, l in labels.items() if el_i in range(len(self._poset))},
+                horizontalalignment='center', #'left',
+                font_size=self.label_font_size,
+                ax=ax
+            )
 
     def get_plotly_figure(self, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
@@ -228,7 +245,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
     def __init__(
             self, lattice: ConceptLattice = None,
             node_color='lightblue', edge_color='lightgrey', cmap='Blues', node_alpha=1, node_linewidth=1, node_edgecolor='darkblue',
-            cmap_min=None, cmap_max=None
+            cmap_min=None, cmap_max=None, label_font_size=12, node_size=300,
     ):
         """Initialize the Visualizer
 
@@ -244,7 +261,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             Transparency of nodes
         node_linewidth: `float`
             Width of borderline (edge) around the nodes in a line diagram
-        node_edgecolor: `float`
+        node_edgecolor: `str`
             Color of borderline (edge) around the nodes in a line diagram
         cmap_min: `float`
             The minimum value of a colormap
@@ -252,13 +269,19 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             The maximum value of a colormap
 
         """
-        super(ConceptLatticeVisualizer, self).__init__(lattice,
-            node_color, edge_color, cmap, node_alpha, node_linewidth, node_edgecolor, cmap_min, cmap_max)
+        super(ConceptLatticeVisualizer, self).__init__(
+            poset=lattice, node_color=node_color, edge_color=edge_color, cmap=cmap, node_alpha=node_alpha,
+            node_linewidth=node_linewidth, node_edgecolor=node_edgecolor, cmap_min=cmap_min, cmap_max=cmap_max,
+            label_font_size=label_font_size, node_size=node_size,
+        )
         self._lattice = lattice
 
-    def draw_networkx(self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3,
-                      draw_bottom_concept=True, draw_new_extent_len=True, draw_new_intent_len=True,
-                      label_func=None):
+    def draw_networkx(
+            self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3,
+            draw_bottom_concept=True, draw_new_extent_len=True, draw_new_intent_len=True,
+            label_func=None,
+            ax=None,
+    ):
         """Draw line diagram of the `ConceptLattice` with `networkx` package
 
         Parameters
@@ -288,14 +311,17 @@ class ConceptLatticeVisualizer(POSetVisualizer):
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
 
         nx.draw_networkx_edges(graph, self._pos, edgelist=edgelist,
-                               edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs)
+                               edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs,
+                               ax=ax)
 
         nx.draw_networkx_nodes(
             graph, self._pos,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
             linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
             vmin=self.cmap_min, vmax=self.cmap_max,
-            nodelist=nodelist
+            nodelist=nodelist,
+            node_size=self.node_size,
+            ax=ax,
         )
 
         if label_func is None:
@@ -325,11 +351,20 @@ class ConceptLatticeVisualizer(POSetVisualizer):
 
         labels = {c_i: label_func(c_i) for c_i in range(len(self._lattice))}
         
-        nx.draw_networkx_labels(graph, self._pos, labels={c_i: l for c_i, l in labels.items() if c_i in nodelist},
-                                horizontalalignment='left')
+        nx.draw_networkx_labels(
+            graph, self._pos, labels={c_i: l for c_i, l in labels.items() if c_i in nodelist},
+            horizontalalignment='center', #'left',
+            font_size=self.label_font_size,
+            ax=ax,
+        )
 
         if draw_node_indices:
-            nx.draw_networkx_labels(graph, self._pos, labels={c_i: f"{c_i}" for c_i in nodelist})
+            nx.draw_networkx_labels(
+                graph, self._pos,
+                labels={c_i: f"{c_i}" for c_i in nodelist},
+                #font_size=self.label_font_size
+                ax=ax,
+            )
 
     def get_plotly_figure(self, **kwargs):
         """Get a line diagram of `ConceptLattice` constructed by `plotly` package
