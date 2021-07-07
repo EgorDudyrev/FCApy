@@ -37,4 +37,4 @@ def test_layouts_dict():
     L = ConceptLattice.from_context(K)
 
     for x in ['multipartite']:
-        pos = layouts.LAYOUTS[x]
+        pos = layouts.LAYOUTS[x](L)
