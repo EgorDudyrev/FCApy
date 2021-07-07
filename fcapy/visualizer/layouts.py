@@ -34,7 +34,49 @@ def multipartite_layout(poset):
     pos = {c_i: [p[0], -p[1]] for c_i, p in pos.items()}
     return pos
 
+def fcart_layout(poset, c=0.5, dpth=1):
+    """Get a `POSet` elements positioning on [-1; 1]x[-1; 1] plane
+
+    Parameters
+    ----------
+    poset: `POSet`
+        A partially ordered set to visualize
+    с: `float`
+        Parameter showing how much upper layers affect node positioning 
+        (if c < 1, the higher the layer, the less it affects node positioning)
+    dpth: `int`
+        Parameter showing how many upper layers affect node positioning
+
+    Returns
+    -------
+    pos: `dict` of type {`int` : [`float`, `float`]}
+        maps `POSet` elements id to (x, y) coordinates on [-1; 1]x[-1; 1] plane
+
+    """
+    c_levels, levels_dict = calc_levels(poset)
+    id_on_lvl = [0] * len(poset)
+
+    for lvl, elems in levels_dict.items():
+        if lvl != 0:
+            priority = []
+            for elem in elems:
+                mp = 0
+                for par in poset.direct_super_elements(elem):
+                    if c_levels[elem] - c_levels[par] <= dpth:
+                        mp += c ** (c_levels[elem] - c_levels[par] - 1) * id_on_lvl[par] / len(levels_dict[c_levels[par]])
+                priority += [mp / len(poset.direct_super_elements(elem))]
+            elems = [x for _, x in sorted(zip(priority, elems))]
+        for i, elem in enumerate(elems):
+            id_on_lvl[elem] = i;
+
+    x_pos = [2 * (id_on_lvl[i] + 1) / (len(levels_dict[c_levels[i]]) + 1) - 1 for i in range(len(c_levels))]
+    y_pos = [-2 * c_levels[i] / len(levels_dict) + 1 for i in range(len(c_levels))]
+
+    pos = {i : [x_pos[i], y_pos[i]] for i in range(len(c_levels))}
+    return pos
+
 
 LAYOUTS = frozendict({
     'multipartite': multipartite_layout,
+    'fcart': fcart_layout,
 })

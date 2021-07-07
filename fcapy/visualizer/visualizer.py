@@ -1,6 +1,5 @@
 """
 This module provides a class `Visualizer` to visualize a `ConceptLattice`
-
 """
 from fcapy.poset import POSet
 from fcapy.lattice import ConceptLattice
@@ -14,7 +13,6 @@ from collections.abc import Iterable
 class POSetVisualizer:
     """
     A class to visualize `POSet` as graph
-
     Methods
     -------
     draw_networkx(...):
@@ -29,7 +27,6 @@ class POSetVisualizer:
             cmap_min=None, cmap_max=None, label_font_size=12,
     ):
         """Initialize the Visualizer
-
         Parameters
         ----------
         poset: `POSet`
@@ -48,7 +45,6 @@ class POSetVisualizer:
             The minimum value of a colormap
         cmap_max: `float`
             The maximum value of a colormap
-
         """
         assert poset is not None, "Cannot visualize an empty poset"
 
@@ -84,7 +80,6 @@ class POSetVisualizer:
         nodelist:list = None
     ):
         """Draw line diagram of the `POSet` with `networkx` package
-
         Parameters
         ----------
         draw_node_indices: `bool`
@@ -99,7 +94,6 @@ class POSetVisualizer:
             Indexes of poset elements to draw.
         Returns
         -------
-
         """
         G = self._poset.to_networkx('down')
         if nodelist is None:
@@ -148,7 +142,6 @@ class POSetVisualizer:
 
     def draw_plotly(self, poset=None, label_func=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
-
         Parameters
         ----------
         kwargs:
@@ -162,12 +155,10 @@ class POSetVisualizer:
                 A tuple of xaxis ranges (x_left, x_right) (default value is (-1, 1))
             figsize: `tuple` of `float`
                 A tuple of size of a figure (width, height) (default value is (1000, 500))
-
         Returns
         -------
         fig: `plotly.graph_objects.Figure`
             A line diagram of POSet in the form of Plotly Figure
-
         """
         from plotly import graph_objects as go
 
@@ -247,7 +238,6 @@ class POSetVisualizer:
 class ConceptLatticeVisualizer(POSetVisualizer):
     """
     A class for visualizing the `ConceptLattice`
-
     Methods
     -------
     draw_networkx(...):
@@ -262,7 +252,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             cmap_min=None, cmap_max=None, label_font_size=12, node_size=300,
     ):
         """Initialize the Visualizer
-
         Parameters
         ----------
         lattice: `ConceptLattice`
@@ -281,7 +270,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             The minimum value of a colormap
         cmap_max: `float`
             The maximum value of a colormap
-
         """
         super(ConceptLatticeVisualizer, self).__init__(
             poset=lattice, node_color=node_color, edge_color=edge_color, cmap=cmap, node_alpha=node_alpha,
@@ -326,7 +314,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             nodelist=None,
     ):
         """Draw line diagram of the `ConceptLattice` with `networkx` package
-
         Parameters
         ----------
         draw_node_indices: `bool`
@@ -351,7 +338,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             A flag whether to draw a size of a concept intent before the intent itself (used by default ``label_func``)
         Returns
         -------
-
         """
         nodelist = list(range(len(self._lattice))) if nodelist is None else nodelist
         if not draw_bottom_concept:
@@ -374,7 +360,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             label_func=None,
     ):
         """Draw line diagram of the `ConceptLattice` with `plotly` package
-
         Parameters
         ----------
         draw_node_indices: `bool`
@@ -385,10 +370,8 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             A number of new objects in concept extent to draw
         max_new_intent_count: `int`
             A number of new attributes in concept intent to draw
-
         Returns
         -------
-
         """
         if label_func is None:
             label_func = lambda c_i: self._concept_label_func(
