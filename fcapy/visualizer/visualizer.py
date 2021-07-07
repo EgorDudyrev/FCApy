@@ -111,7 +111,12 @@ class POSetVisualizer:
             A flag whether to draw indexes of nodes inside the nodes
         edge_radius: `float`
             A value of how much curve the edges on line diagram should be
-
+        label_func: `int` -> `str`
+            A function to create a label for a given element defined by an index
+        ax: `Matplotlib Axes`
+            A matplotlib axis to draw a poset on
+        nodelist: `list`[`int`]
+            Indexes of poset elements to draw.
         Returns
         -------
 
@@ -337,6 +342,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             draw_bottom_concept=True, draw_new_extent_len=True, draw_new_intent_len=True,
             label_func=None,
             ax=None,
+            nodelist=None,
     ):
         """Draw line diagram of the `ConceptLattice` with `networkx` package
 
@@ -346,16 +352,27 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             A flag whether to draw indexes of nodes inside the nodes
         edge_radius: `float`
             A value of how much curve the edges on line diagram should be
+        ax: `Matplotlib Axes`
+            A matplotlib axis to draw a lattice on
+        nodelist: `list`[`int`]
+            Indexes of lattice elements to draw
+        draw_bottom_concept: `bool`
+            A flag whether to draw the bottom concept of a lattice
+        label_func: `int` -> `str`
+            A function to create a label for a given element defined by an index
         max_new_extent_count: `int`
-            A number of new objects in concept extent to draw
+            A number of new objects in concept extent to draw (used by default ``label_func``)
+        draw_new_extent_len: `bool`
+            A flag whether to draw a size of a concept extent before the extent itself (used by default ``label_func``)
         max_new_intent_count: `int`
-            A number of new attributes in concept intent to draw
-
+            A number of new attributes in concept intent to draw (used by default ``label_func``)
+        draw_new_intent_len: `bool`
+            A flag whether to draw a size of a concept intent before the intent itself (used by default ``label_func``)
         Returns
         -------
 
         """
-        nodelist = list(range(len(self._lattice)))
+        nodelist = list(range(len(self._lattice))) if nodelist is None else nodelist
         if not draw_bottom_concept:
             nodelist.remove(self._lattice.bottom_concept_i)
 
