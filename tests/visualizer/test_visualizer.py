@@ -15,38 +15,13 @@ def test__init__():
 
 def test_get_nodes_position():
     path = 'data/animal_movement.json'
-    ctx = converters.read_json(path)
-    ltc = ConceptLattice.from_context(ctx)
+    K = converters.read_json(path)
+    L = ConceptLattice.from_context(K)
 
-    vsl = visualizer.ConceptLatticeVisualizer(ltc)
-    pos = {
-        0: [0.0, 1.0],
-        1: [0.6666666666666666, 0.3333333333333333],
-        2: [0.0, 0.3333333333333333],
-        3: [-0.6666666666666666, 0.3333333333333333],
-        4: [0.6666666666666666, -0.3333333333333333],
-        5: [0.0, -0.3333333333333333],
-        6: [-0.6666666666666666, -0.3333333333333333],
-        7: [0.0, -1.0]
-     }
-    pos_diff_dict = {
-        c_i: np.sqrt(((np.array(vsl._pos[c_i]) - np.array(pos[c_i])) ** 2).sum())
-        for c_i in range(len(ltc.concepts))
-    }
-    pos_diff_mean = np.mean(list(pos_diff_dict.values()))
-    assert pos_diff_mean < 1e-6, \
-        f'Visualizer.get_nodes_position failed. Nodes position calculated wrongly.' +\
-        f'Position differences: {pos_diff_dict}'
+    pos = visualizer.POSetVisualizer.get_nodes_position(L)
 
-    vsl = visualizer.POSetVisualizer(ltc)
-    pos_diff_dict = {
-        c_i: np.sqrt(((np.array(vsl._pos[c_i]) - np.array(pos[c_i])) ** 2).sum())
-        for c_i in range(len(ltc.concepts))
-    }
-    pos_diff_mean = np.mean(list(pos_diff_dict.values()))
-    assert pos_diff_mean < 1e-6, \
-        f'Visualizer.get_nodes_position failed. Nodes position calculated wrongly.' + \
-        f'Position differences: {pos_diff_dict}'
+    with pytest.raises(ValueError):
+        pos = visualizer.POSetVisualizer.get_nodes_position(L, 'FaKeLaYoUt')
 
 
 def test_draw_networkx():

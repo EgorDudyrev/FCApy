@@ -64,7 +64,8 @@ class POSetVisualizer:
         self.node_size = node_size
         self.label_font_size = label_font_size
 
-    def get_nodes_position(self, poset, layout='multipartite'):
+    @staticmethod
+    def get_nodes_position(poset, layout='multipartite'):
         """Return a dict of nodes positions in a line diagram"""
         if layout not in LAYOUTS:
             raise ValueError(
