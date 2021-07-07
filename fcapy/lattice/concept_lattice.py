@@ -11,7 +11,6 @@ from fcapy.context.formal_context import FormalContext
 from fcapy.poset.lattice import Lattice
 from fcapy.utils import utils
 import warnings
-import inspect
 from itertools import product
 from copy import deepcopy
 from frozendict import frozendict
@@ -197,17 +196,12 @@ class ConceptLattice(Lattice):
             A concept lattice constructed on the ``context`` by algorithm ``algo``
 
         """
-        def get_kwargs_used(kwargs, func):
-            possible_kwargs = inspect.signature(func).parameters
-            kwargs_used = {k: v for k, v in kwargs.items() if k in possible_kwargs}
-            return kwargs_used
-
         if algo is None:
             algo = 'Sofia' if type(context) == MVContext else 'CbO'
 
         if algo in {'CbO', 'RandomForest'}:
             algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts}[algo]
-            kwargs_used = get_kwargs_used(kwargs, algo_func)
+            kwargs_used = utils.get_kwargs_used(kwargs, algo_func)
             concepts = algo_func(context, **kwargs_used)
             concepts = cls.sort_concepts(concepts)
             subconcepts_dict = lca.construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=True)
@@ -218,10 +212,10 @@ class ConceptLattice(Lattice):
 
         elif algo == 'Sofia':
             if type(context) == MVContext:
-                kwargs_used = get_kwargs_used(kwargs, cca.sofia_general)
+                kwargs_used = utils.get_kwargs_used(kwargs, cca.sofia_general)
                 ltc = cca.sofia_general(context, **kwargs_used)
             else:
-                kwargs_used = get_kwargs_used(kwargs, cca.sofia_binary)
+                kwargs_used = utils.get_kwargs_used(kwargs, cca.sofia_binary)
                 ltc = cca.sofia_binary(context, **kwargs_used)
 
             # sort concepts in the same order as they have been created by CbO algorithm

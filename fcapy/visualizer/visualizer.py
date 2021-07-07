@@ -5,6 +5,7 @@ This module provides a class `Visualizer` to visualize a `ConceptLattice`
 from fcapy.poset import POSet
 from fcapy.lattice import ConceptLattice
 from fcapy.visualizer.layouts import LAYOUTS
+from fcapy.utils.utils import get_kwargs_used
 
 import networkx as nx
 from collections.abc import Iterable
@@ -65,14 +66,16 @@ class POSetVisualizer:
         self.label_font_size = label_font_size
 
     @staticmethod
-    def get_nodes_position(poset, layout='multipartite'):
+    def get_nodes_position(poset, layout='multipartite', **kwargs):
         """Return a dict of nodes positions in a line diagram"""
         if layout not in LAYOUTS:
             raise ValueError(
                 f'Layout "{layout}" is not supported. '
                 f'Possible layouts are: {", ".join(LAYOUTS.keys())}'
             )
-        return LAYOUTS[layout](poset)
+        layout_func = LAYOUTS[layout]
+        kwargs_used = get_kwargs_used(kwargs, layout_func)
+        return layout_func(poset, **kwargs_used)
 
     def draw_networkx(
         self,

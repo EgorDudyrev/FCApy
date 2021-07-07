@@ -4,6 +4,7 @@ This module provides a set of functions which can be useful in any subpackage of
 """
 from itertools import chain, combinations
 from collections.abc import Iterable
+import inspect
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['tqdm']:
@@ -78,3 +79,10 @@ def slice_list(lst: list, slicer):
     else:
         lst = [lst[slicer]]
     return lst
+
+
+def get_kwargs_used(kwargs, func):
+    """Return `kwargs` which are parameters of `func`"""
+    possible_kwargs = inspect.signature(func).parameters
+    kwargs_used = {k: v for k, v in kwargs.items() if k in possible_kwargs}
+    return kwargs_used
