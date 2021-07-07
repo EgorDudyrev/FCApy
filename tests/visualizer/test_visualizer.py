@@ -57,13 +57,13 @@ def test_draw_networkx():
     vsl.draw_networkx(draw_node_indices=True)
 
 
-def test_get_plotly_figure():
+def test_draw_plotly():
     path = 'data/animal_movement.json'
     ctx = converters.read_json(path)
     ltc = ConceptLattice.from_context(ctx)
 
     vsl = visualizer.ConceptLatticeVisualizer(ltc)
-    vsl.get_plotly_figure()
+    vsl.draw_plotly()
 
     vsl = visualizer.POSetVisualizer(ltc)
-    vsl.get_plotly_figure()
+    vsl.draw_plotly()

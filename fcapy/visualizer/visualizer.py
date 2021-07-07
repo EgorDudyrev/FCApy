@@ -152,7 +152,7 @@ class POSetVisualizer:
                 ax=ax
             )
 
-    def get_plotly_figure(self, poset=None, **kwargs):
+    def draw_plotly(self, poset=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
 
         Parameters
@@ -383,7 +383,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
                 ax=ax,
             )
 
-    def get_plotly_figure(self, **kwargs):
+    def draw_plotly(self, poset=None, **kwargs):
         """Get a line diagram of `ConceptLattice` constructed by `plotly` package
 
         Parameters
