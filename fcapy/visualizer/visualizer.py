@@ -161,7 +161,7 @@ class POSetVisualizer:
                 labels={el_i: f"{el_i}" for el_i in nodelist}
             )
 
-    def draw_plotly(self, poset=None, **kwargs):
+    def draw_plotly(self, poset=None, label_func=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
 
         Parameters
@@ -235,8 +235,10 @@ class POSetVisualizer:
         node_trace.marker.opacity = [self.node_alpha[n] for n in digraph.nodes()] \
             if isinstance(self.node_alpha, Iterable) else self.node_alpha
 
-        node_labels = []
-        node_hovertext = []
+
+        node_labels = [label_func(i) for i in range(len(self._poset))] if label_func is not None else []
+        node_hovertext = [f"id: {i}\n\n{lbl}" for i, lbl in enumerate(node_labels)]
+        node_labels, node_hovertext = [[x.replace('\n', '<br>') for x in lst] for lst in [node_labels, node_hovertext]]
         node_trace.text = node_labels
         node_trace.hovertext = node_hovertext
 
@@ -368,115 +370,35 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             label_func=label_func, ax=ax, nodelist=nodelist
         )
 
-    def draw_plotly(self, poset=None, **kwargs):
-        """Get a line diagram of `ConceptLattice` constructed by `plotly` package
+    def draw_plotly(
+            self, max_new_extent_count=3, max_new_intent_count=3,
+            draw_new_extent_len=True, draw_new_intent_len=True,
+            label_func=None,
+    ):
+        """Draw line diagram of the `ConceptLattice` with `plotly` package
 
         Parameters
         ----------
-        kwargs:
-            colorbar_title: `str`
-                A title of colorbar axis
-            max_new_extent_count: `int`
-                A number of new objects in concept extent to draw
-            max_new_intent_count: `int`
-                A number of new objects in concept extent to draw
-            xlim: `tuple of `float`
-                A tuple of xaxis ranges (x_left, x_right) (default value is (-1, 1))
-            figsize: `tuple` of `float`
-                A tuple of size of a figure (width, height) (default value is (1000, 500))
+        draw_node_indices: `bool`
+            A flag whether to draw indexes of nodes inside the nodes
+        edge_radius: `float`
+            A value of how much curve the edges on line diagram should be
+        max_new_extent_count: `int`
+            A number of new objects in concept extent to draw
+        max_new_intent_count: `int`
+            A number of new attributes in concept intent to draw
 
         Returns
         -------
-        fig: `plotly.graph_objects.Figure`
-            A line diagram of ConceptLattice in the form of Plotly Figure
 
         """
-        from plotly import graph_objects as go
-
-        digraph = nx.DiGraph(self._lattice.subconcepts_dict)
-        pos = self._pos
-        nx.set_node_attributes(digraph, pos, 'pos')
-
-        # Convert edges of the graph to the plotly format
-        edge_x = [y for edge in digraph.edges() for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
-        edge_y = [y for edge in digraph.edges() for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
-
-        edge_trace = go.Scatter(
-            x=edge_x, y=edge_y,
-            line=dict(width=0.5, color='#888'),
-            hoverinfo='none',
-            mode='lines'
-        )
-
-        # Convert nodes of the graph to the plotly format
-        node_x = [pos[node][0] for node in digraph.nodes()]
-        node_y = [pos[node][1] for node in digraph.nodes()]
-
-        node_trace = go.Scatter(
-            x=node_x, y=node_y,
-            mode='markers+text',
-            hoverinfo='text',
-            textposition='middle right',
-            marker=dict(
-                showscale=True,
-                # colorscale options
-                # 'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
-                # 'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
-                # 'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
-                colorscale=self.cmap,
-                reversescale=True,
-                color=[],
-                size=10,
-                colorbar=dict(
-                    thickness=15,
-                    title=kwargs.get('colorbar_title', ''),
-                    xanchor='left',
-                    titleside='right'
-                ),
-                line_width=2)
-        )
-
-        # Add color and text to nodes
-        node_trace.marker.color = [self.node_color[n] for n in digraph.nodes()] \
-            if type(self.node_color) != str else self.node_color
-        node_trace.marker.opacity = [self.node_alpha[n] for n in digraph.nodes()] \
-            if isinstance(self.node_alpha, Iterable) else self.node_alpha
-
-        node_labels = []
-        node_hovertext = []
-        for n in digraph.nodes():
-            new_extent = list(self._lattice.get_concept_new_extent(n))
-            new_intent = list(self._lattice.get_concept_new_intent(n))
-            if len(new_extent) > 0:
-                new_extent_str = f"{len(new_extent)}: " + ', '.join(new_extent[:kwargs.get('max_new_extent_count', 3)])
-                new_extent_str += '...' if kwargs.get('max_new_extent_count') is not None and len(
-                    new_extent) > kwargs.get('max_new_extent_count', 3) else ''
-            else:
-                new_extent_str = ''
-            if len(new_intent) > 0:
-                new_intent_str = f"{len(new_intent)}: " + ', '.join(new_intent[:kwargs.get('max_new_intent_count', 3)])
-                new_intent_str += '...' if kwargs.get('max_new_intent_count') is not None and len(
-                    new_intent) > kwargs.get('max_new_intent_count', 3) else ''
-            else:
-                new_intent_str = ''
-
-            node_labels.append('<br><br>'.join([new_intent_str, new_extent_str]))
-            node_hovertext.append(f'id: {n}<br><br>' + node_labels[-1])
-        node_trace.text = node_labels
-        node_trace.hovertext = node_hovertext
-
-        fig = go.Figure(
-            data=[edge_trace, node_trace],
-            layout=go.Layout(
-                title=kwargs.get('title', 'Concept Lattice'),
-                titlefont_size=16,
-                showlegend=False,
-                hovermode='closest',
-                margin=dict(b=20, l=5, r=5, t=40),
-                xaxis=dict(range=kwargs.get('xlim', (-1, 1)), showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                width=kwargs.get('figsize', [1000, 500])[0],
-                height=kwargs.get('figsize', [1000, 500])[1]
+        if label_func is None:
+            label_func = lambda c_i: self._concept_label_func(
+                c_i, draw_new_intent_len, max_new_intent_count,
+                draw_new_extent_len, max_new_extent_count
             )
+
+        fig = super(ConceptLatticeVisualizer, self).draw_plotly(
+            label_func=label_func,
         )
         return fig
