@@ -3,10 +3,14 @@ from fcapy.context import converters
 from fcapy.lattice.concept_lattice import ConceptLattice
 import numpy as np
 
+import pytest
+
 
 def test__init__():
-    vsl = visualizer.ConceptLatticeVisualizer()
-    vsl = visualizer.POSetVisualizer()
+    with pytest.raises(AssertionError):
+        vsl = visualizer.ConceptLatticeVisualizer()
+    with pytest.raises(AssertionError):
+        vsl = visualizer.POSetVisualizer()
 
 
 def test_get_nodes_position():

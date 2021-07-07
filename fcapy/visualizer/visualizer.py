@@ -48,6 +48,8 @@ class POSetVisualizer:
             The maximum value of a colormap
 
         """
+        assert poset is not None, "Cannot visualize an empty poset"
+
         self._poset = poset
         self._pos = self.get_nodes_position(poset) if poset is not None else None
         self.node_color = node_color
@@ -99,14 +101,13 @@ class POSetVisualizer:
         self,
         draw_node_indices=False, edge_radius=None,
         max_new_extent_count=3, max_new_intent_count=3,
-        label_func=None, ax=None
+        label_func=None, ax=None,
+        nodelist:list = None
     ):
         """Draw line diagram of the `POSet` with `networkx` package
 
         Parameters
         ----------
-        poset: `POSet`
-            A partially ordered set to visualize (or use the POSet defined at the initialization of Visualizer)
         draw_node_indices: `bool`
             A flag whether to draw indexes of nodes inside the nodes
         edge_radius: `float`
@@ -120,27 +121,35 @@ class POSetVisualizer:
         -------
 
         """
-        assert self._poset is not None,\
-            "Poset to visualize should be passed either in draw_networkx() or in initialization of POSetVisualizer"
-
         poset = self._poset
-        pos = self._pos
 
         G = poset.to_networkx('down')
+        if nodelist is None:
+            nodelist = list(range(len(self._poset)))
+        missing_nodeset = set(range(len(poset))) - set(nodelist)
+        edgelist = [
+            e for e in G.edges
+            if e[0] not in missing_nodeset and e[1] not in missing_nodeset
+        ]
+
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-        nx.draw_networkx_edges(G, self._pos, edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs, ax=ax)
+        nx.draw_networkx_edges(
+            G, self._pos,
+            edgelist=edgelist,
+            edge_color=self.edge_color,
+            arrowstyle='-', connectionstyle=cs,
+            ax=ax
+        )
         
         nx.draw_networkx_nodes(
-            G, pos,
+            G, self._pos,
+            nodelist=nodelist,
             node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
             linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
             vmin=self.cmap_min, vmax=self.cmap_max,
             ax=ax,
             node_size=self.node_size
         )
-
-        if draw_node_indices:
-            nx.draw_networkx_labels(G, self._pos, ax=ax)
 
         if label_func is not None:
             labels = {el_i: label_func(el_i) for el_i in range(len(self._poset))}
@@ -151,6 +160,14 @@ class POSetVisualizer:
                 font_size=self.label_font_size,
                 ax=ax
             )
+
+        if draw_node_indices:
+            nx.draw_networkx_labels(
+                G, self._pos,
+                ax=ax,
+                labels={el_i: f"{el_i}" for el_i in nodelist}
+            )
+
 
     def draw_plotly(self, poset=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
