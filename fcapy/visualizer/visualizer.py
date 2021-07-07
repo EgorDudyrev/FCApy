@@ -100,7 +100,6 @@ class POSetVisualizer:
     def draw_networkx(
         self,
         draw_node_indices=False, edge_radius=None,
-        max_new_extent_count=3, max_new_intent_count=3,
         label_func=None, ax=None,
         nodelist:list = None
     ):
@@ -112,21 +111,15 @@ class POSetVisualizer:
             A flag whether to draw indexes of nodes inside the nodes
         edge_radius: `float`
             A value of how much curve the edges on line diagram should be
-        max_new_extent_count: `int`
-            A number of new objects in concept extent to draw
-        max_new_intent_count: `int`
-            A number of new attributes in concept intent to draw
 
         Returns
         -------
 
         """
-        poset = self._poset
-
-        G = poset.to_networkx('down')
+        G = self._poset.to_networkx('down')
         if nodelist is None:
             nodelist = list(range(len(self._poset)))
-        missing_nodeset = set(range(len(poset))) - set(nodelist)
+        missing_nodeset = set(range(len(self._poset))) - set(nodelist)
         edgelist = [
             e for e in G.edges
             if e[0] not in missing_nodeset and e[1] not in missing_nodeset
@@ -167,7 +160,6 @@ class POSetVisualizer:
                 ax=ax,
                 labels={el_i: f"{el_i}" for el_i in nodelist}
             )
-
 
     def draw_plotly(self, poset=None, **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
@@ -310,6 +302,34 @@ class ConceptLatticeVisualizer(POSetVisualizer):
         )
         self._lattice = lattice
 
+    def _concept_label_func(
+            self, c_i,
+            draw_new_intent_len, max_new_intent_count,
+            draw_new_extent_len, max_new_extent_count,
+    ):
+        new_intent = list(self._lattice.get_concept_new_intent(c_i))
+        if len(new_intent) > 0:
+            new_intent_str = f"{len(new_intent)}: " if draw_new_intent_len else ""
+            new_intent_str += ', '.join(new_intent[:max_new_intent_count])
+            if len(new_intent_str) > 0 \
+                    and max_new_intent_count is not None and len(new_intent) > max_new_intent_count:
+                new_intent_str += '...'
+        else:
+            new_intent_str = ''
+
+        new_extent = list(self._lattice.get_concept_new_extent(c_i))
+        if len(new_extent) > 0:
+            new_extent_str = f"{len(new_extent)}: " if draw_new_extent_len else ""
+            new_extent_str += ', '.join(new_extent[:max_new_extent_count])
+            if len(new_extent_str) > 0 \
+                    and max_new_extent_count is not None and len(new_extent) > max_new_extent_count:
+                new_extent_str += '...'
+        else:
+            new_extent_str = ''
+
+        label = '\n\n'.join([new_intent_str, new_extent_str])
+        return label
+
     def draw_networkx(
             self, draw_node_indices=False, edge_radius=None, max_new_extent_count=3, max_new_intent_count=3,
             draw_bottom_concept=True, draw_new_extent_len=True, draw_new_intent_len=True,
@@ -333,72 +353,20 @@ class ConceptLatticeVisualizer(POSetVisualizer):
         -------
 
         """
-        graph = self._lattice.to_networkx()
-
         nodelist = list(range(len(self._lattice)))
         if not draw_bottom_concept:
             nodelist.remove(self._lattice.bottom_concept_i)
-        edgelist = list(graph.edges)
-        if not draw_bottom_concept:
-            edgelist = [e for e in edgelist if self._lattice.bottom_concept_i not in e]
-
-        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
-
-        nx.draw_networkx_edges(graph, self._pos, edgelist=edgelist,
-                               edge_color=self.edge_color, arrowstyle='-', connectionstyle=cs,
-                               ax=ax)
-
-        nx.draw_networkx_nodes(
-            graph, self._pos,
-            node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
-            linewidths=self.node_linewidth, edgecolors=self.node_edgecolor,
-            vmin=self.cmap_min, vmax=self.cmap_max,
-            nodelist=nodelist,
-            node_size=self.node_size,
-            ax=ax,
-        )
 
         if label_func is None:
-            def label_func(c_i):
-                new_intent = list(self._lattice.get_concept_new_intent(c_i))
-                if len(new_intent) > 0:
-                    new_intent_str = f"{len(new_intent)}: " if draw_new_intent_len else ""
-                    new_intent_str += ', '.join(new_intent[:max_new_intent_count])
-                    if len(new_intent_str) > 0 \
-                            and max_new_intent_count is not None and len(new_intent) > max_new_intent_count:
-                        new_intent_str += '...'
-                else:
-                    new_intent_str = ''
-
-                new_extent = list(self._lattice.get_concept_new_extent(c_i))
-                if len(new_extent) > 0:
-                    new_extent_str = f"{len(new_extent)}: " if draw_new_extent_len else ""
-                    new_extent_str += ', '.join(new_extent[:max_new_extent_count])
-                    if len(new_extent_str) > 0 \
-                            and max_new_extent_count is not None and len(new_extent) > max_new_extent_count:
-                        new_extent_str += '...'
-                else:
-                    new_extent_str = ''
-
-                label = '\n\n'.join([new_intent_str, new_extent_str])
-                return label
-
-        labels = {c_i: label_func(c_i) for c_i in range(len(self._lattice))}
-        
-        nx.draw_networkx_labels(
-            graph, self._pos, labels={c_i: l for c_i, l in labels.items() if c_i in nodelist},
-            horizontalalignment='center', #'left',
-            font_size=self.label_font_size,
-            ax=ax,
-        )
-
-        if draw_node_indices:
-            nx.draw_networkx_labels(
-                graph, self._pos,
-                labels={c_i: f"{c_i}" for c_i in nodelist},
-                #font_size=self.label_font_size
-                ax=ax,
+            label_func = lambda c_i: self._concept_label_func(
+                c_i, draw_new_intent_len, max_new_intent_count,
+                draw_new_extent_len, max_new_extent_count
             )
+
+        super(ConceptLatticeVisualizer, self).draw_networkx(
+            draw_node_indices=draw_node_indices, edge_radius=edge_radius,
+            label_func=label_func, ax=ax, nodelist=nodelist
+        )
 
     def draw_plotly(self, poset=None, **kwargs):
         """Get a line diagram of `ConceptLattice` constructed by `plotly` package
