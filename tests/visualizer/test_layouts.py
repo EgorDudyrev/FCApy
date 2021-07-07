@@ -62,5 +62,5 @@ def test_layouts_dict():
     K = FormalContext.from_json(path)
     L = ConceptLattice.from_context(K)
 
-    for x in ['multipartite']:
+    for x in ['multipartite', 'fcart']:
         pos = layouts.LAYOUTS[x](L)

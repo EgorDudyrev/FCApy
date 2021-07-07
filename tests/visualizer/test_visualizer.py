@@ -19,6 +19,8 @@ def test_get_nodes_position():
     L = ConceptLattice.from_context(K)
 
     pos = visualizer.POSetVisualizer.get_nodes_position(L)
+    
+    pos = visualizer.POSetVisualizer.get_nodes_position(L, 'fcart')
 
     with pytest.raises(ValueError):
         pos = visualizer.POSetVisualizer.get_nodes_position(L, 'FaKeLaYoUt')
