@@ -262,7 +262,7 @@ class POSet:
         return res
 
     def __getitem__(self, item: int or slice or Collection):
-        return slice_list(self._elements, item) if not isinstance(item, int) else self._elements[item]
+        return slice_list(self.elements, item) if not isinstance(item, int) else self.elements[item]
 
     def __and__(self, other):
         assert self._leq_func == other.leq_func, \
