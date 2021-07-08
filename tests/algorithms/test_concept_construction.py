@@ -4,6 +4,7 @@ from fcapy.context import read_json, read_csv, read_cxt, from_pandas
 from fcapy.algorithms import concept_construction as cca
 from fcapy.algorithms import lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.context.formal_context import FormalContext
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.lattice import ConceptLattice
 from fcapy.mvcontext import pattern_structure as PS, mvcontext
@@ -174,3 +175,30 @@ def test_random_forest_concepts():
     acc_train, acc_test = accuracy_score(Y[train_idxs], preds_train), accuracy_score(Y[test_idxs], preds_test)
     assert acc_train == 1, 'random_forest_concepts failed'
     assert acc_test >= 0.88, 'random_forest_concepts failed'
+
+    
+def test_lindig_algorithm():
+    context = FormalContext.from_csv('data/mango_bin.csv')
+    L_lin = cca.lindig_algorithm(context)
+    L_cbo = ConceptLattice.from_context(context, algo='CbO')
+    
+    assert len(L_lin.concepts) == len(L_cbo.concepts), 'lindig_algorithm concepts len mismatch'
+    
+    foo = {}
+
+    for i, x in enumerate(L_lin.concepts):
+        for j, y in enumerate(L_cbo.concepts):
+            if (x.extent_i, x.intent_i) == (y.extent_i, y.intent_i):
+                foo[i] = j
+                
+    assert len(foo) == len(L_cbo.concepts), 'lindig_algorithm concepts mismatch'
+    
+    for i in range(len(L_lin.concepts)):
+        lin = sorted([foo[x] for x in L_lin._cache_direct_subelements.get(i, [])])
+        cbo = sorted([x for x in L_cbo._cache_direct_subelements.get(foo[i], [])])
+        assert lin == cbo, 'lindig_algorithm lattice mismatch'
+        
+    for i in range(len(L_lin.concepts)):
+        lin = sorted([foo[x] for x in L_lin._cache_direct_superelements.get(i, [])])
+        cbo = sorted([x for x in L_cbo._cache_direct_superelements.get(foo[i], [])])
+        assert lin == cbo, 'lindig_algorithm lattice mismatch'

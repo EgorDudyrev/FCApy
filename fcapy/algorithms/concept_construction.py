@@ -7,6 +7,7 @@ Some of them return a `ConceptLattice` instead of just a set of concepts
 from fcapy.context.formal_context import FormalContext
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice import ConceptLattice
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.utils import utils
 import random
@@ -394,7 +395,8 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
 
 
 def lindig_algorithm(context: FormalContext):
-    """Get Concept Lattice from Formal Context
+    """Get Concept Lattice from Formal Context using Lindig algorithm
+    (https://www.researchgate.net/publication/2812391_Fast_Concept_Analysis)
 
     Parameters
     ----------
@@ -416,7 +418,8 @@ def lindig_algorithm(context: FormalContext):
             G = context.extension_i(M)
             if reps & (set(G) - extent - {g}) == set():
                 neighbors.append(FormalConcept(G, [context.object_names[i] for i in G], 
-                                               M, [context.attribute_names[i] for i in M]))
+                                               M, [context.attribute_names[i] for i in M],
+                                               context_hash = context.hash_fixed()))
             else:
                 reps -= {g}
         return neighbors
@@ -424,7 +427,8 @@ def lindig_algorithm(context: FormalContext):
     M = list(range(context.n_attributes))
     G = context.extension_i(M)
     c = FormalConcept(G, [context.object_names[i] for i in G], 
-                      M, [context.attribute_names[i] for i in M])
+                      M, [context.attribute_names[i] for i in M],
+                      context_hash = context.hash_fixed())
     
     concepts = [c]
     queue = {c}
