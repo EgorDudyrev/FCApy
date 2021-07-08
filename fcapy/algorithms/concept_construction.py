@@ -391,3 +391,58 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
         concepts.append(concept)
 
     return concepts
+
+
+def lindig_algorithm(context: FormalContext):
+    """Get Concept Lattice from Formal Context
+
+    Parameters
+    ----------
+    context: `FormalContext`
+        A context to build lattice on
+
+    Returns
+    -------
+    lattice: `ConceptLattice`
+        A ConceptLattice which contains a set of Formal Concepts and relations between them
+
+    """
+    def direct_super_elements(concept, context):
+        extent = set(concept.extent_i)
+        reps = set(range(context.n_objects)) - extent
+        neighbors = []
+        for g in set(reps):
+            M = context.intention_i(list(extent | {g}))
+            G = context.extension_i(M)
+            if reps & (set(G) - extent - {g}) == set():
+                neighbors.append(FormalConcept(G, [context.object_names[i] for i in G], 
+                                               M, [context.attribute_names[i] for i in M]))
+            else:
+                reps -= {g}
+        return neighbors
+    
+    M = list(range(context.n_attributes))
+    G = context.extension_i(M)
+    c = FormalConcept(G, [context.object_names[i] for i in G], 
+                      M, [context.attribute_names[i] for i in M])
+    
+    concepts = [c]
+    queue = {c}
+    subconcepts_dict = {}
+    superconcepts_dict = {}
+    
+    
+    while len(queue) != 0:
+        c = min(queue)
+        c_id = concepts.index(c)
+        queue -= {c}
+        for x in direct_super_elements(c, context):
+            if x not in concepts:
+                queue |= {x}
+                concepts.append(x)
+            x_id = concepts.index(x)
+            subconcepts_dict[x_id] = [c_id] + subconcepts_dict.get(x_id, [])
+            superconcepts_dict[c_id] = [x_id] + superconcepts_dict.get(c_id, [])
+
+    lattice = ConceptLattice(concepts, subconcepts_dict=subconcepts_dict, superconcepts_dict=superconcepts_dict)
+    return lattice
