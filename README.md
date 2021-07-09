@@ -44,7 +44,8 @@ These functions are also known as "prime (') operations", "arrow operations"
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
 ```python
 !wget https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
-ctx = read_csv('animal_movement.csv')
+from fcapy.context import converters
+ctx = converters.read_csv('animal_movement.csv')
 
 print(ctx[:5])
 > FormalContext (5 objects, 4 attributes, 7 connections)
