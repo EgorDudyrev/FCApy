@@ -6,7 +6,7 @@
 
 A library to work with formal (and pattern) contexts, concepts, lattices
 
-Created under the guidance of S.O.Kuznetsov and A.A.Neznanov of HSE Moscow.
+It is written with the support of the ISSA laboratory of HSE Moscow.
 
 ## Install
 FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
@@ -15,14 +15,14 @@ FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
 pip install fcapy
 </pre>
 
-The library has no strict dependencies. However one would better install it with all the additional packages:
+The library has no strict dependencies. However, one would better install it with all the additional packages:
 <pre>
 pip install fcapy[all]
 </pre>
 
 ## Current state
 
-The library provides an implementation of the Formal Context idea from FCA. An example of this is given in [here](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
+The library provides an implementation of the Formal Context idea from FCA. The complete example lies [here](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
 
 The library consists of 4 main subpackages:
 * context
@@ -31,9 +31,9 @@ The library consists of 4 main subpackages:
 * ml
 
 ### Context
-An implementation of Formal Context from FCA theory.
+The subpackage provides an implementation of Formal Context from FCA theory.
 
-Formal Context K = (G, M, I) is a triple of set of objects G, set of attributes M and a mapping I between them. A natural way to represent a Formal Context is a binary table.
+Formal Context K = (G, M, I) is a triple of objects G, attributes M, and mapping I between them. A natural way to represent a Formal Context is a binary table.
 
 Formal Context provides two main functions:
 * ``extension(attributes)`` - return a maximal set of objects which share ``attributes``
@@ -44,7 +44,8 @@ These functions are also known as "prime (') operations", "arrow operations"
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
 ```python
 !wget https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
-ctx = read_csv('animal_movement.csv')
+from fcapy.context import converters
+ctx = converters.read_csv('animal_movement.csv')
 
 print(ctx[:5])
 > FormalContext (5 objects, 4 attributes, 7 connections)
@@ -62,18 +63,18 @@ print(ctx.intention(['dove', 'goose']))
 > ['fly']
 ```
 
-Thus we can state that all the animals who can both 'fly' and 'swim' are 'duck' and 'goose'. 
-The only action both 'dove' and 'goose' can performs if 'fly'.
-At least this is formally true in 'animal_movement' context. 
+Thus we state that all the animals who can 'fly' and 'swim' are 'duck' and 'goose'. 
+The only action both 'dove' and 'goose' can perform is 'fly'.
+At least, this is formally true in 'animal_movement' context. 
 
 
-A detailed example is given this [notebook](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
+A detailed example is given in this [notebook](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
  
 ### Lattice
 
-An implementation of Concept Lattice object from FCA theory. That is a partially ordered set of Formal concepts.
+The subpackage provides an implementation of the Concept Lattice object from FCA theory. That is a partially ordered set of formal concepts.
 
-A Formal Concept is a pair `(A, B)` of objects `A` and attributes `B` s.t. `A` contains all the objects which share attributes `B` and `B` contains all the attributes which shared by objects `A`.
+A Formal Concept is a pair `(A, B)` of objects `A` and attributes `B`. Objects `A` are all the objects which share attributes `B`. Attributes `B` are all the attributes shared by objects `A`.
 
 In other words:
 * `A = extension(B)`
@@ -101,19 +102,19 @@ plt.show()
   <img width="616" src="https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/docs/images/animal_context_lattice.png" />
 </p>
 
-In this Concept Lattice a concept #3 contains all the objects which can 'fly'. These are 'dove' plus objects from more specific concept #6: 'goose' and 'duck'.
+In this Concept Lattice, concept #3 contains all the objects which can 'fly'. These are 'dove' plus objects from more specific concept #6: 'goose' and 'duck'.
 
-A concept #4 represents all the animals who can 'run' (acc. to more general concept #2) and 'hunt' (acc. to more general concept #1).  
+Concept #4 represents all the animals who can 'run' (acc. to more general concept #2) and 'hunt' (acc. to more general concept #1).  
 
 ### MVContext
 
-An implementation of Many Valued Context from FCA theory.
+The subpackage provides an implementation of Many-Valued Context from FCA theory.
 
-MVContext is a generalization of Formal Context. It allows FCA to work with any kind of object description defined by Pattern Structures.
+MVContext is a generalization of Formal Context. It allows FCA to work with any object description defined by Pattern Structures.
 
-Pattern Structure `D` is a set of descriptions s.t. we can use to it to run `extension` and `intention` operations. 
+Pattern Structure `D` is a set of descriptions s.t. we can use it to run `extension` and `intention` operations. 
 
-At this moment, only numerical features are supported.
+At this moment, FCApy supports only the numerical features.
 
 ```python
 #load data from sci-kit learn
@@ -142,7 +143,7 @@ print( len(mvctx.extension({'HouseAge': (10, 21)})) )
 
 ### ML
 
-A number of algorithms to use FCA in a supervised ML scenario.
+The subpackage provides an implementation of several algorithms to use FCA in a supervised ML scenario.
 
 ```python
 #load data from sci-kit learn
@@ -179,8 +180,8 @@ dlr = DecisionLatticeRegressor(algo='RandomForest', algo_params={'rf_params':rf_
 preds_train_dlr = dlr.predict(mvctx_train)
 preds_test_dlr = dlr.predict(mvctx_test)
 
-## sometimes a test object can not be described by any concept from ConceptLattice
-## in this case the model predicts None. We replace it with mean target value over the train context
+## sometimes, a test object can not be described by any concept from ConceptLattice
+## in this case, the model predicts None. We replace it with mean target value over the train context
 preds_test_dlr = [p if p is not None else mvctx_train.target.mean() for p in preds_test_dlr]
 
 # Calculate the MSE
@@ -206,4 +207,4 @@ DecisionLattice works slower and gives less accurate test predictions than a Ran
  
 ## Plans
 * Refactor the library to make it more easy-to-use
-* Optimize the library to make it work faster (e.g. add parallelization)
+* Optimize the library to make it work faster (e.g., add parallelization)
