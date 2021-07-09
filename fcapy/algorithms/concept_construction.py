@@ -7,7 +7,6 @@ Some of them return a `ConceptLattice` instead of just a set of concepts
 from fcapy.context.formal_context import FormalContext
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.lattice.formal_concept import FormalConcept
-from fcapy.lattice import ConceptLattice
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.utils import utils
 import random
@@ -409,6 +408,8 @@ def lindig_algorithm(context: FormalContext):
         A ConceptLattice which contains a set of Formal Concepts and relations between them
 
     """
+    from fcapy.lattice import ConceptLattice
+
     def direct_super_elements(concept, context):
         extent = set(concept.extent_i)
         reps = set(range(context.n_objects)) - extent
