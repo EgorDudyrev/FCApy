@@ -178,31 +178,24 @@ def test_random_forest_concepts():
 
     
 def test_lindig_algorithm():
-    def check(L_lin, L_cbo):
+    def check_equal_lattices(L_lin, L_cbo):
         assert len(L_lin.concepts) == len(L_cbo.concepts), 'lindig_algorithm concepts len mismatch'
 
-        foo = {}
+        assert set(L_lin.concepts) == set(L_cbo.concepts), 'lindig_algorithm concepts mismatch'
 
-        for i, x in enumerate(L_lin.concepts):
-            for j, y in enumerate(L_cbo.concepts):
-                if (x.extent_i, x.intent_i) == (y.extent_i, y.intent_i):
-                    foo[i] = j
+        assert L_lin == L_cbo, 'lindig_algorithm lattice mismatch'
 
-        assert len(foo) == len(L_cbo.concepts), 'lindig_algorithm concepts mismatch'
+        # Assert all the cashes are the same
+        lin_cbo_map = {lin_c_i: L_cbo.index(c) for lin_c_i, c in enumerate(L_lin)}
+        for cache_name in ['subelements', 'direct_subelements', 'superelements', 'direct_superelements']:
+            cache_name = '_cache_' + cache_name
+            for i in range(len(L_lin)):
+                lin = {lin_cbo_map[lin_c_i] for lin_c_i in L_lin.__dict__[cache_name][i]}
+                cbo = {cbo_c_i for cbo_c_i in L_cbo.__dict__[cache_name][lin_cbo_map[i]]}
+                assert lin == cbo, f'Cache `{cache_name}` mismatch. The problematic concept is Lindig #{i}.'
 
-        for i in range(len(L_lin.concepts)):
-            lin = sorted([foo[x] for x in L_lin._cache_direct_subelements.get(i, [])])
-            cbo = sorted([x for x in L_cbo._cache_direct_subelements.get(foo[i], [])])
-            assert lin == cbo, 'lindig_algorithm lattice mismatch'
-
-        for i in range(len(L_lin.concepts)):
-            lin = sorted([foo[x] for x in L_lin._cache_direct_superelements.get(i, [])])
-            cbo = sorted([x for x in L_cbo._cache_direct_superelements.get(foo[i], [])])
-            assert lin == cbo, 'lindig_algorithm lattice mismatch'
-            
     context = FormalContext.from_csv('data/mango_bin.csv')
-    L_lin = cca.lindig_algorithm(context)
     L_cbo = ConceptLattice.from_context(context, algo='CbO')
-    check(L_lin, L_cbo)
-    L_lin = cca.lindig_algorithm(context, False)
-    check(L_lin, L_cbo)
+    for iterate_extents in [False, True]:
+        L_lin = cca.lindig_algorithm(context, iterate_extents)
+        check_equal_lattices(L_lin, L_cbo)
