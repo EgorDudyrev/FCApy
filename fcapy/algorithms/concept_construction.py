@@ -454,7 +454,7 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
     
     concepts = [c]
     queue = {c}
-    subconcepts_dict = {0: []} #{}
+    subconcepts_dict = {0: []}
     superconcepts_dict = {}
     
     index = {c : 0}
@@ -464,7 +464,6 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
         c_id = index[c]
         dsups = direct_super_elements(c)
         if len(dsups) == 0:
-        #    print('Here are the top concept')
             superconcepts_dict[c_id] = []
             continue
 
