@@ -75,10 +75,16 @@ class ConceptLattice(Lattice):
         subconcepts_dict = kwargs.get('subconcepts_dict')
         superconcepts_dict = kwargs.get('superconcepts_dict')
         if subconcepts_dict is not None or superconcepts_dict is not None:
+            if subconcepts_dict is not None:
+                subconcepts_dict = {c_i: set(subs_i) for c_i, subs_i in subconcepts_dict.items()}
+            if superconcepts_dict is not None:
+                superconcepts_dict = {c_i: set(sups_i) for c_i, sups_i in superconcepts_dict.items()}
+
             if superconcepts_dict is None:
                 superconcepts_dict = self._transpose_hierarchy(subconcepts_dict)
             if subconcepts_dict is None:
                 subconcepts_dict = self._transpose_hierarchy(superconcepts_dict)
+
             self._cache_direct_subelements = subconcepts_dict
             self._cache_direct_superelements = superconcepts_dict
             self._cache_subelements = self._closed_relation_cache_by_direct_cache(subconcepts_dict)
