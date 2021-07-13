@@ -178,27 +178,31 @@ def test_random_forest_concepts():
 
     
 def test_lindig_algorithm():
+    def check(L_lin, L_cbo):
+        assert len(L_lin.concepts) == len(L_cbo.concepts), 'lindig_algorithm concepts len mismatch'
+
+        foo = {}
+
+        for i, x in enumerate(L_lin.concepts):
+            for j, y in enumerate(L_cbo.concepts):
+                if (x.extent_i, x.intent_i) == (y.extent_i, y.intent_i):
+                    foo[i] = j
+
+        assert len(foo) == len(L_cbo.concepts), 'lindig_algorithm concepts mismatch'
+
+        for i in range(len(L_lin.concepts)):
+            lin = sorted([foo[x] for x in L_lin._cache_direct_subelements.get(i, [])])
+            cbo = sorted([x for x in L_cbo._cache_direct_subelements.get(foo[i], [])])
+            assert lin == cbo, 'lindig_algorithm lattice mismatch'
+
+        for i in range(len(L_lin.concepts)):
+            lin = sorted([foo[x] for x in L_lin._cache_direct_superelements.get(i, [])])
+            cbo = sorted([x for x in L_cbo._cache_direct_superelements.get(foo[i], [])])
+            assert lin == cbo, 'lindig_algorithm lattice mismatch'
+            
     context = FormalContext.from_csv('data/mango_bin.csv')
     L_lin = cca.lindig_algorithm(context)
     L_cbo = ConceptLattice.from_context(context, algo='CbO')
-    
-    assert len(L_lin.concepts) == len(L_cbo.concepts), 'lindig_algorithm concepts len mismatch'
-    
-    foo = {}
-
-    for i, x in enumerate(L_lin.concepts):
-        for j, y in enumerate(L_cbo.concepts):
-            if (x.extent_i, x.intent_i) == (y.extent_i, y.intent_i):
-                foo[i] = j
-                
-    assert len(foo) == len(L_cbo.concepts), 'lindig_algorithm concepts mismatch'
-    
-    for i in range(len(L_lin.concepts)):
-        lin = sorted([foo[x] for x in L_lin._cache_direct_subelements.get(i, [])])
-        cbo = sorted([x for x in L_cbo._cache_direct_subelements.get(foo[i], [])])
-        assert lin == cbo, 'lindig_algorithm lattice mismatch'
-        
-    for i in range(len(L_lin.concepts)):
-        lin = sorted([foo[x] for x in L_lin._cache_direct_superelements.get(i, [])])
-        cbo = sorted([x for x in L_cbo._cache_direct_superelements.get(foo[i], [])])
-        assert lin == cbo, 'lindig_algorithm lattice mismatch'
+    check(L_lin, L_cbo)
+    L_lin = cca.lindig_algorithm(context, False)
+    check(L_lin, L_cbo)

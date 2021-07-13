@@ -393,7 +393,7 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
     return concepts
 
 
-def lindig_algorithm(context: FormalContext):
+def lindig_algorithm(context: FormalContext, iterate_extents=None):
     """Get Concept Lattice from Formal Context using Lindig algorithm
     (https://www.researchgate.net/publication/2812391_Fast_Concept_Analysis)
 
@@ -401,6 +401,9 @@ def lindig_algorithm(context: FormalContext):
     ----------
     context: `FormalContext`
         A context to build lattice on
+    iterate_extents: `bool`
+        A flag whether to run Lindig by iterating through subsets of objects (if set True) or of attributes (if set False)
+        By default it sets to True if the set of objects is smaller than the set of attributes and False otherwise
 
     Returns
     -------
@@ -409,45 +412,73 @@ def lindig_algorithm(context: FormalContext):
 
     """
     from fcapy.lattice import ConceptLattice
-
-    def direct_super_elements(concept, context):
+    
+    if iterate_extents is None:
+        iterate_extents = context.n_objects < context.n_attributes
+        
+    n_objects = context.n_objects
+    n_attributes = context.n_attributes
+    intention_i = context.intention_i
+    extension_i = context.extension_i
+    object_names = context.object_names
+    attribute_names = context.attribute_names
+    if not iterate_extents:
+        n_objects, n_attributes = n_attributes, n_objects
+        intention_i, extension_i = extension_i, intention_i
+        object_names, attribute_names = attribute_names, object_names
+    context_hash = context.hash_fixed()
+    
+    
+    def direct_super_elements(concept):
         extent = set(concept.extent_i)
-        reps = set(range(context.n_objects)) - extent
+        reps = set(range(n_objects)) - extent
         neighbors = []
         for g in set(reps):
-            M = context.intention_i(list(extent | {g}))
-            G = context.extension_i(M)
-            if reps & (set(G) - extent - {g}) == set():
-                neighbors.append(FormalConcept(G, [context.object_names[i] for i in G], 
-                                               M, [context.attribute_names[i] for i in M],
-                                               context_hash = context.hash_fixed()))
+            extent.add(g)
+            M = intention_i(list(extent))
+            G = extension_i(M)
+            extent.remove(g)
+            if len(reps & set(G)) == 1:
+                neighbors.append(FormalConcept(G, [object_names[i] for i in G], 
+                                               M, [attribute_names[i] for i in M],
+                                               context_hash = context_hash))
             else:
-                reps -= {g}
+                reps.remove(g)
         return neighbors
     
-    M = list(range(context.n_attributes))
-    G = context.extension_i(M)
-    c = FormalConcept(G, [context.object_names[i] for i in G], 
-                      M, [context.attribute_names[i] for i in M],
-                      context_hash = context.hash_fixed())
+    M = list(range(n_attributes))
+    G = extension_i(M)
+    c = FormalConcept(G, [object_names[i] for i in G], 
+                      M, [attribute_names[i] for i in M],
+                      context_hash = context_hash)
     
     concepts = [c]
     queue = {c}
     subconcepts_dict = {}
     superconcepts_dict = {}
     
+    index = {c : 0}
     
     while len(queue) != 0:
-        c = min(queue)
-        c_id = concepts.index(c)
-        queue -= {c}
-        for x in direct_super_elements(c, context):
-            if x not in concepts:
-                queue |= {x}
+        c = queue.pop()
+        c_id = index[c]
+        for x in direct_super_elements(c):
+            if x not in index:
+                queue.add(x)
+                index[x] = len(concepts)
                 concepts.append(x)
-            x_id = concepts.index(x)
-            subconcepts_dict[x_id] = [c_id] + subconcepts_dict.get(x_id, [])
-            superconcepts_dict[c_id] = [x_id] + superconcepts_dict.get(c_id, [])
+            x_id = index[x] 
+            
+            subconcepts_dict.setdefault(x_id, []).append(c_id)
+            superconcepts_dict.setdefault(c_id, []).append(x_id)
+
+            
+    if not iterate_extents:
+        concepts = [FormalConcept(concepts[i].intent_i, concepts[i].intent,
+                                  concepts[i].extent_i, concepts[i].extent, 
+                                  context_hash = context_hash) 
+                    for i in range(len(concepts))]
+        subconcepts_dict, superconcepts_dict = superconcepts_dict, subconcepts_dict
 
     lattice = ConceptLattice(concepts, subconcepts_dict=subconcepts_dict, superconcepts_dict=superconcepts_dict)
     return lattice
