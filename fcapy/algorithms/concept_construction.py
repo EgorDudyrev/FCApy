@@ -401,6 +401,9 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
     ----------
     context: `FormalContext`
         A context to build lattice on
+    iterate_extents: `bool`
+        A flag whether to run Lindig by iterating through subsets of objects (if set True) or of attributes (if set False)
+        By default it sets to True if the set of objects is smaller than the set of attributes and False otherwise
 
     Returns
     -------
