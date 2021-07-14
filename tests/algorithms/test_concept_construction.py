@@ -83,7 +83,7 @@ def test_sofia_binary():
     stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
 
     ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
-    ltc_sofia_precalc = ConceptLattice.from_json('data/digits_sofia_lattice_22.json')
+    ltc_sofia_precalc = ConceptLattice.read_json('data/digits_sofia_lattice_22.json')
     assert ltc_sofia == ltc_sofia_precalc
 
     with pytest.warns(UserWarning):
@@ -194,7 +194,7 @@ def test_lindig_algorithm():
                 cbo = {cbo_c_i for cbo_c_i in L_cbo.__dict__[cache_name][lin_cbo_map[i]]}
                 assert lin == cbo, f'Cache `{cache_name}` mismatch. The problematic concept is Lindig #{i}.'
 
-    context = FormalContext.from_csv('data/mango_bin.csv')
+    context = FormalContext.read_csv('data/mango_bin.csv')
     L_cbo = ConceptLattice.from_context(context, algo='CbO')
     for iterate_extents in [False, True]:
         L_lin = cca.lindig_algorithm(context, iterate_extents)

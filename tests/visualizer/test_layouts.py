@@ -7,7 +7,7 @@ import numpy as np
 
 def test_multipartite_layout():
     path = 'data/animal_movement.json'
-    K = FormalContext.from_json(path)
+    K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
 
     pos_fact = layouts.multipartite_layout(L)
@@ -33,7 +33,7 @@ def test_multipartite_layout():
 
 def test_fcart_layout():
     path = 'data/mango_bin.csv'
-    K = FormalContext.from_csv(path)
+    K = FormalContext.read_csv(path)
     L = ConceptLattice.from_context(K)
 
     pos_fact = layouts.fcart_layout(L)
@@ -65,7 +65,7 @@ def test_fcart_layout():
 
 def test_layouts_dict():
     path = 'data/animal_movement.json'
-    K = FormalContext.from_json(path)
+    K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
 
     for x in ['multipartite', 'fcart']:

@@ -93,11 +93,11 @@ def test_dict_converter():
 
 def test_json_converter():
     c1 = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
-    c2 = FormalConcept.from_json(json_data=c1.to_json())
-    assert c1 == c2, "FormalConcept.to_json/from_json failed. The concept is modified after to/from operations"
+    c2 = FormalConcept.read_json(json_data=c1.write_json())
+    assert c1 == c2, "FormalConcept.write_json/read_json failed. The concept is modified after to/from operations"
 
-    c1.to_json('concept_tmp.json')
-    c2 = FormalConcept.from_json('concept_tmp.json')
-    assert c1 == c2, "FormalConcept.to_json/from_json failed. The concept is modified after to/from file operations"
+    c1.write_json('concept_tmp.json')
+    c2 = FormalConcept.read_json('concept_tmp.json')
+    assert c1 == c2, "FormalConcept.write_json/read_json failed. The concept is modified after to/from file operations"
     import os
     os.remove('concept_tmp.json')

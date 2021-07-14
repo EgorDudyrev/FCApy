@@ -106,15 +106,15 @@ def test_get_top_bottom_concepts_i():
 def test_to_from_json():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    ltc_json = ltc.from_json(json_data=ltc.to_json())
+    ltc_json = ltc.read_json(json_data=ltc.write_json())
     assert ltc == ltc_json,\
-        'ConceptLattice.to/from_json failed. The lattice changed after 2 conversions.'
+        'ConceptLattice.to/read_json failed. The lattice changed after 2 conversions.'
 
     path = 'test.json'
-    ltc.to_json(path)
-    ltc_new = ltc.from_json(path)
+    ltc.write_json(path)
+    ltc_new = ltc.read_json(path)
     assert ltc == ltc_new,\
-        'ConceptLattice.to/from_json failed. The lattice changed after 2 conversions and saving to file.'
+        'ConceptLattice.to/read_json failed. The lattice changed after 2 conversions and saving to file.'
     import os
     os.remove(path)
 

@@ -21,9 +21,9 @@
       ~FormalContext.intention
       ~FormalContext.intention_i
       ~FormalContext.print_data
-      ~FormalContext.to_csv
-      ~FormalContext.to_cxt
-      ~FormalContext.to_json
+      ~FormalContext.write_csv
+      ~FormalContext.write_cxt
+      ~FormalContext.write_json
       ~FormalContext.to_numeric
       ~FormalContext.to_pandas
    

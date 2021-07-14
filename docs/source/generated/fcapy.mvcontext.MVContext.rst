@@ -22,8 +22,8 @@
       ~MVContext.get_minimal_generators
       ~MVContext.intention
       ~MVContext.intention_i
-      ~MVContext.to_csv
-      ~MVContext.to_json
+      ~MVContext.write_csv
+      ~MVContext.write_json
       ~MVContext.to_numeric
       ~MVContext.to_pandas
    

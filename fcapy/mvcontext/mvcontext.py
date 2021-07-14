@@ -248,7 +248,7 @@ class MVContext:
 
         self._description = value
 
-    def to_json(self, path=None):
+    def write_json(self, path=None):
         """Convert the FormalContext into json file format (save if ``path`` is given)
 
         WARNING: Does not implemented yet
@@ -266,7 +266,7 @@ class MVContext:
         """
         raise NotImplementedError
 
-    def to_csv(self, path=None, **kwargs):
+    def read_csv(self, path=None, **kwargs):
         """Convert the FormalContext into csv file format (save if ``path`` is given)
 
         WARNING: Does not implemented yet

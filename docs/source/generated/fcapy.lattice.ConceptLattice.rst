@@ -17,7 +17,7 @@
       ~ConceptLattice.add_concept
       ~ConceptLattice.calc_concepts_measures
       ~ConceptLattice.from_context
-      ~ConceptLattice.from_json
+      ~ConceptLattice.read_json
       ~ConceptLattice.get_all_subconcepts_dict
       ~ConceptLattice.get_all_superconcepts_dict
       ~ConceptLattice.get_chains
@@ -29,7 +29,7 @@
       ~ConceptLattice.get_top_bottom_concepts_i
       ~ConceptLattice.remove_concept
       ~ConceptLattice.sort_concepts
-      ~ConceptLattice.to_json
+      ~ConceptLattice.write_json
       ~ConceptLattice.trace_context
       ~ConceptLattice.transpose_hierarchy
    

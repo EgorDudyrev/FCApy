@@ -1,8 +1,11 @@
 import pytest
+import os
+from operator import itemgetter
+import filecmp
+
 from fcapy.context import FormalContext, BinTable, read_cxt, read_json, read_csv, from_pandas
 from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
-from operator import itemgetter
 
 
 def test_data_property(animal_movement_data):
@@ -109,27 +112,39 @@ def test_description():
         ctx.description = 42
 
 
-def test_to_funcs(animal_movement_data):
+def test_read_write_funcs(animal_movement_data):
     path = animal_movement_data['path']
-    for fnc_read, file_extension in [(read_cxt, '.cxt'),
-                                     (read_json, '.json'),
-                                     (read_csv, '.csv')
-                                     ]:
+    for file_extension in ['.cxt', '.json', '.csv']:
+        fnc_read = {
+            '.cxt': FormalContext.read_cxt,
+            '.json': FormalContext.read_json,
+            '.csv': FormalContext.read_csv
+        }[file_extension]
+
         path_ext = path+file_extension
 
         with open(path_ext, 'r') as f:
             file_orig = f.read()
 
         ctx = fnc_read(path_ext)
-        fnc_write = {'.cxt': ctx.to_cxt,
-                     '.json': ctx.to_json,
-                     '.csv': ctx.to_csv
-                     }[file_extension]
+
+        fnc_write = {
+            '.cxt': ctx.write_cxt,
+            '.json': ctx.write_json,
+            '.csv': ctx.write_csv
+        }[file_extension]
+
         fnc_name = fnc_write.__name__
 
         file_new = fnc_write()
         assert file_new == file_orig,\
             f'FormalContext.{fnc_name} failed. Result context file does not math the initial one'
+
+        tmp_path = 'tmp_data'+file_extension
+        fnc_write(tmp_path)
+        assert filecmp.cmp(path_ext, tmp_path),\
+            f'FormalContext.{fnc_name} failed. Saved file differs from the original one'
+        os.remove(tmp_path)
 
 
 def test_to_from_pandas(animal_movement_data):

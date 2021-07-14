@@ -64,6 +64,6 @@ def test_from_to_dict():
 def test_from_to_json():
     c = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, {'M1': ps.IntervalPS})
     with pytest.raises(NotImplementedError):
-        c.to_json()
+        c.write_json()
     with pytest.raises(NotImplementedError):
-        c.from_json(None)
+        c.read_json(None)
