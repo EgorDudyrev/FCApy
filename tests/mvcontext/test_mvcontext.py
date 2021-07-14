@@ -83,13 +83,13 @@ def test_extension_intention():
         assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == extent_true, 'MVContext.extension failed'
 
 
-def test_to_json():
+def test_write_json():
     mvctx = mvcontext.MVContext()
     with pytest.raises(NotImplementedError):
         mvctx.write_json()
 
 
-def test_to_csv():
+def test_read_csv():
     mvctx = mvcontext.MVContext()
     with pytest.raises(NotImplementedError):
         mvctx.read_csv()
