@@ -121,9 +121,9 @@ def test_to_funcs(animal_movement_data):
             file_orig = f.read()
 
         ctx = fnc_read(path_ext)
-        fnc_write = {'.cxt': ctx.to_cxt,
-                     '.json': ctx.to_json,
-                     '.csv': ctx.to_csv
+        fnc_write = {'.cxt': ctx.write_cxt,
+                     '.json': ctx.write_json,
+                     '.csv': ctx.write_csv
                      }[file_extension]
         fnc_name = fnc_write.__name__
 

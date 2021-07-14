@@ -162,7 +162,7 @@ class FormalConcept:
             c.measures[k] = v
         return c
 
-    def to_json(self, path=None):
+    def write_json(self, path=None):
         """Save FormalConcept to .json file of return the .json encoded data if ``path`` is None"""
         concept_info = self.to_dict()
 
@@ -174,10 +174,10 @@ class FormalConcept:
             f.write(file_data)
 
     @classmethod
-    def from_json(cls, path=None, json_data=None):
+    def read_json(cls, path=None, json_data=None):
         """Load FormalConcept from .json file or from .json encoded string ``json_data``"""
         assert path is not None or json_data is not None,\
-            "FormalConcept.from_json error. Either path or data attribute should be given"
+            "FormalConcept.read_json error. Either path or data attribute should be given"
 
         if path is not None:
             with open(path, 'r') as f:

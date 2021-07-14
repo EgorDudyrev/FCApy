@@ -162,11 +162,11 @@ class PatternConcept:
         """Construct a PatternConcept from a dictionary ``data``"""
         raise NotImplementedError
 
-    def to_json(self, path=None):
+    def write_json(self, path=None):
         """Save PatternConcept to .json file of return the .json encoded data if ``path`` is None"""
         raise NotImplementedError
 
     @classmethod
-    def from_json(cls, path=None, json_data=None):
+    def read_json(cls, path=None, json_data=None):
         """Load PatternConcept from .json file or from .json encoded string ``json_data``"""
         raise NotImplementedError

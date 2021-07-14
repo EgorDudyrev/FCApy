@@ -7,7 +7,7 @@ from fcapy.lattice.concept_lattice import ConceptLattice
 
 def test_stability():
     ctx = read_json('data/animal_movement.json')
-    ltc = ConceptLattice.from_json('data/animal_movement_lattice.json')
+    ltc = ConceptLattice.read_json('data/animal_movement_lattice.json')
 
     stabs_true = [c.measures.get('Stab') for c in ltc.concepts]
 
@@ -19,7 +19,7 @@ def test_stability():
 
 
 def test_stability_bounds():
-    ltc = ConceptLattice.from_json('data/animal_movement_lattice.json')
+    ltc = ConceptLattice.read_json('data/animal_movement_lattice.json')
 
     lstabs_true = [c.measures.get('LStab') for c in ltc.concepts]
 

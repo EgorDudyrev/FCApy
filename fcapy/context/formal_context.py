@@ -28,11 +28,11 @@ class FormalContext:
     extension_i(attribute_indexes)
         Offer the same logic as extension(...) but objects and attributes are defined by their indexes
 
-    to_cxt(path=None)
+    write_cxt(path=None)
         Convert the FormalContext into cxt file format (save if ``path`` is given)
-    to_json(path=None)
+    write_json(path=None)
         Convert the FormalContext into json file format (save if ``path`` is given)
-    to_csv(path=None, **kwargs)
+    write_csv(path=None, **kwargs)
         Convert the FormalContext into csv file format (save if ``path`` is given)
     to_pandas()
         Convert the FormalContext into pandas.DataFrame object
@@ -292,7 +292,7 @@ class FormalContext:
 
         self._description = value
 
-    def to_cxt(self, path=None):
+    def write_cxt(self, path=None):
         """Convert the FormalContext into cxt file format (save if ``path`` is given)
 
         Parameters
@@ -310,11 +310,11 @@ class FormalContext:
         return write_cxt(self, path)
 
     @staticmethod
-    def from_cxt(path=None, data=None):
+    def read_cxt(path=None, data=None):
         from fcapy.context.converters import read_cxt
         return read_cxt(path, data)
 
-    def to_json(self, path=None):
+    def write_json(self, path=None):
         """Convert the FormalContext into json file format (save if ``path`` is given)
 
         Parameters
@@ -332,11 +332,11 @@ class FormalContext:
         return write_json(self, path)
 
     @staticmethod
-    def from_json(path=None, data=None):
+    def read_json(path=None, data=None):
         from fcapy.context.converters import read_json
         return read_json(path, data)
 
-    def to_csv(self, path=None, **kwargs):
+    def write_csv(self, path=None, **kwargs):
         """Convert the FormalContext into csv file format (save if ``path`` is given)
 
         Parameters
@@ -361,7 +361,7 @@ class FormalContext:
         return write_csv(self, path=path, **kwargs)
 
     @staticmethod
-    def from_csv(path, sep=',', word_true='True', word_false='False'):
+    def read_csv(path, sep=',', word_true='True', word_false='False'):
         from fcapy.context.converters import read_csv
         return read_csv(path, sep, word_true, word_false)
 

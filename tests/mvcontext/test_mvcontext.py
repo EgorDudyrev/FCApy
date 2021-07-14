@@ -86,13 +86,13 @@ def test_extension_intention():
 def test_to_json():
     mvctx = mvcontext.MVContext()
     with pytest.raises(NotImplementedError):
-        mvctx.to_json()
+        mvctx.write_json()
 
 
 def test_to_csv():
     mvctx = mvcontext.MVContext()
     with pytest.raises(NotImplementedError):
-        mvctx.to_csv()
+        mvctx.read_csv()
 
 
 def test_from_to_pandas():

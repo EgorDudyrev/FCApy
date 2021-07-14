@@ -264,45 +264,6 @@ class ConceptLattice(Lattice):
             return None
         return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
 
-    @staticmethod
-    def from_json(path: str =None, json_data: str =None):
-        """Read ConceptLattice from .json file .json formatted string data
-
-        Parameters
-        ----------
-        path: `str`
-            A path to .json file
-        json_data: `str`
-            A json encoded data
-
-        Returns
-        -------
-        ltc: `ConceptLattice`
-
-        """
-        assert path is not None or json_data is not None,\
-            "ConceptLattice.from_json error. Either path or json_data input parameters should be given"
-
-        if path is not None:
-            with open(path, 'r') as f:
-                json_data = f.read()
-        file_data = json.loads(json_data)
-        lattice_metadata, nodes_data, arcs_data = file_data
-        top_concept_i = lattice_metadata['Top'][0]
-        bottom_concept_i = lattice_metadata['Bottom'][0]
-
-        concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
-        subconcepts_dict = {}
-        for arc in arcs_data['Arcs']:
-            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], set()) | {arc['D']}
-        subconcepts_dict[bottom_concept_i] = set()
-
-        ltc = ConceptLattice(
-            concepts=concepts, subconcepts_dict=subconcepts_dict,
-            top_concept_i=top_concept_i, bottom_concept_i=bottom_concept_i
-        )
-        return ltc
-
     def add_concept(self, new_concept: FormalConcept or PatternConcept):
         """Add concept ``new_concept`` into the lattice"""
         self.add(new_concept)
@@ -699,7 +660,46 @@ class ConceptLattice(Lattice):
             chains.append(chain[::-1])
         return chains
 
-    def to_json(self, path=None):
+    @staticmethod
+    def read_json(path: str =None, json_data: str =None):
+        """Read ConceptLattice from .json file .json formatted string data
+
+        Parameters
+        ----------
+        path: `str`
+            A path to .json file
+        json_data: `str`
+            A json encoded data
+
+        Returns
+        -------
+        ltc: `ConceptLattice`
+
+        """
+        assert path is not None or json_data is not None,\
+            "ConceptLattice.read_json error. Either path or json_data input parameters should be given"
+
+        if path is not None:
+            with open(path, 'r') as f:
+                json_data = f.read()
+        file_data = json.loads(json_data)
+        lattice_metadata, nodes_data, arcs_data = file_data
+        top_concept_i = lattice_metadata['Top'][0]
+        bottom_concept_i = lattice_metadata['Bottom'][0]
+
+        concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
+        subconcepts_dict = {}
+        for arc in arcs_data['Arcs']:
+            subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], set()) | {arc['D']}
+        subconcepts_dict[bottom_concept_i] = set()
+
+        ltc = ConceptLattice(
+            concepts=concepts, subconcepts_dict=subconcepts_dict,
+            top_concept_i=top_concept_i, bottom_concept_i=bottom_concept_i
+        )
+        return ltc
+
+    def write_json(self, path=None):
         """Convert (and possible save) a ConceptLattice in .json format
 
         Parameters
@@ -716,7 +716,7 @@ class ConceptLattice(Lattice):
 
         """
         assert len(self.concepts) >= 3,\
-            'ConceptLattice.to_json error. The lattice should have at least 3 concepts to be saved in json'
+            'ConceptLattice.write_json error. The lattice should have at least 3 concepts to be saved in json'
 
         arcs = [{"S": s_i, "D": d_i} for s_i, d_is in self.subconcepts_dict.items() for d_i in d_is]
 
