@@ -4,7 +4,7 @@ from fcapy.visualizer import layouts
 from fcapy.visualizer import measures
 
 
-def count_line_intersections():
+def test_count_line_intersections():
     path = 'data/animal_movement.csv'
     K = FormalContext.read_csv(path)
     K_df = K.to_pandas()
