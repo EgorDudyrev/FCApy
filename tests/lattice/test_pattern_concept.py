@@ -63,3 +63,11 @@ def test_from_to_json():
     c = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, {'M1': ps.IntervalPS}, ('M1',))
     c_new = PatternConcept.read_json(json_data=c.write_json())
     assert c == c_new, "PatternConcept.write/read_json error"
+
+    path = 'test.json'
+    c.write_json(path)
+    c_new = PatternConcept.read_json(path)
+    assert c == c_new,\
+        'PatternConcept.write/read_json failed. The lattice changed after 2 conversions and saving to file.'
+    import os
+    os.remove(path)

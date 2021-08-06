@@ -104,12 +104,12 @@ class AbstractPS:
     @classmethod
     def to_json(cls, x):
         """Convert description ``x`` into .json format"""
-        return NotImplementedError
+        raise NotImplementedError
 
     @classmethod
     def from_json(cls, x_json):
         """Load description from ``x_json`` .json format"""
-        return NotImplementedError
+        raise NotImplementedError
 
 
 class IntervalPS(AbstractPS):

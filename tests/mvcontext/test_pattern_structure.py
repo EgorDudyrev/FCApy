@@ -47,6 +47,14 @@ def test_abstract_ps_eq_hash():
     assert len({aps1, aps2, deepcopy(aps1)}) == 2
 
 
+def test_abstract_ps_tofrom_json():
+    aps = pattern_structure.AbstractPS
+    with pytest.raises(NotImplementedError):
+        aps.to_json(1)
+    with pytest.raises(NotImplementedError):
+        aps.from_json('1')
+
+
 def test_interval_ps_extension_intention():
     LIB_INSTALLED['numpy'] = False
     ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
@@ -95,3 +103,9 @@ def test_interval_ps_descriptions_tofrom_generators():
 
     assert ips.description_to_generators(description_true, projection_num=2)[0] == description_true,\
         "IntervalPS.generators_to_description failed"
+
+
+def test_interval_ps_tofrom_json():
+    ips = pattern_structure.IntervalPS
+    assert ips.to_json((1,1)) == '[1.0, 1.0]'
+    assert ips.from_json('[1.0, 1.0]') == (1,1)
