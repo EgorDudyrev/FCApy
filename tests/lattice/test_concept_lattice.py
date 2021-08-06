@@ -122,7 +122,7 @@ def test_to_from_json():
     pattern_types = {'f1': PS.IntervalPS}
     mvK = MVContext([{0: (1, 2)}, {0: (0, 4)}, {0: (2, 3)}], pattern_types, attribute_names=['f1'])
     L = ConceptLattice.from_context(mvK)
-    L_new = ConceptLattice.read_json(L.write_json())
+    L_new = ConceptLattice.read_json(json_data=L.write_json())
     assert L == L_new, 'ConceptLattice.to/read_json failed. The pattern lattice changed after two conversions'
 
 

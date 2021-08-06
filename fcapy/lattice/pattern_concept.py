@@ -162,7 +162,7 @@ class PatternConcept:
 
         return self <= other
 
-    def to_dict(self):
+    def to_dict(self, json_ready : bool = False):
         """Convert FormalConcept into a dictionary"""
         concept_info = dict()
         concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
@@ -172,14 +172,33 @@ class PatternConcept:
         for k, v in self.measures.items():
             concept_info[k] = v
         concept_info['Context_Hash'] = self._context_hash
+
+        if json_ready:
+            int_dict = concept_info['Int']
+            int_dict['Inds'] = {k: int_dict['PTypes'][int_dict['AttrNames'][k]].to_json(v)
+                                for k, v in int_dict['Inds'].items()}
+            int_dict['Names'] = {k: int_dict['PTypes'][k].to_json(v) for k, v in int_dict['Names'].items()}
+            int_dict['PTypes'] = {k: v.__name__ for k, v in int_dict['PTypes'].items()}
+
         return concept_info
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, json_ready: bool = False, pattern_types: Tuple[PS.AbstractPS] = None):
         """Construct a FormalConcept from a dictionary ``data``"""
         if data["Int"] == "BOTTOM":
             data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
             #data["Int"] = {'Inds': [], "Names": []}
+
+        if json_ready:
+            pattern_types = {pt.__name__: pt for pt in pattern_types} if pattern_types is not None else []
+
+            int_dict = data['Int']
+            int_dict['PTypes'] = {k: getattr(PS, v) if v in dir(PS) else pattern_types[v] for k, v in
+                                  int_dict['PTypes'].items()}
+            int_dict['Inds'] = frozendict({int(k): int_dict['PTypes'][int_dict['AttrNames'][int(k)]].from_json(v)
+                                           for k, v in int_dict['Inds'].items()})
+            int_dict['Names'] = frozendict({k: int_dict['PTypes'][k].from_json(v)
+                                            for k, v in int_dict['Names'].items()})
 
         c = PatternConcept(
             data['Ext']['Inds'], data['Ext'].get('Names', []),
@@ -196,13 +215,7 @@ class PatternConcept:
 
     def write_json(self, path=None):
         """Save PatternConcept to .json file of return the .json encoded data if ``path`` is None"""
-        concept_dict = self.to_dict()
-
-        int_dict = concept_dict['Int']
-        int_dict['Inds'] = {k: int_dict['PTypes'][int_dict['AttrNames'][k]].to_json(v)
-                            for k, v in int_dict['Inds'].items()}
-        int_dict['Names'] = {k: int_dict['PTypes'][k].to_json(v) for k, v in int_dict['Names'].items()}
-        int_dict['PTypes'] = {k: v.__name__ for k, v in int_dict['PTypes'].items()}
+        concept_dict = self.to_dict(json_ready=True)
 
         file_data = json.dumps(concept_dict)
         if path is None:
@@ -230,20 +243,10 @@ class PatternConcept:
         assert path is not None or json_data is not None,\
             "FormalConcept.read_json error. Either path or data attribute should be given"
 
-        pattern_types = {pt.__name__: pt for pt in pattern_types} if pattern_types is not None else []
-
         if path is not None:
             with open(path, 'r') as f:
                 json_data = f.read()
         c_dict = json.loads(json_data)
 
-        int_dict = c_dict['Int']
-        int_dict['PTypes'] = {k: getattr(PS, v) if v in dir(PS) else pattern_types[v] for k, v in
-                              int_dict['PTypes'].items()}
-        int_dict['Inds'] = frozendict({int(k): int_dict['PTypes'][int_dict['AttrNames'][int(k)]].from_json(v)
-                                       for k, v in int_dict['Inds'].items()})
-        int_dict['Names'] = frozendict({k: int_dict['PTypes'][k].from_json(v)
-                                        for k, v in int_dict['Names'].items()})
-
-        c = cls.from_dict(c_dict)
+        c = cls.from_dict(c_dict, json_ready=True, pattern_types=pattern_types)
         return c

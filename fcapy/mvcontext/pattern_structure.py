@@ -160,7 +160,7 @@ class IntervalPS(AbstractPS):
             self._data.append(new_x)
 
         if LIB_INSTALLED['numpy']:
-            self._data = np.array(self._data)
+            self._data = np.array(self._data, dtype=np.float32)
             # TODO: Rewrite sorting to ascending (right border of interval)
             # TODO: and descending (left border of interval) orders
             map_isort_i = sorted(range(len(self._data)), key=lambda x: self._data[x][1])
@@ -315,7 +315,7 @@ class IntervalPS(AbstractPS):
     @classmethod
     def to_json(cls, x):
         """Convert description ``x`` into .json format"""
-        if LIB_INSTALLED['numpy']:
+        if LIB_INSTALLED['numpy'] and x is not None:
             x = (float(x[0]) , float(x[1]))
         x_json = json.dumps(x)
         return x_json
@@ -324,6 +324,6 @@ class IntervalPS(AbstractPS):
     def from_json(cls, x_json):
         """Load description from ``x_json`` .json format"""
         x = json.loads(x_json)
-        if LIB_INSTALLED['numpy']:
-            x = (np.int64(x[0]), np.int64(x[1]))
+        if LIB_INSTALLED['numpy'] and x is not None:
+            x = (np.float32(x[0]), np.float32(x[1]))
         return x

@@ -3,6 +3,9 @@ This module provides a ConceptLattice class. It may be considered as the main mo
 
 """
 import json
+
+from typing import Tuple
+
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
@@ -10,6 +13,7 @@ from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.context.formal_context import FormalContext
 from fcapy.poset.lattice import Lattice
 from fcapy.utils import utils
+from fcapy.mvcontext import pattern_structure as PS
 import warnings
 from itertools import product
 from copy import deepcopy
@@ -661,7 +665,7 @@ class ConceptLattice(Lattice):
         return chains
 
     @staticmethod
-    def read_json(path: str =None, json_data: str =None):
+    def read_json(path: str =None, json_data: str = None, pattern_types: Tuple[PS.AbstractPS] = None):
         """Read ConceptLattice from .json file .json formatted string data
 
         Parameters
@@ -687,7 +691,13 @@ class ConceptLattice(Lattice):
         top_concept_i = lattice_metadata['Top'][0]
         bottom_concept_i = lattice_metadata['Bottom'][0]
 
-        concepts = [FormalConcept.from_dict(c_dict) for c_dict in nodes_data['Nodes']]
+        is_pattern = 'PTypes' in nodes_data['Nodes'][0]['Int']
+
+        concepts = [
+            PatternConcept.from_dict(c_dict, json_ready=True, pattern_types=pattern_types) if is_pattern else
+            FormalConcept.from_dict(c_dict)
+            for c_dict in nodes_data['Nodes']
+        ]
         subconcepts_dict = {}
         for arc in arcs_data['Arcs']:
             subconcepts_dict[arc['S']] = subconcepts_dict.get(arc['S'], set()) | {arc['D']}
@@ -724,7 +734,8 @@ class ConceptLattice(Lattice):
             'Top': [self.top_concept_i], "Bottom": [self.bottom_concept_i],
             "NodesCount": len(self.concepts), "ArcsCount": len(arcs)
         }
-        nodes_data = {"Nodes": [c.to_dict() for c in self.concepts]}
+        nodes_data = {"Nodes": [c.to_dict(json_ready=True) if isinstance(c, PatternConcept) else c.to_dict()
+                                for c in self.concepts]}
         arcs_data = {"Arcs": arcs}
         file_data = [lattice_metadata, nodes_data, arcs_data]
         json_data = json.dumps(file_data)
