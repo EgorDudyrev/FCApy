@@ -118,8 +118,10 @@ def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=No
                 concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
             else:
                 intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
-                concept = PatternConcept(extent_i, extent, intent_i, intent, context.pattern_types,
-                                         context_hash=context_hash)
+                concept = PatternConcept(
+                    extent_i, extent, intent_i, intent,
+                    context.pattern_types, context.attribute_names,
+                    context_hash=context_hash)
             concepts.append(concept)
         return concepts
 
@@ -386,8 +388,8 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
             concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
         else:
             intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
-            concept = PatternConcept(extent_i, extent, intent_i, intent, context.pattern_types,
-                                     context_hash=context_hash)
+            concept = PatternConcept(extent_i, extent, intent_i, intent,
+                                     context.pattern_types, context.attribute_names, context_hash=context_hash)
         concepts.append(concept)
 
     return concepts

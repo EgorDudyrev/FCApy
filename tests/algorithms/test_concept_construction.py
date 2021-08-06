@@ -57,10 +57,14 @@ def test_close_by_one():
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
     concepts = cca.close_by_one(mvctx)
     context_hash = mvctx.hash_fixed()
-    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, pattern_types, context_hash=context_hash)
-    c1 = PatternConcept((0,), ('a',), {0: (1, 1)}, {'M1': (1, 1)}, pattern_types, context_hash=context_hash)
-    c2 = PatternConcept((1,), ('b',), {0: (2, 2)}, {'M1': (2, 2)}, pattern_types, context_hash=context_hash)
-    c3 = PatternConcept((), (), {0: None}, {'M1': None}, pattern_types, context_hash=context_hash)
+    c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)},
+                        pattern_types, mvctx.attribute_names, context_hash=context_hash)
+    c1 = PatternConcept((0,), ('a',), {0: (1, 1)}, {'M1': (1, 1)},
+                        pattern_types, mvctx.attribute_names, context_hash=context_hash)
+    c2 = PatternConcept((1,), ('b',), {0: (2, 2)}, {'M1': (2, 2)},
+                        pattern_types, mvctx.attribute_names, context_hash=context_hash)
+    c3 = PatternConcept((), (), {0: None}, {'M1': None},
+                        pattern_types, mvctx.attribute_names, context_hash=context_hash)
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 

@@ -3,6 +3,7 @@ import numpy as np
 from fcapy.context import converters, FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.mvcontext import MVContext, pattern_structure as PS
 from fcapy.mvcontext import pattern_structure as ps, mvcontext
 
 
@@ -117,6 +118,12 @@ def test_to_from_json():
         'ConceptLattice.to/read_json failed. The lattice changed after 2 conversions and saving to file.'
     import os
     os.remove(path)
+
+    pattern_types = {'f1': PS.IntervalPS}
+    mvK = MVContext([{0: (1, 2)}, {0: (0, 4)}, {0: (2, 3)}], pattern_types, attribute_names=['f1'])
+    L = ConceptLattice.from_context(mvK)
+    L_new = ConceptLattice.read_json(json_data=L.write_json())
+    assert L == L_new, 'ConceptLattice.to/read_json failed. The pattern lattice changed after two conversions'
 
 
 def test__eq__():

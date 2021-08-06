@@ -6,6 +6,9 @@ from collections.abc import Iterable
 import json
 from frozendict import frozendict
 import numbers
+from typing import Tuple
+
+from fcapy.mvcontext import PS
 
 
 class PatternConcept:
@@ -23,7 +26,10 @@ class PatternConcept:
     from the module `fcapy.mvcontext.pattern_structure`
 
     """
-    def __init__(self, extent_i, extent, intent_i, intent, pattern_types, measures=None, context_hash=None):
+    JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
+
+    def __init__(self, extent_i, extent, intent_i, intent, pattern_types: Tuple[PS.AbstractPS], attribute_names: Tuple[str],
+                 measures=None, context_hash=None):
         """Initialize the PatternConcept object
 
         Parameters
@@ -40,6 +46,8 @@ class PatternConcept:
             indexed by the name of pattern structure in ``pattern_types``
         pattern_types: `list` of subtypes of `PatternStructure`
             A set of subtypes of `PatternStructures` used to encode the descriptions from ``intent``
+        pattern_names: `tuple` of `str`
+            A mapping from an index of pattern_type to its name
         measures: `dict` of type {`str`: `int`}
             Dict with values of interestingness measures of the concept
         context_hash: `int`
@@ -64,6 +72,7 @@ class PatternConcept:
         assert len(self._intent_i) == len(self._intent), \
             "PatternConcept.__init__ error. intent and intent_i are of different sizes"
 
+        self._attribute_names = attribute_names
         self._pattern_types = pattern_types
 
         self._support = len(self._extent_i)
@@ -153,20 +162,91 @@ class PatternConcept:
 
         return self <= other
 
-    def to_dict(self):
-        """Convert PatternConcept into a dictionary"""
-        raise NotImplementedError
+    def to_dict(self, json_ready : bool = False):
+        """Convert FormalConcept into a dictionary"""
+        concept_info = dict()
+        concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
+        concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i),
+                               "PTypes": self._pattern_types, "AttrNames": self._attribute_names}
+        concept_info['Supp'] = self.support
+        for k, v in self.measures.items():
+            concept_info[k] = v
+        concept_info['Context_Hash'] = self._context_hash
+
+        if json_ready:
+            int_dict = concept_info['Int']
+            int_dict['Inds'] = {k: int_dict['PTypes'][int_dict['AttrNames'][k]].to_json(v)
+                                for k, v in int_dict['Inds'].items()}
+            int_dict['Names'] = {k: int_dict['PTypes'][k].to_json(v) for k, v in int_dict['Names'].items()}
+            int_dict['PTypes'] = {k: v.__name__ for k, v in int_dict['PTypes'].items()}
+
+        return concept_info
 
     @classmethod
-    def from_dict(cls, data):
-        """Construct a PatternConcept from a dictionary ``data``"""
-        raise NotImplementedError
+    def from_dict(cls, data, json_ready: bool = False, pattern_types: Tuple[PS.AbstractPS] = None):
+        """Construct a FormalConcept from a dictionary ``data``"""
+        if data["Int"] == "BOTTOM":
+            data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
+            #data["Int"] = {'Inds': [], "Names": []}
+
+        if json_ready:
+            pattern_types = {pt.__name__: pt for pt in pattern_types} if pattern_types is not None else []
+
+            int_dict = data['Int']
+            int_dict['PTypes'] = {k: getattr(PS, v) if v in dir(PS) else pattern_types[v] for k, v in
+                                  int_dict['PTypes'].items()}
+            int_dict['Inds'] = frozendict({int(k): int_dict['PTypes'][int_dict['AttrNames'][int(k)]].from_json(v)
+                                           for k, v in int_dict['Inds'].items()})
+            int_dict['Names'] = frozendict({k: int_dict['PTypes'][k].from_json(v)
+                                            for k, v in int_dict['Names'].items()})
+
+        c = PatternConcept(
+            data['Ext']['Inds'], data['Ext'].get('Names', []),
+            data['Int']['Inds'], data['Int'].get('Names', []),
+            data['Int']['PTypes'], data['Int']['AttrNames'],
+            context_hash=data.get('Context_Hash')
+        )
+
+        for k, v in data.items():
+            if k in ['Int', 'Ext']:
+                continue
+            c.measures[k] = v
+        return c
 
     def write_json(self, path=None):
         """Save PatternConcept to .json file of return the .json encoded data if ``path`` is None"""
-        raise NotImplementedError
+        concept_dict = self.to_dict(json_ready=True)
+
+        file_data = json.dumps(concept_dict)
+        if path is None:
+            return file_data
+
+        with open(path, 'w') as f:
+            f.write(file_data)
 
     @classmethod
-    def read_json(cls, path=None, json_data=None):
-        """Load PatternConcept from .json file or from .json encoded string ``json_data``"""
-        raise NotImplementedError
+    def read_json(cls, path: str = None, json_data: str = None, pattern_types: Tuple[PS.AbstractPS] = None):
+        """Load PatternConcept from .json file or from .json encoded string ``json_data``
+
+        Parameters
+        ----------
+        path: `str`
+            Path to the .json file to read from (optional)
+        json_data: `str`
+            Json data to read from (optional)
+        pattern_types: `tuple[AbstractPS]`
+            Tuple of additional Pattern Structures not defined in fcapy.mvcontext.pattern_structure
+        Returns
+        -------
+        c: `PatternConcept`
+        """
+        assert path is not None or json_data is not None,\
+            "FormalConcept.read_json error. Either path or data attribute should be given"
+
+        if path is not None:
+            with open(path, 'r') as f:
+                json_data = f.read()
+        c_dict = json.loads(json_data)
+
+        c = cls.from_dict(c_dict, json_ready=True, pattern_types=pattern_types)
+        return c
