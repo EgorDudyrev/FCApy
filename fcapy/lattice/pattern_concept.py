@@ -6,8 +6,9 @@ from collections.abc import Iterable
 import json
 from frozendict import frozendict
 import numbers
-
 from typing import Tuple
+
+from fcapy.mvcontext import PS
 
 
 class PatternConcept:
@@ -27,7 +28,7 @@ class PatternConcept:
     """
     JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
 
-    def __init__(self, extent_i, extent, intent_i, intent, pattern_types, attribute_names: Tuple[str],
+    def __init__(self, extent_i, extent, intent_i, intent, pattern_types: Tuple[PS.AbstractPS], attribute_names: Tuple[str],
                  measures=None, context_hash=None):
         """Initialize the PatternConcept object
 
@@ -166,7 +167,7 @@ class PatternConcept:
         concept_info = dict()
         concept_info['Ext'] = {"Inds": self._extent_i, "Names": self._extent, "Count": len(self._extent_i)}
         concept_info['Int'] = {"Inds": self._intent_i, "Names": self._intent, "Count": len(self._intent_i),
-                               "PTypes": self._pattern_types}
+                               "PTypes": self._pattern_types, "AttrNames": self._attribute_names}
         concept_info['Supp'] = self.support
         for k, v in self.measures.items():
             concept_info[k] = v
@@ -183,7 +184,7 @@ class PatternConcept:
         c = PatternConcept(
             data['Ext']['Inds'], data['Ext'].get('Names', []),
             data['Int']['Inds'], data['Int'].get('Names', []),
-            data['Int']['PTypes'],
+            data['Int']['PTypes'], data['Int']['AttrNames'],
             context_hash=data.get('Context_Hash')
         )
 
@@ -197,6 +198,11 @@ class PatternConcept:
         """Save PatternConcept to .json file of return the .json encoded data if ``path`` is None"""
         concept_dict = self.to_dict()
 
+        int_dict = concept_dict['Int']
+        int_dict['Inds'] = {k: int_dict['PTypes'][int_dict['AttrNames'][k]].to_json(v)
+                            for k, v in int_dict['Inds'].items()}
+        int_dict['Names'] = {k: int_dict['PTypes'][k].to_json(v) for k, v in int_dict['Names'].items()}
+        int_dict['PTypes'] = {k: v.__name__ for k, v in int_dict['PTypes'].items()}
 
         file_data = json.dumps(concept_dict)
         if path is None:
@@ -206,14 +212,38 @@ class PatternConcept:
             f.write(file_data)
 
     @classmethod
-    def read_json(cls, path=None, json_data=None):
-        """Load PatternConcept from .json file or from .json encoded string ``json_data``"""
+    def read_json(cls, path: str = None, json_data: str = None, pattern_types: Tuple[PS.AbstractPS] = None):
+        """Load PatternConcept from .json file or from .json encoded string ``json_data``
+
+        Parameters
+        ----------
+        path: `str`
+            Path to the .json file to read from (optional)
+        json_data: `str`
+            Json data to read from (optional)
+        pattern_types: `tuple[AbstractPS]`
+            Tuple of additional Pattern Structures not defined in fcapy.mvcontext.pattern_structure
+        Returns
+        -------
+        c: `PatternConcept`
+        """
         assert path is not None or json_data is not None,\
             "FormalConcept.read_json error. Either path or data attribute should be given"
+
+        pattern_types = {pt.__name__: pt for pt in pattern_types} if pattern_types is not None else []
 
         if path is not None:
             with open(path, 'r') as f:
                 json_data = f.read()
-        data = json.loads(json_data)
-        c = cls.from_dict(data)
+        c_dict = json.loads(json_data)
+
+        int_dict = c_dict['Int']
+        int_dict['PTypes'] = {k: getattr(PS, v) if v in dir(PS) else pattern_types[v] for k, v in
+                              int_dict['PTypes'].items()}
+        int_dict['Inds'] = frozendict({int(k): int_dict['PTypes'][int_dict['AttrNames'][int(k)]].from_json(v)
+                                       for k, v in int_dict['Inds'].items()})
+        int_dict['Names'] = frozendict({k: int_dict['PTypes'][k].from_json(v)
+                                        for k, v in int_dict['Names'].items()})
+
+        c = cls.from_dict(c_dict)
         return c

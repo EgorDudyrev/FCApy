@@ -55,15 +55,11 @@ def test_le_leq():
 
 def test_from_to_dict():
     c = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, {'M1': ps.IntervalPS}, ('M1',))
-    with pytest.raises(NotImplementedError):
-        c.to_dict()
-    with pytest.raises(NotImplementedError):
-        c.from_dict(None)
+    c_new = PatternConcept.from_dict(c.to_dict())
+    assert c == c_new, "PatternConcept.to/from_dict error"
 
 
 def test_from_to_json():
     c = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)}, {'M1': ps.IntervalPS}, ('M1',))
-    with pytest.raises(NotImplementedError):
-        c.write_json()
-    with pytest.raises(NotImplementedError):
-        c.read_json(None)
+    c_new = PatternConcept.read_json(json_data=c.write_json())
+    assert c == c_new, "PatternConcept.write/read_json error"

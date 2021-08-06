@@ -5,6 +5,7 @@ This module contains classes of basic Pattern Structures which allow FCA to work
 from collections.abc import Iterable
 import math
 from numbers import Number
+import json
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
@@ -99,6 +100,16 @@ class AbstractPS:
     def leq_descriptions(cls, a, b) -> bool:
         """Check If description `a` is 'smaller' (more general) then description `b`"""
         return cls.intersect_descriptions(a,b) == a
+
+    @classmethod
+    def to_json(cls, x):
+        """Convert description ``x`` into .json format"""
+        return NotImplementedError
+
+    @classmethod
+    def from_json(cls, x_json):
+        """Load description from ``x_json`` .json format"""
+        return NotImplementedError
 
 
 class IntervalPS(AbstractPS):
@@ -300,3 +311,19 @@ class IntervalPS(AbstractPS):
         """Compute the minimal description includes the descriptions `a` and `b`"""
         unity = (min(a[0], b[0]), max(a[1], b[1]))
         return unity
+
+    @classmethod
+    def to_json(cls, x):
+        """Convert description ``x`` into .json format"""
+        if LIB_INSTALLED['numpy']:
+            x = (float(x[0]) , float(x[1]))
+        x_json = json.dumps(x)
+        return x_json
+
+    @classmethod
+    def from_json(cls, x_json):
+        """Load description from ``x_json`` .json format"""
+        x = json.loads(x_json)
+        if LIB_INSTALLED['numpy']:
+            x = (np.int64(x[0]), np.int64(x[1]))
+        return x
