@@ -6,8 +6,12 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 import zlib
+from typing import Tuple
+import json
 
 from fcapy import LIB_INSTALLED
+from fcapy.mvcontext import pattern_structure as PS
+
 
 if LIB_INSTALLED['numpy']:
     import numpy as np
@@ -264,10 +268,79 @@ class MVContext:
             If ``path`` is None, the string with .json file data is returned. If ``path`` is given - return None
 
         """
-        raise NotImplementedError
+        metadata, object_info = {}, {}
+        if self.description is not None:
+            metadata['Description'] = self.description
+        metadata['ObjNames'] = self.object_names
+        metadata['Params'] = {}
+        metadata['Params']['AttrNames'] = self.attribute_names
+        metadata['Params']['PTypes'] = [type(ps).__name__ for ps in self.pattern_structures]
+
+        object_info['Count'] = self.n_objects
+
+        object_info['Data'] = [
+            {'PValues': [ps.to_json(row[ps_i]) for ps_i, ps in enumerate(self.pattern_structures)]}
+            for row in self.data
+        ]
+        file_data = json.dumps([metadata, object_info], separators=(',', ':'))
+
+        if path is None:
+            return file_data
+
+        with open(path, 'w') as f:
+            f.write(file_data)
+
+    @staticmethod
+    def read_json(path: str = None, json_data: str = None, pattern_types: Tuple[PS.AbstractPS] = None):
+        """Read MVContext from .json file .json formatted string data
+
+        Parameters
+        ----------
+        path: `str`
+            A path to .json file
+        json_data: `str`
+            A json encoded data
+        pattern_types: `tuple[AbstractPS]`
+            Tuple of additional Pattern Structures not defined in fcapy.mvcontext.pattern_structure
+
+        Returns
+        -------
+        mvK: `MVContext`
+
+        """
+        assert path is not None or json_data is not None,\
+            'MVContext.read_json error. Either path or data should be given'
+
+        if json_data is None:
+            with open(path, 'r') as f:
+                json_data = f.read()
+        file_data = json.loads(json_data)
+
+        metadata, objects_info = file_data
+
+        description = metadata.get('Description')
+        object_names = metadata.get('ObjNames')
+        if 'Params' in metadata:
+            attribute_names = metadata['Params'].get('AttrNames')
+            ptype_names = metadata['Params']['PTypes']
+        else:
+            attribute_names, ptype_names = None, None
+
+        pattern_types = {k: getattr(PS, v) if v in dir(PS) else pattern_types[v]
+                         for k, v in zip(attribute_names, ptype_names)}
+
+        patterns_list = [pattern_types[m] for m in attribute_names]
+
+        data = [[p.from_json(v) for p, v in zip(patterns_list, g_data['PValues'])] for g_data in objects_info['Data']]
+
+        mvK = MVContext(
+            data, pattern_types,
+            object_names=object_names, attribute_names=attribute_names, description=description
+        )
+        return mvK
 
     def read_csv(self, path=None, **kwargs):
-        """Convert the FormalContext into csv file format (save if ``path`` is given)
+        """Convert the MVContext into csv file format (save if ``path`` is given)
 
         WARNING: Does not implemented yet
 
