@@ -83,10 +83,23 @@ def test_extension_intention():
         assert mvctx.extension({'M1': (2, 3), 'M2': (22, 100)}) == extent_true, 'MVContext.extension failed'
 
 
-def test_write_json():
-    mvctx = mvcontext.MVContext()
-    with pytest.raises(NotImplementedError):
-        mvctx.write_json()
+def test_read_write_json():
+    object_names = ['a', 'b', 'c', 'd']
+    attribute_names = ['M1', 'M2']
+    data = [[1, 10], [2, 22], [3, 100], [4, 60]]
+    pattern_types = {'M1': PS.IntervalPS, 'M2': PS.IntervalPS}
+
+    mvK = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
+    mvK_json = mvK.read_json(json_data=mvK.write_json())
+    assert mvK == mvK_json, 'MVContext.read/write_json failed'
+
+    path = 'test.json'
+    mvK.write_json(path)
+    mvK_new = mvK.read_json(path)
+    assert mvK == mvK_new,\
+        'MVContext.read/write_json failed. The lattice changed after 2 conversions and saving to file.'
+    import os
+    os.remove(path)
 
 
 def test_read_csv():
