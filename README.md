@@ -30,6 +30,10 @@ The library consists of 4 main subpackages:
 * mvcontext
 * ml
 
+The following repositories complement the package:
+* [FCApy_tutorials](https://github.com/EgorDudyrev/FCApy_tutorials)
+* [FCApy_benchmarks](https://github.com/EgorDudyrev/FCApy_benchmarks)
+
 ### Context
 The subpackage provides an implementation of Formal Context from FCA theory.
 
