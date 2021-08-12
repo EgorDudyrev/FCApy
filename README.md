@@ -72,7 +72,7 @@ The only action both 'dove' and 'goose' can perform is 'fly'.
 At least, this is formally true in 'animal_movement' context. 
 
 
-A detailed example is given in this [notebook](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
+A detailed example is given in this [notebook](https://github.com/EgorDudyrev/FCApy_tutorials/blob/main/Formal%20Context.ipynb).
  
 ### Lattice
 
