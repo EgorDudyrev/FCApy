@@ -73,6 +73,14 @@ def test_intent_extent(animal_movement_data):
     with pytest.raises(KeyError):
         ctx.extension((['z93']))
 
+    K = FormalContext(data=[[True, True, False],
+                            [False, True, False]])
+    assert K.intention('0') == ['0', '1']
+    assert K.intention('1') == ['1']
+    assert K.extension('0') == ['0']
+    assert K.extension('1') == ['0', '1']
+    assert K.extension('2') == []
+
 
 def test_n_objects(animal_movement_data):
     data, obj_names = itemgetter('data', 'obj_names')(animal_movement_data)
