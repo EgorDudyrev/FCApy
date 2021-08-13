@@ -107,19 +107,22 @@ class FormalContext:
 
     @object_names.setter
     def object_names(self, value):
+        if self.data is None:
+            self._object_names = None
+            self._object_names_i_map = None
+
         if value is None:
-            self._object_names = tuple([str(idx) for idx in range(self.n_objects)]) if self.data else None
-            return
+            self._object_names = tuple([str(idx) for idx in range(self.n_objects)])
+        else:
+            value = tuple(value)
 
-        value = tuple(value)
+            assert len(value) == len(self._data),\
+                'FormalContext.object_names.setter: Length of "value" should match length of data'
+            assert all(type(name) == str for name in value),\
+                'FormalContext.object_names.setter: Object names should be of type str'
+            self._object_names = value
 
-        assert len(value) == len(self._data),\
-            'FormalContext.object_names.setter: Length of "value" should match length of data'
-        assert all(type(name) == str for name in value),\
-            'FormalContext.object_names.setter: Object names should be of type str'
-        self._object_names = value
-
-        self._object_names_i_map = frozendict({name: idx for idx, name in enumerate(value)})
+        self._object_names_i_map = frozendict({name: idx for idx, name in enumerate(self._object_names)})
 
     @property
     def attribute_names(self):
@@ -141,19 +144,24 @@ class FormalContext:
 
     @attribute_names.setter
     def attribute_names(self, value):
-        if value is None:
-            self._attribute_names = tuple([str(idx) for idx in range(self.n_attributes)]) if self.data else None
+        if self.data is None:
+            self._attribute_names = None
+            self._attribute_names_i_map = None
             return
 
-        value = tuple(value)
+        if value is None:
+            self._attribute_names = tuple([str(idx) for idx in range(self.n_attributes)])
+        else:
 
-        assert len(value) == self._data.shape[1],\
-            'FormalContext.attribute_names.setter: Length of "value" should match number of columns in ``data``'
-        assert all(type(name) == str for name in value),\
-            'FormalContext.object_names.setter: Object names should be of type str'
-        self._attribute_names = value
+            value = tuple(value)
 
-        self._attribute_names_i_map = {name: idx for idx, name in enumerate(value)}
+            assert len(value) == self._data.shape[1],\
+                'FormalContext.attribute_names.setter: Length of "value" should match number of columns in ``data``'
+            assert all(type(name) == str for name in value),\
+                'FormalContext.object_names.setter: Object names should be of type str'
+            self._attribute_names = value
+
+        self._attribute_names_i_map = {name: idx for idx, name in enumerate(self._attribute_names)}
 
     @property
     def target(self):
