@@ -3,9 +3,13 @@ from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.ml import decision_lattice as dl
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.mvcontext import pattern_structure as ps
+
 import numpy as np
 from sklearn.datasets import load_iris, load_boston
-from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.metrics import accuracy_score, mean_squared_error, mean_absolute_error
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from xgboost import XGBRegressor
 
 
 def test_dlpredictor():
@@ -82,3 +86,44 @@ def test_dlregressor():
     mse_train, mse_test = mean_squared_error(y_train, preds_train), mean_squared_error(y_test, preds_test)
     assert mse_train < 1, f"DecisionLatticeRegressor failed. To low train quality {mse_train}"
     assert mse_test < 29, f"DecisionLatticeRegressor failed. To low test quality {mse_test}"
+
+
+def test_dlr_from_dtrees():
+    boston_data = load_boston()
+    X_boston = boston_data['data'][:100]
+    y_boston = boston_data['target'][:100]
+    features_boston = [str(f) for f in boston_data['feature_names']]
+
+    np.random.seed(42)
+    train_idxs = np.random.choice(range(len(X_boston)), size=int(len(X_boston) * 0.8), replace=False)
+    test_idxs = sorted(set(range(len(X_boston))) - set(train_idxs))
+
+    pattern_types = {f: ps.IntervalPS for f in features_boston}
+    mvctx_full = MVContext(X_boston, pattern_types, target=y_boston, attribute_names=features_boston)
+    mvctx_train, mvctx_test = mvctx_full[train_idxs], mvctx_full[test_idxs]
+
+    y_train, y_test = y_boston[train_idxs], y_boston[test_idxs]
+
+    model_func_dict = {
+        DecisionTreeRegressor: dl.DecisionLatticeRegressor.from_decision_tree,
+        RandomForestRegressor: dl.DecisionLatticeRegressor.from_random_forest,
+        GradientBoostingRegressor: dl.DecisionLatticeRegressor.from_gradient_boosting,
+        XGBRegressor: dl.DecisionLatticeRegressor.from_xgboost
+    }
+
+    for model_type in [DecisionTreeRegressor, RandomForestRegressor, GradientBoostingRegressor, XGBRegressor]:
+        model_params = dict(random_state=42, max_depth=6)
+        if model_type != DecisionTreeRegressor:
+            model_params['n_estimators'] = 10
+
+        model = model_type(**model_params)
+        model.fit(X_boston[train_idxs], y_boston[train_idxs])
+
+        func = model_func_dict[model_type]
+        dlr = func(model, mvctx_train)
+
+        preds_true = model.predict(X_boston[test_idxs])
+        preds_dlr = dlr.predict(mvctx_test)
+        err = mean_absolute_error(preds_true, preds_dlr) / preds_true.mean() * 100
+
+        assert err < 1, f"DecisionLattice.{func.__name__} error. The prediction difference is too big ({err:.2e}%)"
