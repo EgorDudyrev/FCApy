@@ -446,7 +446,10 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
             ext_ = [context.object_names[g_i] for g_i in ext_i]
             int_ = {context.attribute_names[m_i]: v for m_i, v in int_i.items()}
-            c = PatternConcept(ext_i, ext_, int_i, int_, context.pattern_types, context_hash=context_hash)
+            c = PatternConcept(
+                ext_i, ext_, int_i, int_,
+                context.pattern_types, context.attribute_names, context_hash=context_hash
+            )
             return c
 
         # parse all the data from the decision tree
