@@ -413,6 +413,9 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
         A ConceptLattice which contains a set of Formal Concepts and relations between them
 
     """
+    if type(context) == MVContext:
+        raise NotImplementedError('Sorry. Lindig algorithm is not yet implemented for ManyValued context')
+
     from fcapy.lattice import ConceptLattice
     
     if iterate_extents is None:

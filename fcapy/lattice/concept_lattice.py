@@ -220,13 +220,16 @@ class ConceptLattice(Lattice):
                 concepts=concepts, subconcepts_dict=subconcepts_dict
             )
 
-        elif algo == 'Sofia':
-            if type(context) == MVContext:
-                kwargs_used = utils.get_kwargs_used(kwargs, cca.sofia_general)
-                ltc = cca.sofia_general(context, **kwargs_used)
+        elif algo in {'Sofia', 'Lindig'}:
+            if algo == 'Sofia':
+                algo_func = cca.sofia_general if type(context) == MVContext else cca.sofia_binary
+            elif algo == 'Lindig':
+                algo_func = cca.lindig_algorithm
             else:
-                kwargs_used = utils.get_kwargs_used(kwargs, cca.sofia_binary)
-                ltc = cca.sofia_binary(context, **kwargs_used)
+                raise NotImplementedError("Error. Some unknown algo seen")
+
+            kwargs_used = utils.get_kwargs_used(kwargs, algo_func)
+            ltc = algo_func(context, **kwargs_used)
 
             # sort concepts in the same order as they have been created by CbO algorithm
             concepts_sorted = cls.sort_concepts(ltc.concepts)
@@ -254,7 +257,7 @@ class ConceptLattice(Lattice):
 
         else:
             raise ValueError(f'ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
-                             f'Possible values are: "CbO" (stands for CloseByOne), "Sofia", "RandomForest')
+                             f'Possible values are: "CbO" (stands for CloseByOne), "Sofia", "RandomForest", "Lindig"')
         return ltc
 
     @staticmethod

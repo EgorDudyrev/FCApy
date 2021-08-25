@@ -72,13 +72,16 @@ def test_from_context():
     attribute_names = ['M1', 'M2']
     pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    ltc_cbo, ltc_sofia, ltc_lindig = [ConceptLattice.from_context(mvctx, algo=alg_name)
-                                      for alg_name in ['CbO', 'Sofia', "lindig"]]
-    for L in [ltc_cbo, ltc_sofia, ltc_lindig]:
+    ltc_cbo, ltc_sofia = [ConceptLattice.from_context(mvctx, algo=alg_name)
+                                      for alg_name in ['CbO', 'Sofia']]
+    for L in [ltc_cbo, ltc_sofia]:
         assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
             "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
-    for L in [ltc_sofia, ltc_lindig]:
+    for L in [ltc_sofia]:
         assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
+
+    with pytest.raises(NotImplementedError):
+        ConceptLattice.from_context(mvctx, algo='Lindig')
 
     with pytest.raises(ValueError):
         ConceptLattice.from_context(mvctx, algo='OtHeR MeThOd')
