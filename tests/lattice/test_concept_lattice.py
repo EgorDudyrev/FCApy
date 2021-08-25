@@ -55,15 +55,14 @@ def test_from_context():
         'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
     ctx = converters.read_csv('data/mango_bin.csv')
-    ltc_cbo = ConceptLattice.from_context(ctx, algo='CbO')
-    ltc_sofia = ConceptLattice.from_context(ctx, algo='Sofia')
-    assert all([idx == ltc_cbo.index(el) for idx, el in enumerate(ltc_cbo)]),\
-        "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
-    assert all([idx == ltc_sofia.index(el) for idx, el in enumerate(ltc_sofia)]),\
-        "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
+    ltc_cbo, ltc_sofia, ltc_lindig = [ConceptLattice.from_context(ctx, algo=alg_name)
+                                      for alg_name in ['CbO', 'Sofia', 'Lindig']]
+    for L in [ltc_cbo, ltc_sofia, ltc_lindig]:
+        assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
+            "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
+    for L in [ltc_sofia, ltc_lindig]:
+        assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
 
-    assert ltc_cbo == ltc_sofia,\
-        "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms"
 
     data = [[1, 10],
             [2, 22],
@@ -73,10 +72,13 @@ def test_from_context():
     attribute_names = ['M1', 'M2']
     pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    ltc_cbo = ConceptLattice.from_context(mvctx, algo='CbO')
-    ltc_sofia = ConceptLattice.from_context(mvctx, algo='Sofia')
-    assert ltc_cbo == ltc_sofia, \
-        "ConceptLattice.from_context failed. Concept lattices differ when created by different algorithms for MVContext"
+    ltc_cbo, ltc_sofia, ltc_lindig = [ConceptLattice.from_context(mvctx, algo=alg_name)
+                                      for alg_name in ['CbO', 'Sofia', "lindig"]]
+    for L in [ltc_cbo, ltc_sofia, ltc_lindig]:
+        assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
+            "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
+    for L in [ltc_sofia, ltc_lindig]:
+        assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
 
     with pytest.raises(ValueError):
         ConceptLattice.from_context(mvctx, algo='OtHeR MeThOd')
