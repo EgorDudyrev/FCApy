@@ -207,7 +207,7 @@ class ConceptLattice(Lattice):
 
         """
         if algo is None:
-            algo = 'Sofia' if type(context) == MVContext else 'CbO'
+            algo = 'CbO' if type(context) == MVContext else 'Lindig'
 
         if algo in {'CbO', 'RandomForest'}:
             algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts}[algo]
