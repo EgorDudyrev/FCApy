@@ -4,54 +4,57 @@
 [![Codecov](https://img.shields.io/codecov/c/github/EgorDudyrev/FCApy)](https://codecov.io/gh/EgorDudyrev/FCApy)
 [![GitHub](https://img.shields.io/github/license/EgorDudyrev/FCApy)](https://github.com/EgorDudyrev/FCApy/blob/main/LICENSE)
 
-A library to work with formal (and pattern) contexts, concepts, lattices
+A python package to work with Formal Concept Analysis (FCA).
 
-It is written with the support of the ISSA laboratory of HSE Moscow.
+The package is written while working in ISSA laboratory of HSE Moscow.
 
 ## Install
 FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
 
-<pre>
+```console
 pip install fcapy
-</pre>
+```
 
 The library has no strict dependencies. However, one would better install it with all the additional packages:
-<pre>
+```console
 pip install fcapy[all]
-</pre>
+```
 
 ## Current state
 
-The library provides an implementation of the Formal Context idea from FCA. The complete example lies [here](https://github.com/EgorDudyrev/FCApy/blob/main/notebooks/Formal%20Context.ipynb).
+The library implements the main artifacts from FCA theory:
+* a formal context _(``context`` subpackage)_,
+* and a concept lattice _(``lattice`` subpackage)_.
 
-The library consists of 4 main subpackages:
-* context
-* lattice
-* mvcontext
-* ml
+There are also some additional subpackages:
+* ``visualizer`` to visualize the lattices,
+* ``mvcontext`` implementing pattern structures and a many valued context,
+* ``poset`` implementing partially ordered sets,
+* and ``ml`` to test FCA in supervised machine learning scenario.
 
 The following repositories complement the package:
 * [FCApy_tutorials](https://github.com/EgorDudyrev/FCApy_tutorials)
 * [FCApy_benchmarks](https://github.com/EgorDudyrev/FCApy_benchmarks)
 
-### Context
-The subpackage provides an implementation of Formal Context from FCA theory.
+### Formal context
+The ``context`` subpackage implements a formal context from FCA theory.
 
-Formal Context K = (G, M, I) is a triple of objects G, attributes M, and mapping I between them. A natural way to represent a Formal Context is a binary table.
+Formal context `K = (G, M, I)` is a triple of set of objects `G`, set of attributes `M`, and mapping `I: G x M` between them. A natural way to represent a formal context is a binary table. The rows of such table represent objects `G`, columns represent attributes `M` and crosses in the table are elements from the mapping `I`.
 
-Formal Context provides two main functions:
-* ``extension(attributes)`` - return a maximal set of objects which share ``attributes``
-* ``intention(objects)`` - return a maximal set of attributes shared by ``objects``
+`FormalContext` class provides two main functions:
+* ``extension( attributes )`` - return a maximal set of objects which share ``attributes``
+* ``intention( objects )`` - return a maximal set of attributes shared by ``objects``
 
-These functions are also known as "prime (') operations", "arrow operations" 
+These functions are also known as ``prime operations'', ``arrow operations''.
 
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
 ```python
-!wget https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
-from fcapy.context import converters
-ctx = converters.read_csv('animal_movement.csv')
+!wget -q https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
+from fcapy.context import FormalContext
+K = FormalContext.read_csv('animal_movement.csv')
 
-print(ctx[:5])
+# Print the first five objects data
+print(K[:5])
 > FormalContext (5 objects, 4 attributes, 7 connections)
 >      |fly|hunt|run|swim|
 > dove |  X|    |   |    |
@@ -60,155 +63,82 @@ print(ctx[:5])
 > goose|  X|    |   |   X|
 > owl  |  X|   X|   |    |
 
-print(ctx.extension(['fly', 'swim']))
+print(K.extension( ['fly', 'swim'] ))
 > ['duck', 'goose']
 
-print(ctx.intention(['dove', 'goose']))
+print(K.intention( ['dove', 'goose'] ))
 > ['fly']
 ```
 
-Thus we state that all the animals who can 'fly' and 'swim' are 'duck' and 'goose'. 
-The only action both 'dove' and 'goose' can perform is 'fly'.
+So we state the following:
+* the animals who can both `fly` and `swim` are only `duck` and `goose`;
+* the only action both `dove` and `goose` do is `fly`.
 At least, this is formally true in 'animal_movement' context. 
 
 
-A detailed example is given in this [notebook](https://github.com/EgorDudyrev/FCApy_tutorials/blob/main/Formal%20Context.ipynb).
+A detailed example is given in [this notebook](https://github.com/EgorDudyrev/FCApy_tutorials/blob/main/Formal%20Context.ipynb).
  
-### Lattice
+### Concept lattice
 
-The subpackage provides an implementation of the Concept Lattice object from FCA theory. That is a partially ordered set of formal concepts.
+The `lattice` subpackage implements the concept lattice from FCA theory. The concept lattice `L` is a lattice of (formal) concepts.
 
-A Formal Concept is a pair `(A, B)` of objects `A` and attributes `B`. Objects `A` are all the objects which share attributes `B`. Attributes `B` are all the attributes shared by objects `A`.
+A formal concept is a pair `(A, B)` of objects `A` and attributes `B`. Objects `A` are all the objects sharing attributes `B`. Attributes `B` are all the attributes describing objects `A`.
 
 In other words:
 * `A = extension(B)`
 * `B = intention(A)` 
 
-A concept `(A1, B1)` is bigger (more general) than a concept `(A2, B2)` if it describes the bigger set of objects (i.e. `A2` is a subset of `A1`, or (which is the same) `B1` is a subset of `B2`)
+A concept `(A1, B1)` is bigger (more general) than a concept `(A2, B2)` if it describes the bigger set of objects (i.e. `A2` is a subset of `A1`, or, equivalently, `B1` is a subset of `B2`).
+
+A lattice is an ordered set with the biggest and the smallest element. Thus the concept lattice is an ordered set of (formal) concepts with the biggest (most genereal) concept and the smallest (least general) concept.
 
 Applied to 'animal_movement' context we get this ConceptLattice:
 ```python
+# Load the formal context
+!wget -q https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
+from fcapy.context import FormalContext
+K = FormalContext.read_csv('animal_movement.csv')
+
+# Create the concept lattice
 from fcapy.lattice import ConceptLattice
-ltc = ConceptLattice.from_context(ctx)
-print(len(ltc.concepts))
+L = ConceptLattice.from_context(K)
+
+# Number of concepts in the lattice
+print(len(L))
 > 8
 
+# Indexes of the biggest and the lowest concepts
+print(L.top_concept_i, L.bottom_concept_i)
+> 0, 7
+```
+
+The Hasse diagram of the lattice may be drawn via the `visualizer` subpackage.
+```python
 import matplotlib.pyplot as plt
-from fcapy.visualizer import Visualizer
+from fcapy.visualizer import ConceptLatticeVisualizer
 
 plt.figure(figsize=(10, 5))
-vsl = Visualizer(ltc)
-vsl.draw_networkx(max_new_extent_count=5)
-plt.xlim(-1,1.5)
+
+vsl = ConceptLatticeVisualizer(L)
+vsl.draw_networkx(max_new_extent_count=5, draw_node_indices=True)
+
+plt.xlim(-0.7,0.7)
+plt.axis(False)
+plt.tight_layout()
 plt.show()
 ```
 <p align="center">
   <img width="616" src="https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/docs/images/animal_context_lattice.png" />
 </p>
 
-In this Concept Lattice, concept #3 contains all the objects which can 'fly'. These are 'dove' plus objects from more specific concept #6: 'goose' and 'duck'.
+How to read the visualization:
+* the concept #3 contains all the animals (objects) who can `fly`.
+  These are `dove`, `goose` and `duck`. The latter two are taken from the more specific (smaller) concepts;
+* the concept #4 represents all the animals who can both `run` (acc. to the more general concept #2) and `hunt` (acc. to the more general concept #1);
+* etc.
 
-Concept #4 represents all the animals who can 'run' (acc. to more general concept #2) and 'hunt' (acc. to more general concept #1).  
+### The other FCA artifacts
 
-### MVContext
+You can find more tutorials in [FCApy_tutorials](https://github.com/EgorDudyrev/FCApy_tutorials) repository.
 
-The subpackage provides an implementation of Many-Valued Context from FCA theory.
-
-MVContext is a generalization of Formal Context. It allows FCA to work with any object description defined by Pattern Structures.
-
-Pattern Structure `D` is a set of descriptions s.t. we can use it to run `extension` and `intention` operations. 
-
-At this moment, FCApy supports only the numerical features.
-
-```python
-#load data from sci-kit learn
-from sklearn.datasets import fetch_california_housing
-california_data = fetch_california_housing(as_frame=True)
-df = california_data['data'].round(3)
-
-from fcapy.mvcontext import MVContext, PS
-# define a specific type of PatternStructure for each column of a dataframe
-pattern_types = {f: PS.IntervalPS for f in df.columns}
-# create a MVContext
-mvctx = MVContext(df.values, pattern_types=pattern_types, attribute_names=df.columns)
-print( mvctx )
-> ManyValuedContext (20640 objects, 8 attributes)
-
-# Get the common description of the first 2 houses
-print( mvctx.intention(['0', '1']) )
-> {'MedInc': (8.301, 8.325), 'HouseAge': (21.0, 41.0), 'AveRooms': (6.238, 6.984),
-> 'AveBedrms': (0.972, 1.024), 'Population': (322.0, 2401.0), 'AveOccup': (2.11, 2.556),
-> 'Latitude': (37.86, 37.88), 'Longitude': (-122.23, -122.22)}
-
-# Get a number of houses with an age in a closed interval [10, 21]
-print( len(mvctx.extension({'HouseAge': (10, 21)})) )
-> 5434
-```
-
-### ML
-
-The subpackage provides an implementation of several algorithms to use FCA in a supervised ML scenario.
-
-```python
-#load data from sci-kit learn
-from sklearn.datasets import fetch_california_housing
-california_data = fetch_california_housing(as_frame=True)
-df = california_data['data']
-y = california_data['target']
-
-from fcapy.mvcontext import MVContext, PS
-# define a specific type of PatternStructure for each column of a dataframe
-pattern_types = {f: PS.IntervalPS for f in df.columns}
-# create a MVContext
-mvctx = MVContext(
-    df.values, target=y.values,
-    pattern_types=pattern_types, attribute_names=df.columns
-)
-print( mvctx )
-> ManyValuedContext (20640 objects, 8 attributes)
-
-# split to train and test set
-mvctx_train, mvctx_test = mvctx[:16000], mvctx[16000:]
-
-# Initialize a DecisionLattice model (which uses RandomForest in the construction process)
-from fcapy.ml.decision_lattice import DecisionLatticeRegressor
-rf_params = {'n_estimators':5, 'max_depth':10}
-dlr = DecisionLatticeRegressor(algo='RandomForest', algo_params={'rf_params':rf_params})
-
-# Fit the model
-%time dlr.fit(mvctx_train, use_tqdm=True)
-> CPU times: user 43.1 s, sys: 67.8 ms, total: 43.1 s
-> Wall time: 43.1 s
-
-# Predict the values
-preds_train_dlr = dlr.predict(mvctx_train)
-preds_test_dlr = dlr.predict(mvctx_test)
-
-## sometimes, a test object can not be described by any concept from ConceptLattice
-## in this case, the model predicts None. We replace it with mean target value over the train context
-preds_test_dlr = [p if p is not None else mvctx_train.target.mean() for p in preds_test_dlr]
-
-# Calculate the MSE
-from sklearn.metrics import mean_squared_error
-mean_squared_error(mvctx_train.target, preds_train_dlr), mean_squared_error(mvctx_test.target, preds_test_dlr)
-> (0.15651125729264054, 0.5543609802892809)
-
-# Fit a Random Forest model for the comparison
-from sklearn.ensemble import RandomForestRegressor
-rf = RandomForestRegressor(**rf_params)
-%time rf.fit(df[:16000], y[:16000])
-> CPU times: user 240 ms, sys: 0 ns, total: 240 ms
-> Wall time: 238 ms
-
-preds_train_rf = rf.predict(df[:16000])
-preds_test_rf = rf.predict(df[16000:])
-
-mean_squared_error(mvctx_train.target, preds_train_rf), mean_squared_error(mvctx_test.target, preds_test_rf)
-> (0.16501598118202618, 0.48447718343174856)
-```
-
-DecisionLattice works slower and gives less accurate test predictions than a Random Forest. For now...
- 
-## Plans
-* Refactor the library to make it more easy-to-use
-* Optimize the library to make it work faster (e.g., add parallelization)
+They include some info on the use of FCA framework applied to non-binary data (MVContext), and supervised machine learning (DecisionLattice).
