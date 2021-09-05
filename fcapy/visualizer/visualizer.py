@@ -112,7 +112,7 @@ class POSetVisualizer:
             arrowstyle='-', connectionstyle=cs,
             ax=ax
         )
-        
+
         nx.draw_networkx_nodes(
             G, self._pos,
             nodelist=nodelist,
@@ -140,10 +140,15 @@ class POSetVisualizer:
                 labels={el_i: f"{el_i}" for el_i in nodelist}
             )
 
-    def draw_plotly(self, poset=None, label_func=None, **kwargs):
+    def draw_plotly(
+            self,
+            label_func=None,
+            **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
         Parameters
         ----------
+        label_func: 'int' -> 'str'
+            A function to create a label for a given element defined by an index
         kwargs:
             colorbar_title: `str`
                 A title of colorbar axis
@@ -157,8 +162,8 @@ class POSetVisualizer:
                 A tuple of size of a figure (width, height) (default value is (1000, 500))
         Returns
         -------
-        fig: `plotly.graph_objects.Figure`
-            A line diagram of POSet in the form of Plotly Figure
+        fig: `plotly.graph_objects.FigureWidget`
+            A line diagram of POSet in the form of Plotly FigureWidget
         """
         from plotly import graph_objects as go
 
@@ -172,7 +177,7 @@ class POSetVisualizer:
 
         edge_trace = go.Scatter(
             x=edge_x, y=edge_y,
-            line=dict(width=0.5, color='#888'),
+            line=dict(width=1, color=self.edge_color),
             hoverinfo='none',
             mode='lines'
         )
@@ -181,6 +186,9 @@ class POSetVisualizer:
         node_x = [pos[node][0] for node in digraph.nodes()]
         node_y = [pos[node][1] for node in digraph.nodes()]
 
+        node_color = [self.node_color[n] for n in digraph.nodes()] if type(self.node_color) != str \
+            else [self.node_color for n in digraph.nodes()]
+
         node_trace = go.Scatter(
             x=node_x, y=node_y,
             mode='markers+text',
@@ -188,29 +196,25 @@ class POSetVisualizer:
             textposition='middle right',
             marker=dict(
                 showscale=True,
-                # colorscale options
-                # 'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
-                # 'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
-                # 'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
+                cmin=self.cmap_min,
+                cmax=self.cmap_max,
                 colorscale=self.cmap,
                 reversescale=True,
-                color=[],
-                size=10,
+                color=node_color,
+                size=self.node_size / 30,
                 colorbar=dict(
                     thickness=15,
                     title=kwargs.get('colorbar_title', ''),
                     xanchor='left',
                     titleside='right'
                 ),
-                line_width=2)
+                line_width=self.node_linewidth)
         )
 
         # Add color and text to nodes
-        node_trace.marker.color = [self.node_color[n] for n in digraph.nodes()] \
-            if type(self.node_color) != str else self.node_color
+        node_trace.marker.color = node_color
         node_trace.marker.opacity = [self.node_alpha[n] for n in digraph.nodes()] \
             if isinstance(self.node_alpha, Iterable) else self.node_alpha
-
 
         node_labels = [label_func(i) for i in range(len(self._poset))] if label_func is not None else []
         node_hovertext = [f"id: {i}\n\n{lbl}" for i, lbl in enumerate(node_labels)]
@@ -218,8 +222,8 @@ class POSetVisualizer:
         node_trace.text = node_labels
         node_trace.hovertext = node_hovertext
 
-        fig = go.Figure(
-            data=[edge_trace, node_trace],
+        fig = go.FigureWidget(
+            data=[node_trace, edge_trace],
             layout=go.Layout(
                 title=kwargs.get('title', 'POSet'),
                 titlefont_size=16,
@@ -232,6 +236,36 @@ class POSetVisualizer:
                 height=kwargs.get('figsize', [1000, 500])[1]
             )
         )
+
+        from copy import copy
+
+        node_color_copy = copy(node_color)
+
+        def update_point(trace, points, selector):
+            c = node_color_copy
+            s = [self.node_size * 1.0] * len(digraph)
+            for i in points.point_inds:
+                if c[i] == node_color[i]:
+                    c[i] = 'green'
+                    s[i] = self.node_size * 2.5
+
+                    for j in digraph.neighbors(i):
+                        c[j] = 'green'
+                        s[j] = self.node_size * 1.5
+                else:
+                    c[i] = node_color[i]
+                    s[i] = self.node_size
+
+                    for j in digraph.neighbors(i):
+                        c[j] = node_color[i]
+                        s[j] = self.node_size
+
+                with fig.batch_update():
+                    fig.data[0].marker.color = c
+                    fig.data[0].marker.size = s
+
+        fig.data[0].on_click(update_point)
+
         return fig
 
 
