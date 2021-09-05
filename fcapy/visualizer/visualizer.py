@@ -143,12 +143,15 @@ class POSetVisualizer:
     def draw_plotly(
             self,
             label_func=None,
+            nodelist: list = None,
             **kwargs):
         """Get a line diagram of `POSet` constructed by `plotly` package
         Parameters
         ----------
         label_func: 'int' -> 'str'
             A function to create a label for a given element defined by an index
+        nodelist: `list`[`int`]
+            Indexes of poset elements to draw.
         kwargs:
             colorbar_title: `str`
                 A title of colorbar axis
@@ -175,12 +178,14 @@ class POSetVisualizer:
         edge_x = [y for edge in digraph.edges() for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
         edge_y = [y for edge in digraph.edges() for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
 
-        edge_trace = go.Scatter(
-            x=edge_x, y=edge_y,
-            line=dict(width=1, color=self.edge_color),
-            hoverinfo='none',
-            mode='lines'
-        )
+        edge_color = [self.edge_color[n] for n in digraph.edges()] if type(self.edge_color) != str \
+            else [self.edge_color for n in digraph.edges()]
+
+        edge_trace = [dict(type='scatter',
+                           x=edge_x,
+                           y=edge_y,
+                           mode='lines',
+                           line=dict(width=1, color=edge_color[k])) for k, e in enumerate(digraph.edges)][0]
 
         # Convert nodes of the graph to the plotly format
         node_x = [pos[node][0] for node in digraph.nodes()]
@@ -188,6 +193,8 @@ class POSetVisualizer:
 
         node_color = [self.node_color[n] for n in digraph.nodes()] if type(self.node_color) != str \
             else [self.node_color for n in digraph.nodes()]
+
+        node_size = self.node_size / 30
 
         node_trace = go.Scatter(
             x=node_x, y=node_y,
@@ -201,7 +208,7 @@ class POSetVisualizer:
                 colorscale=self.cmap,
                 reversescale=True,
                 color=node_color,
-                size=self.node_size / 30,
+                size=node_size,
                 colorbar=dict(
                     thickness=15,
                     title=kwargs.get('colorbar_title', ''),
@@ -243,22 +250,22 @@ class POSetVisualizer:
 
         def update_point(trace, points, selector):
             c = node_color_copy
-            s = [self.node_size * 1.0] * len(digraph)
+            s = [node_size * 1.0] * len(digraph)
             for i in points.point_inds:
                 if c[i] == node_color[i]:
                     c[i] = 'green'
-                    s[i] = self.node_size * 2.5
+                    s[i] = node_size * 2.5
 
                     for j in digraph.neighbors(i):
                         c[j] = 'green'
-                        s[j] = self.node_size * 1.5
+                        s[j] = node_size * 1.5
                 else:
                     c[i] = node_color[i]
-                    s[i] = self.node_size
+                    s[i] = node_size
 
                     for j in digraph.neighbors(i):
                         c[j] = node_color[i]
-                        s[j] = self.node_size
+                        s[j] = node_size
 
                 with fig.batch_update():
                     fig.data[0].marker.color = c
@@ -392,6 +399,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             self, max_new_extent_count=3, max_new_intent_count=3,
             draw_new_extent_len=True, draw_new_intent_len=True,
             label_func=None,
+            nodelist=None,
     ):
         """Draw line diagram of the `ConceptLattice` with `plotly` package
         Parameters
@@ -407,6 +415,8 @@ class ConceptLatticeVisualizer(POSetVisualizer):
         Returns
         -------
         """
+        nodelist = list(range(len(self._lattice))) if nodelist is None else nodelist
+
         if label_func is None:
             label_func = lambda c_i: self._concept_label_func(
                 c_i, draw_new_intent_len, max_new_intent_count,
@@ -415,5 +425,6 @@ class ConceptLatticeVisualizer(POSetVisualizer):
 
         fig = super(ConceptLatticeVisualizer, self).draw_plotly(
             label_func=label_func,
+            nodelist=nodelist
         )
         return fig
