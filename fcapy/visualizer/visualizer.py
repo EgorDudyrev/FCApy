@@ -178,14 +178,16 @@ class POSetVisualizer:
         edge_x = [y for edge in digraph.edges() for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
         edge_y = [y for edge in digraph.edges() for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
 
-        edge_color = [self.edge_color[n] for n in digraph.edges()] if type(self.edge_color) != str \
-            else [self.edge_color for n in digraph.edges()]
+        import math
 
-        edge_trace = [dict(type='scatter',
-                           x=edge_x,
-                           y=edge_y,
-                           mode='lines',
-                           line=dict(width=1, color=edge_color[k])) for k, e in enumerate(digraph.edges)][0]
+        edge_color = [self.edge_color] * len(digraph.edges) if type(self.edge_color) == str \
+            else self.edge_color * math.ceil((len(digraph.edges) / len(self.edge_color)))
+
+        edge_traces = [dict(type='scatter',
+                            x=[edge_x[k * 3], edge_x[k * 3 + 1]],
+                            y=[edge_y[k * 3], edge_y[k * 3 + 1]],
+                            mode='lines',
+                            line=dict(width=1, color=edge_color[k])) for k in range(len(digraph.edges))]
 
         # Convert nodes of the graph to the plotly format
         node_x = [pos[node][0] for node in digraph.nodes()]
@@ -229,8 +231,12 @@ class POSetVisualizer:
         node_trace.text = node_labels
         node_trace.hovertext = node_hovertext
 
+        data = [node_trace]
+        for edge_trace in edge_traces:
+            data.append(edge_trace)
+
         fig = go.FigureWidget(
-            data=[node_trace, edge_trace],
+            data=data,
             layout=go.Layout(
                 title=kwargs.get('title', 'POSet'),
                 titlefont_size=16,
