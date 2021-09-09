@@ -1,3 +1,9 @@
+"""
+The legacy module that implements some ideas for E. Dudyrev master thesis (?)
+
+Should be deleted or replaced soon
+"""
+
 from fcapy.ml.decision_poset_structure import DecisionPOSet, DecisionLattice, DecisionTree, DecisionRule
 from fcapy.context import FormalContext
 from fcapy.mvcontext import MVContext
