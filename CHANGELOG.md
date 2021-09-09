@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.3] - 2021-08-27
+## [0.1.3] - 2021-09-09
 ### Added
 
 _Partially ordered set_
