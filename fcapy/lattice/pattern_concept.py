@@ -28,7 +28,8 @@ class PatternConcept:
     """
     JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
 
-    def __init__(self, extent_i, extent, intent_i, intent, pattern_types: Tuple[PS.AbstractPS], attribute_names: Tuple[str],
+    def __init__(self, extent_i, extent, intent_i, intent,
+                 pattern_types: Tuple[PS.AbstractPS], attribute_names: Tuple[str],
                  measures=None, context_hash=None):
         """Initialize the PatternConcept object
 
@@ -46,7 +47,7 @@ class PatternConcept:
             indexed by the name of pattern structure in ``pattern_types``
         pattern_types: `list` of subtypes of `PatternStructure`
             A set of subtypes of `PatternStructures` used to encode the descriptions from ``intent``
-        pattern_names: `tuple` of `str`
+        attribute_names: `tuple` of `str`
             A mapping from an index of pattern_type to its name
         measures: `dict` of type {`str`: `int`}
             Dict with values of interestingness measures of the concept
@@ -184,7 +185,21 @@ class PatternConcept:
 
     @classmethod
     def from_dict(cls, data, json_ready: bool = False, pattern_types: Tuple[PS.AbstractPS] = None):
-        """Construct a FormalConcept from a dictionary ``data``"""
+        """Construct a FormalConcept from a dictionary ``data``
+
+        Parameters
+        ----------
+        data: `dict`
+            Data to load concept from
+        json_ready: `bool`
+            A flag whether to load the json compatible dictionary
+        pattern_types: `tuple` of pattern structure types
+            A tuple of pattern structure classes that encounter in the dictionary ``data``
+
+        Returns
+        -------
+        `Pattern Concept`
+        """
         if data["Int"] == "BOTTOM":
             data["Int"] = cls.JSON_BOTTOM_PLACEHOLDER
             #data["Int"] = {'Inds': [], "Names": []}
@@ -236,6 +251,7 @@ class PatternConcept:
             Json data to read from (optional)
         pattern_types: `tuple[AbstractPS]`
             Tuple of additional Pattern Structures not defined in fcapy.mvcontext.pattern_structure
+            that may encounter in the read data
         Returns
         -------
         c: `PatternConcept`

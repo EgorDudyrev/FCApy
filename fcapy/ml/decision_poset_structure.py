@@ -1,3 +1,8 @@
+"""
+The module that implements the experiment part of a paper "Summation of decision trees" by E.Dudyrev, S.O.Kuznetsov
+
+Should be deleted or replaced soon
+"""
 from fcapy.poset import POSet, UpperSemiLattice, BinaryTree
 from copy import deepcopy
 

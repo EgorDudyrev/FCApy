@@ -3,7 +3,6 @@ This is the main module of subpackage `context`.
 It contains a class FormalContext which represents a Formal Context object from FCA theory
 
 """
-from collections.abc import Iterable
 from itertools import combinations
 from numbers import Integral
 from frozendict import frozendict
@@ -89,7 +88,7 @@ class FormalContext:
 
     @property
     def object_names(self):
-        """Get of set the names of the objects in the context
+        """Get or set the names of the objects in the context
 
         Parameters
         ----------
@@ -107,6 +106,7 @@ class FormalContext:
 
     @object_names.setter
     def object_names(self, value):
+        """Set the names of objects in the context"""
         if self.data is None:
             self._object_names = None
             self._object_names_i_map = None
@@ -126,7 +126,7 @@ class FormalContext:
 
     @property
     def attribute_names(self):
-        """Get of set the names of the attributes in the context
+        """Get or set the names of the attributes in the context
 
         Parameters
         ----------
@@ -144,6 +144,7 @@ class FormalContext:
 
     @attribute_names.setter
     def attribute_names(self, value):
+        """Set the names of the attributes in the context"""
         if self.data is None:
             self._attribute_names = None
             self._attribute_names_i_map = None
@@ -193,6 +194,8 @@ class FormalContext:
         ----------
         object_indexes : `list` of `int`
             Indexes of the objects (from [0, ``n_objects``-1])
+        base_attrs_i : `list` of `int`
+            Indexes of attribute indexes to compute the intention on. Default value: indexes of all the attributes
 
         Returns
         -------
@@ -236,7 +239,7 @@ class FormalContext:
         attributes : `list` of `str`
             Names of the attributes (subset of ``attribute_names``)
         base_objects : `list` of `str`
-            Set of objects on which to look for extension
+            Set of objects to look for extension on. Default value: all the objects.
         Returns
         -------
         extension : `list` of `str`
@@ -296,6 +299,7 @@ class FormalContext:
 
     @description.setter
     def description(self, value):
+        """Set the description of the context"""
         assert isinstance(value, (type(None), str)), 'FormalContext.description: Description should be of type `str`'
 
         self._description = value
@@ -319,6 +323,7 @@ class FormalContext:
 
     @staticmethod
     def read_cxt(path=None, data=None):
+        """Read the context from .cxt file placed in ``path`` or from the .cxt formatted ``data``"""
         from fcapy.context.converters import read_cxt
         return read_cxt(path, data)
 
@@ -370,6 +375,25 @@ class FormalContext:
 
     @staticmethod
     def read_csv(path, sep=',', word_true='True', word_false='False'):
+        """Read the context from .csv file placed in ``path`` or from the .csv formatted ``data``
+
+        Parameters
+        ----------
+        path: `str`
+            Path to the file to load
+        sep: `str`
+            A separator used in .csv file
+        word_true: `str`
+            A placeholder for True values used in .csv file
+        word_false: `str`
+            A placeholder for False values used in .csv file
+
+        Returns
+        -------
+        `FormalContext` loaded from .csv file
+        """
+        """"""
+
         from fcapy.context.converters import read_csv
         return read_csv(path, sep, word_true, word_false)
 

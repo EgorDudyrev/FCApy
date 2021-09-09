@@ -2,7 +2,6 @@
 This module offers a class BinTable to work with binary table efficiently.
 
 """
-from collections.abc import Iterable
 from numbers import Integral
 from fcapy.utils.utils import slice_list
 
@@ -47,6 +46,7 @@ class BinTable:
 
     @data.setter
     def data(self, value: list):
+        """Set the data property of BinTable"""
         if value is None or value == []:
             self._data = []
             self._height = 0
@@ -95,9 +95,11 @@ class BinTable:
         self._width = width
 
     def __len__(self):
+        """Compute length of a table, i.e. a number of rows"""
         return len(self._data)
 
     def __getitem__(self, item):
+        """Select either a subset of a BinTable if ``item`` is a `slice` or a single row/column if ``item`` is `int`"""
         def fix_slice(slc: slice, stop_default: int):
             start = slc.start if slc.start is not None else 0
             stop = slc.stop if slc.stop is not None else stop_default
@@ -187,13 +189,14 @@ class BinTable:
         return list_data
 
     def __eq__(self, other):
+        """Compare is this BinTable is equal to the ``other``"""
         return self._data == other.data
 
     def __hash__(self):
         return hash(tuple([tuple(row) for row in self._data]))
 
     def all(self, axis=None):
-        """Return whether all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2) are True"""
+        """Check if all rows in columns (``axis``=1), columns in rows (``axis``=2), or both (``axis``=0) are True"""
         def check_all_true(ar):
             return ar.all() if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else all(ar)
 
@@ -231,7 +234,7 @@ class BinTable:
         return flag_all
 
     def any(self, axis=None):
-        """Return whether any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True"""
+        """Check if any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True"""
         if axis is None:
             flag_any = False
             for row in self._data:
@@ -276,7 +279,19 @@ class BinTable:
         return s
 
     def arrow_up(self, row_indexes, base_columns=None):
-        """Return the maximal set of columns in which all rows (``row_indexes``) are True"""
+        """Return the maximal set of columns in which all rows (``row_indexes``) are True
+
+        Parameters
+        ----------
+        row_indexes: `list` of `int`
+            Indexes of rows to process
+        base_columns: `list` or `int`
+            List of columns to select ''arrowed up'' columns from. Default value: all the columns.
+
+        Returns
+        -------
+        columns: `list` of `int`
+        """
         if LIB_INSTALLED['bitsets']:
             if len(row_indexes) > 0:
                 columns = self._column_members(base_columns) if base_columns is not None else None
@@ -306,7 +321,19 @@ class BinTable:
         return columns
 
     def arrow_down(self, column_indexes, base_rows=None):
-        """Return the maximal set of rows in which all columns (``column_indexes``) are True"""
+        """Return the maximal set of rows in which all columns (``column_indexes``) are True
+
+        Parameters
+        ----------
+        column_indexes: `list` of `int`
+            Indexes of columns to process
+        base_rows: `list` or `int`
+            List of rows to select ''arrowed down'' rows from. Default value: all the rows.
+
+        Returns
+        -------
+        rows: `list` of `int`
+        """
         if LIB_INSTALLED['bitsets']:
             if len(column_indexes) > 0:
                 rows = self._row_members(base_rows) if base_rows is not None else None

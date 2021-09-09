@@ -178,6 +178,41 @@ class DecisionLatticePredictor:
     @staticmethod
     def _parse_dt_arrays_to_drules(children_left, children_right, feature, threshold, target,
                                    context: MVContext, eps):
+        """Compute the set generalized decision rules data based on the generalized decision tree data
+
+        Parameters
+        ----------
+        children_left: `list` of `int`
+            A list of left children indexes of each node in the tree
+        children_right: `list` of `int`
+            A list of right children indexes of each node in the tree
+        feature: `list` of `int`
+            A list of indexes of features used for splitting in each node in the tree
+        threshold: `list` of `float`
+            A real valued threshold for splitting in each node in the tree
+        target: `list` of `float`
+            A real value to predict in each node in the tree
+        context: `MVContext`
+            A ManyValued context the tree was constructed
+        eps: `float`
+            A real value used in replacing semiclosed intervals of the tree by closed intervals of decision rules
+            E.g. an interval [a, b) is replaced by an interval [a, b-eps]
+
+        Returns
+        -------
+        direct_premises: `list` of `dict`
+            The list of new premises of the children nodes compared to the premise of their parent nodes
+        dtargets: `list` of `float`
+            The list of deltas of children targets compared to their parent targets
+        direct_children: `list` of `int`
+            The list of indexes of nodes in the tree
+        direct_parents: `list` of `int`
+            The list of parents of the nodes
+        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+            The dict mapping each node index to the indexes of its children
+        premises: `list` of `frozendict`
+            The full premises of each node
+        """
         parents_dict_left = {child_i: parent_i for parent_i, child_i in enumerate(children_left) if child_i != -1}
         parents_dict_right = {child_i: parent_i for parent_i, child_i in enumerate(children_right) if child_i != -1}
         parents_dict = {**parents_dict_left, **parents_dict_right}
@@ -211,6 +246,34 @@ class DecisionLatticePredictor:
 
     @classmethod
     def _parse_dtsklearn_to_direct_drules(cls, dt, context: MVContext, eps=1e-9):
+        """Parse a decision tree ``dt`` of sklearn package to the set of decision rules
+
+        Parameters
+        ----------
+        dt: `sklearn.tree.DecisionTreeClassifier` or `sklearn.tree.DecisionTreeRegressor`
+            A decision tree to parse
+        context: `MVContext`
+            A ManyValued context the tree was constructed
+        eps: `float`
+            A real value used in replacing semiclosed intervals of the tree by closed intervals of decision rules
+            E.g. an interval [a, b) is replaced by an interval [a, b-eps]
+
+        Returns
+        -------
+        direct_premises: `list` of `dict`
+            The list of new premises of the children nodes compared to the premise of their parent nodes
+        dtargets: `list` of `float`
+            The list of deltas of children targets compared to their parent targets
+        direct_children: `list` of `int`
+            The list of indexes of nodes in the tree
+        direct_parents: `list` of `int`
+            The list of parents of the nodes
+        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+            The dict mapping each node index to the indexes of its children
+        premises: `list` of `frozendict`
+            The full premises of each node
+
+        """
         return cls._parse_dt_arrays_to_drules(
             dt.tree_.children_left, dt.tree_.children_right,
             dt.tree_.feature, dt.tree_.threshold, dt.tree_.value.flatten(),
@@ -218,6 +281,34 @@ class DecisionLatticePredictor:
 
     @classmethod
     def _parse_xgbooster_to_direct_drules(cls, xgbooster, context: MVContext, eps=1e-9):
+        """
+
+        Parameters
+        ----------
+        xgbooster: `xgboost.Booster`
+            An element of XGBoost ensembles to parse
+        context: `MVContext`
+            A ManyValued context the tree was constructed
+        eps: `float`
+            A real value used in replacing semiclosed intervals of the tree by closed intervals of decision rules
+            E.g. an interval [a, b) is replaced by an interval [a, b-eps]
+
+        Returns
+        -------
+        direct_premises: `list` of `dict`
+            The list of new premises of the children nodes compared to the premise of their parent nodes
+        dtarget: `list` of `float`
+            The list of deltas of children targets compared to their parent targets
+        direct_children: `list` of `int`
+            The list of indexes of nodes in the tree
+        direct_parents: `list` of `int`
+            The list of parents of the nodes
+        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+            The dict mapping each node index to the indexes of its children
+        premises: `list` of `frozendict`
+            The full premises of each node
+
+        """
         trees_df = xgbooster.trees_to_dataframe()
         children_left = [int(n_id.split('-')[1]) if isinstance(n_id, str) else -1 for n_id in trees_df['Yes']]
         children_right = [int(n_id.split('-')[1]) if isinstance(n_id, str) else -1 for n_id in trees_df['No']]
@@ -243,6 +334,10 @@ class DecisionLatticePredictor:
         return direct_premises, dtarget, direct_children, direct_parents, direct_subelements_dict, premises
 
     def __iadd__(self, other):
+        """Inplace summation of DecisionLattices
+
+        S.t. the predictions of the sum equal to the sum of predictions of the summands
+        """
         # 1. Uniting up the concepts
         new_concepts = [c for c in other.lattice if c not in self.lattice]
         for c in new_concepts:
@@ -270,23 +365,31 @@ class DecisionLatticePredictor:
         return self
 
     def __add__(self, other):
+        """Summation of DecisionLattices
+
+        S.t. the predictions of the sum equal to the sum of predictions of the summands
+        """
         dl_sum = deepcopy(self)
         dl_sum += other
         return dl_sum
 
     def __imul__(self, other: float):
+        """Inplace multiplication of DecisionLattices by a number"""
         self._decisions = {k: v * other for k, v in self._decisions.items()}
         return self
 
     def __mul__(self, other: float):
+        """Multiplication of DecisionLattices by a number"""
         dl_mul = deepcopy(self)
         dl_mul *= other
         return dl_mul
 
     def __itruediv__(self, other: float):
+        """Inplace division of DecisionLattices by a number"""
         return self.__imul__(1/other)
 
     def __truediv__(self, other: float):
+        """Division of DecisionLattices by a number"""
         return self.__mul__(1/other)
 
     @classmethod
@@ -437,6 +540,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     @classmethod
     def from_decision_tree(cls, dtree, context: MVContext, random_state=None):
+        """Construct the DecisionLattice from the sklearn decision tree ``dt`` model fitted on ``context`` data"""
         def concept_from_descr_i(descr_i, context: MVContext, context_hash=None):
             ext_i = context.extension_i(descr_i)
             int_i = context.intention_i(ext_i)
@@ -492,6 +596,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     @classmethod
     def from_random_forest(cls, rf, context: MVContext):
+        """Construct the DecisionLattice from the sklearn Random Forest ``rf`` model fitted on ``context`` data"""
         dl_rf = cls.from_decision_tree(rf.estimators_[0], context, random_state=rf.estimators_[0].random_state)
         for dtree in rf.estimators_[1:]:
             dl_rf += cls.from_decision_tree(dtree, context, random_state=dtree.random_state)
@@ -500,6 +605,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     @classmethod
     def from_gradient_boosting(cls, gb, context: MVContext):
+        """Construct the DecisionLattice from the sklearn gradient boosting ``gb`` model fitted on ``context`` data"""
         estimators = gb.estimators_.flatten()
 
         dl_gb = cls.from_decision_tree(estimators[0], context, random_state=estimators[0].random_state)
@@ -511,6 +617,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     @classmethod
     def from_xgboost(cls, xgb, context: MVContext):
+        """Construct the DecisionLattice from the xgboost ``xgb`` model fitted on ``context`` data"""
         boosters = list(xgb.get_booster())
         bias = xgb.get_params()['base_score']
 

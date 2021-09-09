@@ -45,6 +45,8 @@ class POSetVisualizer:
             The minimum value of a colormap
         cmap_max: `float`
             The maximum value of a colormap
+        label_font_size: `int`
+            The size of a font size when labeling the nodes
         """
         assert poset is not None, "Cannot visualize an empty poset"
 
@@ -317,6 +319,10 @@ class ConceptLatticeVisualizer(POSetVisualizer):
             The minimum value of a colormap
         cmap_max: `float`
             The maximum value of a colormap
+        label_font_size: `int`
+            The size of a font size when labeling the nodes
+        node_size: `int`
+            The size of a node in the visualization
         """
         super(ConceptLatticeVisualizer, self).__init__(
             poset=lattice, node_color=node_color, edge_color=edge_color, cmap=cmap, node_alpha=node_alpha,
