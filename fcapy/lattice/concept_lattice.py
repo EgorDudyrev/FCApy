@@ -15,8 +15,6 @@ from fcapy.poset.lattice import Lattice
 from fcapy.utils import utils
 from fcapy.mvcontext import pattern_structure as PS
 import warnings
-from itertools import product
-from copy import deepcopy
 from frozendict import frozendict
 
 from fcapy import LIB_INSTALLED
@@ -398,6 +396,8 @@ class ConceptLattice(Lattice):
             A flag whether to describe object of `context by closed concept intents (if False) or their generators (o/w)
         use_tqdm: `bool`
             A flag whether to visualize the progress of the algorithm with tqdm bar
+        return_generators_extents: `bool`
+            A flag whether to add generators extents statistics in the output
 
         Returns
         -------
@@ -407,6 +407,8 @@ class ConceptLattice(Lattice):
         object_traced_concepts: `dict` of type {`int`: `list` of `int`}
             Dictionary which maps each object from the ``context`` to a subset of all the concepts
             from the ConceptLattice which describe this object
+        generators_extents: `list` of `dict`
+            A list of dictionaries containing information about generators ran while tracing.
 
         """
         concept_extents = {}
@@ -677,6 +679,8 @@ class ConceptLattice(Lattice):
             A path to .json file
         json_data: `str`
             A json encoded data
+        pattern_types: `tuple` of pattern structure types
+            A set of pattern types to decode the values in concept intents (if reading pattern concept lattice)
 
         Returns
         -------
@@ -750,8 +754,19 @@ class ConceptLattice(Lattice):
             f.write(json_data)
 
     def to_networkx(self, direction: str or None = 'down'):
+        """Generate Networkx graph from the concept lattice
+
+        Parameters
+        ----------
+        direction: {`up`, `down`}
+            `up` if the graph should be directed from the lowest concepts to the greatest. `down` otherwise
+        Returns
+        -------
+        `nx.DiGraph`
+        """
         return self._to_networkx(direction, 'concept')
 
     @staticmethod
     def concepts_leq_func(a, b):
+        """A function to compare two formal (or pattern) concepts"""
         return a <= b
