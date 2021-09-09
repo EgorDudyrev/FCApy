@@ -18,7 +18,9 @@ class UpperSemiLattice(POSet):
         leq_func : `function` (a,b)-> True of False
             A function to compare whether element ``a` from the semillatice is smaller than ``b`` or not
         use_cache : `bool`
-            A flag whether to save for the output of leq_func and other computations in the cache or not
+            (optional) A flag whether to save for the output of leq_func and other computations in the cache or not
+        direct_subelements_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
+            (optional) A dictionary that contains the precomputed direct subelements relation
         """
         if len(elements) == 0:
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
@@ -93,6 +95,8 @@ class LowerSemiLattice(POSet):
             A function to compare whether element ``a` from the semillatice is smaller than ``b`` or not
         use_cache : `bool`
             A flag whether to save for the output of leq_func and other computations in the cache or not
+        direct_subelements_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
+            (optional) A dictionary that contains the precomputed direct subelements relation
         """
         if len(elements) == 0:
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')

@@ -37,6 +37,8 @@ class POSet:
             A function to compare whether element ``a` from the POSet is smaller than ``b`` or not
         use_cache : `bool`
             A flag whether to save for the output of leq_func and other computations in the cache or not
+        direct_subelements_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
+            (optional) A dictionary that contains the precomputed direct subelements relation
         """
         if elements is not None:
             self._elements = list(elements)
@@ -725,6 +727,7 @@ class POSet:
         return new_dict
 
     def to_networkx(self, direction: str or None = 'down'):
+        """Construct networkx.Graph (or DiGraph) based on POSet relations and ``direction``"""
         return self._to_networkx(direction, 'element')
 
     def _to_networkx(self, direction, element_attr_name):
