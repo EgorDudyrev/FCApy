@@ -1,3 +1,11 @@
+"""
+The module provides a lattice object from Order theory and its upper/lower semilattices.
+
+An upper semilattice is a poset that contains a single top (join) element.
+A lower semilattice is a poset  that contains a single bottom (meet) element.
+A lattice contains both a single top and a single bottom elements.
+
+"""
 from fcapy.poset.poset import POSet
 
 

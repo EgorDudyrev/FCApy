@@ -1,3 +1,7 @@
+"""
+The module provides BinaryTree class which represents a binary tree as a partial case of a poset.
+
+"""
 from fcapy.poset.lattice import UpperSemiLattice
 
 

@@ -13,8 +13,10 @@
 
    .. autosummary::
    
+      mean_information_gain
       stability
       stability_bounds
+      target_entropy
    
    
 
