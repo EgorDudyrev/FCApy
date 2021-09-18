@@ -20,6 +20,7 @@
       DecisionLatticeClassifier
       DecisionLatticePredictor
       DecisionLatticeRegressor
+      PredictFunctions
    
    
 

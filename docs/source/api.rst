@@ -35,7 +35,8 @@ Visualizer
 .. autosummary::
     :toctree: generated/
 
-    visualizer.Visualizer
+    visualizer.ConceptLatticeVisualizer
+    visualizer.POSetVisualizer
 
 Machine Learning
 ================
@@ -51,6 +52,15 @@ Algorithms
 
     algorithms.concept_construction
     algorithms.lattice_construction
+
+POSet
+=====
+.. autosummary::
+    :toctree: generated/
+
+    poset.POSet
+    poset.lattice
+    poset.tree
 
 Utils
 =====

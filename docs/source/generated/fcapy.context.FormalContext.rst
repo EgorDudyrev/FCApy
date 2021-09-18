@@ -18,14 +18,18 @@
       ~FormalContext.extension_i
       ~FormalContext.from_pandas
       ~FormalContext.get_minimal_generators
+      ~FormalContext.hash_fixed
       ~FormalContext.intention
       ~FormalContext.intention_i
       ~FormalContext.print_data
+      ~FormalContext.read_csv
+      ~FormalContext.read_cxt
+      ~FormalContext.read_json
+      ~FormalContext.to_numeric
+      ~FormalContext.to_pandas
       ~FormalContext.write_csv
       ~FormalContext.write_cxt
       ~FormalContext.write_json
-      ~FormalContext.to_numeric
-      ~FormalContext.to_pandas
    
    
 

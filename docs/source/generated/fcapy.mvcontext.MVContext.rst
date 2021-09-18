@@ -20,12 +20,15 @@
       ~MVContext.from_pandas
       ~MVContext.generators_by_intent_difference
       ~MVContext.get_minimal_generators
+      ~MVContext.hash_fixed
       ~MVContext.intention
       ~MVContext.intention_i
-      ~MVContext.write_csv
-      ~MVContext.write_json
+      ~MVContext.leq_descriptions
+      ~MVContext.read_csv
+      ~MVContext.read_json
       ~MVContext.to_numeric
       ~MVContext.to_pandas
+      ~MVContext.write_json
    
    
 
