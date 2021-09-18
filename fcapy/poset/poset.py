@@ -13,8 +13,8 @@ from collections.abc import Collection
 class POSet:
     """A class to represent a Partially Ordered Set (POSet)
 
-     A POSet (Partially Ordered Set) is a set in which some elements are bigger then other,
-    some are smaller and some are incomparable.
+    A POSet (Partially Ordered Set) is a set in which some elements are bigger than the others,
+    some are smaller, and some are incomparable.
 
     Example
     -------
@@ -24,7 +24,8 @@ class POSet:
     set() in {'a'} = True  <=>  set()<={'a'}  <=> element #0 is smaller than element #1
     set() in {'b'} = True  <=>  set()<={'b'}  <=> element #0 is smaller than element #2
     {'a'} in {'b'} = False and {'b'} in {'a'} = False  <=>  ({'a'} not <= {'b'}) and ({'b'} not <= {'a'})
-      <=> element #1 and element #2 are incomparable
+    <=> element #1 and element #2 are incomparable
+
     """
     def __init__(self, elements=None, leq_func=None, use_cache: bool = True, direct_subelements_dict=None):
         """Construct a POSet based on a set of ``elements`` and ``leq_func`` defined on this set
