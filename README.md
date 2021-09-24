@@ -45,7 +45,7 @@ Formal context `K = (G, M, I)` is a triple of set of objects `G`, set of attribu
 * ``extension( attributes )`` - return a maximal set of objects which share ``attributes``
 * ``intention( objects )`` - return a maximal set of attributes shared by ``objects``
 
-These functions are also known as ``prime operations'', ``arrow operations''.
+These functions are also known as ''prime operations'' (denoted by `'`) or ``arrow operations''.
 
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
 ```python
@@ -62,10 +62,14 @@ print(K[:5])
 > duck |  X|    |   |   X|
 > goose|  X|    |   |   X|
 > owl  |  X|   X|   |    |
-
+```
+Now we can select all the animals who can both `fly` and `swim`: 
+```python
 print(K.extension( ['fly', 'swim'] ))
 > ['duck', 'goose']
-
+```
+and all the actions both `dove` and `goose` can perform:
+```python
 print(K.intention( ['dove', 'goose'] ))
 > ['fly']
 ```
@@ -102,17 +106,19 @@ K = FormalContext.read_csv('animal_movement.csv')
 # Create the concept lattice
 from fcapy.lattice import ConceptLattice
 L = ConceptLattice.from_context(K)
-
-# Number of concepts in the lattice
+```
+The lattice contains 8 concepts:
+```python
 print(len(L))
 > 8
-
-# Indexes of the biggest and the lowest concepts
+```
+with the most general and the most specific concepts indexes:
+```python
 print(L.top_concept_i, L.bottom_concept_i)
 > 0, 7
 ```
 
-The Hasse diagram of the lattice may be drawn via the `visualizer` subpackage.
+One can draw Hasse diagram of the lattice by `visualizer` subpackage:
 ```python
 import matplotlib.pyplot as plt
 from fcapy.visualizer import ConceptLatticeVisualizer
