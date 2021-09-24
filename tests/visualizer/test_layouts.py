@@ -1,6 +1,6 @@
 from fcapy.context import FormalContext
 from fcapy.lattice import ConceptLattice
-from fcapy.visualizer import layouts
+from fcapy.visualizer import hasse_layouts
 
 import numpy as np
 
@@ -16,7 +16,7 @@ def test_calc_levels():
 
     L = ConceptLattice.from_context(K)
 
-    c_levels, levels_dict = layouts.calc_levels(L)
+    c_levels, levels_dict = hasse_layouts.calc_levels(L)
     assert all([c_levels[c_i] < c_levels[sub_i] for c_i, subs_i in L.sub_elements_dict.items() for sub_i in subs_i]),\
         'Calc_levels function failed. Some elements have level not bigger than that of their superelements '
 
@@ -26,7 +26,7 @@ def test_multipartite_layout():
     K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
 
-    pos_fact = layouts.multipartite_layout(L)
+    pos_fact = hasse_layouts.multipartite_layout(L)
     pos_true = {
         0: [0.0000, 1.0000], 1: [0.6667, 0.3333], 2: [0.0000, 0.3333], 3: [-0.6667, 0.3333],
         4: [0.6667, -0.3333], 5: [0.0000, -0.3333], 6: [-0.6667, -0.3333], 7: [0.0000, -1.0000]
@@ -41,7 +41,7 @@ def test_fcart_layout():
     K = FormalContext.read_csv(path)
     L = ConceptLattice.from_context(K)
 
-    pos_fact = layouts.fcart_layout(L)
+    pos_fact = hasse_layouts.fcart_layout(L)
 
     pos_true = {
         0: [0.0000, 1.0000], 1: [-0.7143, 0.6667], 2: [-0.4286, 0.6667], 3: [-0.1429, 0.6667], 4: [0.1429, 0.6667],
@@ -54,7 +54,7 @@ def test_fcart_layout():
     assert max(pos_diff) < 1e-4, \
         f'layouts.fcart_layout failed. Nodes position calculated wrongly.'
     
-    pos_fact = layouts.fcart_layout(L, c=1, dpth=2)
+    pos_fact = hasse_layouts.fcart_layout(L, c=1, dpth=2)
 
     pos_true = {
         0: [0.0000, 1.0000], 1: [-0.7143, 0.6667], 2: [-0.4286, 0.6667], 3: [-0.1429, 0.6667], 4: [0.1429, 0.6667],
@@ -74,4 +74,4 @@ def test_layouts_dict():
     L = ConceptLattice.from_context(K)
 
     for x in ['multipartite', 'fcart']:
-        pos = layouts.LAYOUTS[x](L)
+        pos = hasse_layouts.LAYOUTS[x](L)

@@ -3,7 +3,7 @@ This module provides a class `Visualizer` to visualize a `ConceptLattice`
 """
 from fcapy.poset import POSet
 from fcapy.lattice import ConceptLattice
-from fcapy.visualizer.layouts import LAYOUTS
+from fcapy.visualizer.hasse_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used
 
 import networkx as nx
