@@ -4,6 +4,7 @@ This module provides visualizers to draw Hasse diagrams
 from fcapy.poset import POSet
 from fcapy.visualizer.hasse_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used, get_not_none
+from fcapy.lattice import ConceptLattice
 
 from typing import Tuple, Callable, Dict
 from numbers import Number
@@ -16,7 +17,7 @@ class AbstractHasseViz:
         self.node_alpha = 1
         self.node_size = 300
         self.node_label_func = None
-        self.node_label_font_size = 12,
+        self.node_label_font_size = 12
         self.node_border_color = 'white'
         self.node_border_width = 1
         self.edge_color = 'lightgray'
@@ -53,6 +54,48 @@ class AbstractHasseViz:
         layout_func = LAYOUTS[layout]
         kwargs_used = get_kwargs_used(kwargs, layout_func)
         return layout_func(poset, **kwargs_used)
+
+    def _filter_nodes_edges(self, G, nodelist=None):
+        if nodelist is not None:
+            nodelist = self.nodelist
+            missing_nodeset = set(G.nodes) - set(nodelist)
+        else:
+            nodelist, missing_nodeset = list(G.nodes), set()
+
+        edgelist = [
+            e for e in G.edges
+            if e[0] not in missing_nodeset and e[1] not in missing_nodeset
+        ]
+        return nodelist, edgelist
+
+    @staticmethod
+    def concept_lattice_label_func(
+            c_i: int, lattice: ConceptLattice,
+            flg_draw_new_intent_count_prefix: bool, max_new_intent_count: int,
+            flg_draw_new_extent_count_prefix: bool, max_new_extent_count: int
+    ) -> str:
+        new_intent = list(lattice.get_concept_new_intent(c_i))
+        if len(new_intent) > 0:
+            new_intent_str = f"{len(new_intent)}: " if flg_draw_new_intent_count_prefix else ""
+            new_intent_str += ', '.join(new_intent[:max_new_intent_count])
+            if len(new_intent_str) > 0 \
+                    and max_new_intent_count is not None and len(new_intent) > max_new_intent_count:
+                new_intent_str += '...'
+        else:
+            new_intent_str = ''
+
+        new_extent = list(lattice.get_concept_new_extent(c_i))
+        if len(new_extent) > 0:
+            new_extent_str = f"{len(new_extent)}: " if flg_draw_new_extent_count_prefix else ""
+            new_extent_str += ', '.join(new_extent[:max_new_extent_count])
+            if len(new_extent_str) > 0 \
+                    and max_new_extent_count is not None and len(new_extent) > max_new_extent_count:
+                new_extent_str += '...'
+        else:
+            new_extent_str = ''
+
+        label = '\n\n'.join([new_intent_str, new_extent_str])
+        return label
 
     ###################
     # Node properties #
@@ -185,19 +228,6 @@ class AbstractHasseViz:
     @show_axes.setter
     def show_axes(self, value: bool):
         self._show_axes = value
-        
-    def _filter_nodes_edges(self, G):
-        if self.nodelist is not None:
-            nodelist = self.nodelist
-            missing_nodeset = set(G.nodes) - set(nodelist)
-        else:
-            nodelist, missing_nodeset = list(G.nodes), set()
-
-        edgelist = [
-            e for e in G.edges
-            if e[0] not in missing_nodeset and e[1] not in missing_nodeset
-        ]
-        return nodelist, edgelist
 
 
 class NetworkxHasseViz(AbstractHasseViz):
@@ -216,7 +246,7 @@ class NetworkxHasseViz(AbstractHasseViz):
         pos = self.get_nodes_position(poset) if pos is None else pos
 
         G = poset.to_networkx('down')
-        nodelist, edgelist = self._filter_nodes_edges(G)
+        nodelist, edgelist = self._filter_nodes_edges(G, nodelist)
         self._draw_edges(
             G, pos, ax, edgelist,
             edge_radius=edge_radius, edge_color=edge_color
@@ -229,18 +259,21 @@ class NetworkxHasseViz(AbstractHasseViz):
             cmap_min=cmap_min, cmap_max=cmap_max, node_size=node_size
         )
 
-        if self.node_label_func is not None:
+        node_label_func = get_not_none(node_label_func, self.node_label_func)
+        if node_label_func is not None:
             self._draw_node_labels(
                 poset, G, pos, ax, nodelist,
                 node_label_func=node_label_func, node_label_font_size=node_label_font_size
             )
 
-        if self.draw_node_indices:
+        draw_node_indices = get_not_none(draw_node_indices, self.draw_node_indices)
+        if draw_node_indices:
             self._draw_node_indices(
                 G, pos, ax, nodelist,
             )
 
-        if self.show_axes:
+        show_axes = get_not_none(show_axes, self.show_axes)
+        if show_axes:
             ax.set_axis_on()
         else:
             ax.set_axis_off()
