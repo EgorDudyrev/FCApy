@@ -6,16 +6,18 @@ from fcapy.visualizer.hasse_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used
 
 from typing import Tuple, Callable
+from numbers import Number
 
 
 class AbstractHasseViz:
     def __init__(
             self,
-            node_color='lightgray', node_alpha=1, node_size=300, node_label_func=None, node_label_font_size=12,
-            node_border_color='white', node_border_width=1,
-            edge_color='lightgray', edge_radius=0,
-            cmap='Blues', cmap_min=None, cmap_max=None,
-            draw_node_indices=False, show_axes=False, nodelist=None,
+            node_color: str = 'lightgray', node_alpha: Number = 1, node_size: Number = 300,
+            node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = 12,
+            node_border_color: str = 'white', node_border_width: Number = 1,
+            edge_color: str = 'lightgray', edge_radius: Number = 0,
+            cmap: str = 'Blues', cmap_min: Number = None, cmap_max: Number = None,
+            draw_node_indices: bool = False, show_axes: bool = False
     ):
         # Node properties
         self.node_color = node_color
@@ -38,7 +40,6 @@ class AbstractHasseViz:
 
         # Toggles
         self.draw_node_indices = draw_node_indices
-        self.nodelist = nodelist
         self.show_axes = show_axes
 
     #############
@@ -208,7 +209,10 @@ class AbstractHasseViz:
 class NetworkxHasseViz(AbstractHasseViz):
     import matplotlib.pyplot as plt
 
-    def draw_poset(self, poset: POSet, ax=plt.Axes, pos=None):
+    def draw_poset(
+            self, poset: POSet, ax=plt.Axes, pos=None,
+
+    ):
         pos = self.get_nodes_position(poset) if pos is None else pos
 
         G = poset.to_networkx('down')
@@ -238,10 +242,10 @@ class NetworkxHasseViz(AbstractHasseViz):
             node_size=self.node_size
         )
 
-    def _draw_node_labels(self, G, pos, ax, nodelist):
+    def _draw_node_labels(self, poset, G, pos, ax, nodelist):
         import networkx as nx
 
-        labels = {el_i: self.node_label_func(el_i) for el_i in nodelist}
+        labels = {el_i: self.node_label_func(el_i, poset) for el_i in nodelist}
         nx.draw_networkx_labels(
             G, pos,
             labels=labels,
