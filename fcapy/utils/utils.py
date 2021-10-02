@@ -86,3 +86,7 @@ def get_kwargs_used(kwargs, func):
     possible_kwargs = inspect.signature(func).parameters
     kwargs_used = {k: v for k, v in kwargs.items() if k in possible_kwargs}
     return kwargs_used
+
+
+def get_not_none(v, v_if_none):
+    return v if v is not None else v_if_none

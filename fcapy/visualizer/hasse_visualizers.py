@@ -3,49 +3,43 @@ This module provides visualizers to draw Hasse diagrams
 """
 from fcapy.poset import POSet
 from fcapy.visualizer.hasse_layouts import LAYOUTS
-from fcapy.utils.utils import get_kwargs_used
+from fcapy.utils.utils import get_kwargs_used, get_not_none
 
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Dict
 from numbers import Number
 
 
 class AbstractHasseViz:
-    def __init__(
-            self,
+    def __init__(self):
+        """Initialize the class and set up default parameters values"""
+        self.node_color = 'lightgray'
+        self.node_alpha = 1
+        self.node_size = 300
+        self.node_label_func = None
+        self.node_label_font_size = 12,
+        self.node_border_color = 'white'
+        self.node_border_width = 1
+        self.edge_color = 'lightgray'
+        self.edge_radius = 0
+        self.cmap = 'Blues'
+        self.cmap_min = None
+        self.cmap_max = None
+        self.draw_node_indices = False
+        self.show_axes = False
+
+    #############
+    # Functions #
+    #############
+    def draw_poset(
+            self, poset,
+            pos: Dict[int, Tuple[Number, Number]] = None, nodelist: Tuple[int] = None,
             node_color: str = 'lightgray', node_alpha: Number = 1, node_size: Number = 300,
             node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = 12,
             node_border_color: str = 'white', node_border_width: Number = 1,
             edge_color: str = 'lightgray', edge_radius: Number = 0,
             cmap: str = 'Blues', cmap_min: Number = None, cmap_max: Number = None,
-            draw_node_indices: bool = False, show_axes: bool = False
+            draw_node_indices: bool = False, show_axes: bool = False,
     ):
-        # Node properties
-        self.node_color = node_color
-        self.node_alpha = node_alpha
-        self.node_size = node_size
-        self.node_label_func = node_label_func
-        self.node_label_font_size = node_label_font_size
-
-        self.node_border_color = node_border_color
-        self.node_border_width = node_border_width
-
-        # Edge properties
-        self.edge_color = edge_color
-        self.edge_radius = edge_radius
-
-        # Colormap properties
-        self.cmap = cmap
-        self.cmap_min = cmap_min
-        self.cmap_max = cmap_max
-
-        # Toggles
-        self.draw_node_indices = draw_node_indices
-        self.show_axes = show_axes
-
-    #############
-    # Functions #
-    #############
-    def draw_poset(self, poset):
         raise NotImplementedError
 
     @staticmethod
@@ -210,64 +204,114 @@ class NetworkxHasseViz(AbstractHasseViz):
     import matplotlib.pyplot as plt
 
     def draw_poset(
-            self, poset: POSet, ax=plt.Axes, pos=None,
-
+            self, poset: POSet, ax=plt.Axes,
+            pos: Dict[int, Tuple[Number, Number]] = None, nodelist: Tuple[int] = None,
+            node_color: str = None, node_alpha: Number = None, node_size: Number = None,
+            node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = None,
+            node_border_color: str = None, node_border_width: Number = None,
+            edge_color: str = None, edge_radius: Number = None,
+            cmap: str = None, cmap_min: Number = None, cmap_max: Number = None,
+            draw_node_indices: bool = None, show_axes: bool = None,
     ):
         pos = self.get_nodes_position(poset) if pos is None else pos
 
         G = poset.to_networkx('down')
         nodelist, edgelist = self._filter_nodes_edges(G)
-        self._draw_edges(G, pos, ax, edgelist)
-        self._draw_nodes(G, pos, ax, nodelist)
+        self._draw_edges(
+            G, pos, ax, edgelist,
+            edge_radius=edge_radius, edge_color=edge_color
+        )
+
+        self._draw_nodes(
+            G, pos, ax, nodelist,
+            node_color=node_color, cmap=cmap, node_alpha=node_alpha,
+            node_border_width=node_border_width, node_border_color=node_border_color,
+            cmap_min=cmap_min, cmap_max=cmap_max, node_size=node_size
+        )
+
         if self.node_label_func is not None:
-            self._draw_node_labels(G, pos, ax, nodelist)
+            self._draw_node_labels(
+                poset, G, pos, ax, nodelist,
+                node_label_func=node_label_func, node_label_font_size=node_label_font_size
+            )
+
         if self.draw_node_indices:
-            self._draw_node_indices(G, pos, ax, nodelist)
+            self._draw_node_indices(
+                G, pos, ax, nodelist,
+            )
 
         if self.show_axes:
             ax.set_axis_on()
         else:
             ax.set_axis_off()
 
-    def _draw_nodes(self, G, pos, ax, nodelist):
+    def _draw_nodes(
+            self, G, pos, ax, nodelist,
+            node_color = None, cmap = None, node_alpha = None,
+            node_border_width = None, node_border_color = None,
+            cmap_min = None, cmap_max = None, node_size = None
+    ):
+        node_color = get_not_none(node_color, self.node_color)
+        cmap =  get_not_none(cmap, self.cmap)
+        node_alpha = get_not_none(node_alpha, self.node_alpha)
+        node_border_width = get_not_none(node_border_width, self.node_border_width)
+        node_border_color = get_not_none(node_border_color, self.node_border_color)
+        cmap_min = get_not_none(cmap_min, self.cmap_min)
+        cmap_max = get_not_none(cmap_max, self.cmap_max)
+        node_size = get_not_none(node_size, self.node_size)
+
         import networkx as nx
 
         nx.draw_networkx_nodes(
             G, pos,
             nodelist=nodelist,
-            node_color=self.node_color, cmap=self.cmap, alpha=self.node_alpha,
-            linewidths=self.node_border_width, edgecolors=self.node_border_color,
-            vmin=self.cmap_min, vmax=self.cmap_max,
+            node_color=node_color, cmap=cmap, alpha=node_alpha,
+            linewidths=node_border_width, edgecolors=node_border_color,
+            vmin=cmap_min, vmax=cmap_max,
             ax=ax,
-            node_size=self.node_size
+            node_size=node_size
         )
 
-    def _draw_node_labels(self, poset, G, pos, ax, nodelist):
+    def _draw_node_labels(
+            self, poset, G, pos, ax, nodelist,
+            node_label_func=None, node_label_font_size=None
+    ):
+        node_label_func = get_not_none(node_label_func, self.node_label_func)
+        node_label_font_size = int(get_not_none(node_label_font_size, self.node_label_font_size))
+
         import networkx as nx
 
-        labels = {el_i: self.node_label_func(el_i, poset) for el_i in nodelist}
+        labels = {el_i: node_label_func(el_i, poset) for el_i in nodelist}
         nx.draw_networkx_labels(
             G, pos,
             labels=labels,
             horizontalalignment='center',  # 'left',
-            font_size=int(self.node_label_font_size),
+            font_size=node_label_font_size,
             ax=ax
         )
 
-    def _draw_node_indices(self, G, pos, ax, nodelist):
+    def _draw_node_indices(
+            self, G, pos, ax, nodelist,
+    ):
         import networkx as nx
 
         labels = {el_i: f"{el_i}" for el_i in nodelist}
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels)
 
-    def _draw_edges(self, G, pos, ax, edgelist):
+    def _draw_edges(
+            self, G, pos, ax, edgelist,
+            edge_radius=None, edge_color=None
+    ):
+        edge_radius = get_not_none(edge_radius, self.edge_radius)
+        edge_color = get_not_none(edge_color, self.edge_color)
+
         import networkx as nx
 
-        cs = f'arc3,rad={self.edge_radius}' if self.edge_radius is not None else None
+        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(
             G, pos,
             edgelist=edgelist,
-            edge_color=self.edge_color,
+            edge_color=edge_color,
             arrowstyle='-', connectionstyle=cs,
             ax=ax
         )
