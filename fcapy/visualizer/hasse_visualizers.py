@@ -1,5 +1,7 @@
 """
 This module provides visualizers to draw Hasse diagrams
+
+WARNING: The module is in production. It has not been fully tested and designed yet.
 """
 from fcapy.poset import POSet
 from fcapy.visualizer.hasse_layouts import LAYOUTS
