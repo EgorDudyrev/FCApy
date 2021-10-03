@@ -244,46 +244,32 @@ class AbstractHasseViz:
 class NetworkxHasseViz(AbstractHasseViz):
     import matplotlib.pyplot as plt
 
-    def draw_poset(
-            self, poset: POSet, ax=plt.Axes,
-            pos: Dict[int, Tuple[Number, Number]] = None, nodelist: Tuple[int] = None,
-            node_color: str = None, node_alpha: Number = None, node_size: Number = None,
-            node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = None,
-            node_border_color: str = None, node_border_width: Number = None,
-            edge_color: str = None, edge_radius: Number = None,
-            cmap: str = None, cmap_min: Number = None, cmap_max: Number = None,
-            flg_draw_node_indices: bool = None, flg_show_axes: bool = None,
-    ):
-        pos = self.get_nodes_position(poset) if pos is None else pos
+    def draw_poset(self, poset: POSet, ax=plt.Axes, **kwargs):
+        pos_defined = kwargs.get('pos', self.pos)
+        pos = self.get_nodes_position(poset) if pos_defined is None else pos_defined
+        if 'pos' in kwargs:
+            del kwargs['pos']
 
         G = poset.to_networkx('down')
-        nodelist, edgelist = self._filter_nodes_edges(G, nodelist)
-        self._draw_edges(
-            G, pos, ax, edgelist,
-            edge_radius=edge_radius, edge_color=edge_color
-        )
+        kwargs_used = get_kwargs_used(kwargs, self._filter_nodes_edges)
+        nodelist, edgelist = self._filter_nodes_edges(G, **kwargs_used)
 
-        self._draw_nodes(
-            G, pos, ax, nodelist,
-            node_color=node_color, cmap=cmap, node_alpha=node_alpha,
-            node_border_width=node_border_width, node_border_color=node_border_color,
-            cmap_min=cmap_min, cmap_max=cmap_max, node_size=node_size
-        )
+        kwargs_used = get_kwargs_used(kwargs, self._draw_edges)
+        self._draw_edges(G, pos, ax, edgelist, **kwargs_used)
 
-        node_label_func = get_not_none(node_label_func, self.node_label_func)
+        kwargs_used = get_kwargs_used(kwargs, self._draw_nodes)
+        self._draw_nodes(G, pos, ax, nodelist, **kwargs_used)
+
+        node_label_func = kwargs.get('node_label_func', self.node_label_func)
         if node_label_func is not None:
-            self._draw_node_labels(
-                poset, G, pos, ax, nodelist,
-                node_label_func=node_label_func, node_label_font_size=node_label_font_size
-            )
+            kwargs_used = get_kwargs_used(kwargs, self._draw_node_labels)
+            self._draw_node_labels(poset, G, pos, ax, nodelist, **kwargs_used)
 
-        flg_draw_node_indices = get_not_none(flg_draw_node_indices, self.flg_draw_node_indices)
+        flg_draw_node_indices = kwargs.get('flg_draw_node_indices', self._draw_node_indices)
         if flg_draw_node_indices:
-            self._draw_node_indices(
-                G, pos, ax, nodelist,
-            )
+            self._draw_node_indices(G, pos, ax, nodelist)
 
-        flg_show_axes = get_not_none(flg_show_axes, self.flg_show_axes)
+        flg_show_axes = kwargs.get('flg_show_axes', self.flg_show_axes)
         if flg_show_axes:
             ax.set_axis_on()
         else:
@@ -291,12 +277,12 @@ class NetworkxHasseViz(AbstractHasseViz):
 
     def _draw_nodes(
             self, G, pos, ax, nodelist,
-            node_color = None, cmap = None, node_alpha = None,
-            node_border_width = None, node_border_color = None,
-            cmap_min = None, cmap_max = None, node_size = None
+            node_color=None, cmap=None, node_alpha=None,
+            node_border_width=None, node_border_color=None,
+            cmap_min=None, cmap_max=None, node_size=None
     ):
         node_color = get_not_none(node_color, self.node_color)
-        cmap =  get_not_none(cmap, self.cmap)
+        cmap = get_not_none(cmap, self.cmap)
         node_alpha = get_not_none(node_alpha, self.node_alpha)
         node_border_width = get_not_none(node_border_width, self.node_border_width)
         node_border_color = get_not_none(node_border_color, self.node_border_color)
@@ -334,9 +320,7 @@ class NetworkxHasseViz(AbstractHasseViz):
             ax=ax
         )
 
-    def _draw_node_indices(
-            self, G, pos, ax, nodelist,
-    ):
+    def _draw_node_indices(self, G, pos, ax, nodelist):
         import networkx as nx
 
         labels = {el_i: f"{el_i}" for el_i in nodelist}
