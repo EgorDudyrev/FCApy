@@ -11,36 +11,39 @@ from numbers import Number
 
 
 class AbstractHasseViz:
-    def __init__(self):
-        """Initialize the class and set up default parameters values"""
-        self.node_color = 'lightgray'
-        self.node_alpha = 1
-        self.node_size = 300
-        self.node_label_func = None
-        self.node_label_font_size = 12
-        self.node_border_color = 'white'
-        self.node_border_width = 1
-        self.edge_color = 'lightgray'
-        self.edge_radius = 0
-        self.cmap = 'Blues'
-        self.cmap_min = None
-        self.cmap_max = None
-        self.draw_node_indices = False
-        self.show_axes = False
-
-    #############
-    # Functions #
-    #############
-    def draw_poset(
-            self, poset,
-            pos: Dict[int, Tuple[Number, Number]] = None, nodelist: Tuple[int] = None,
+    def __init__(
+            self,
+            pos: Dict[int, Tuple[Number, Number]] = None,
+            nodelist: Tuple[int] = None,
             node_color: str = 'lightgray', node_alpha: Number = 1, node_size: Number = 300,
             node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = 12,
             node_border_color: str = 'white', node_border_width: Number = 1,
             edge_color: str = 'lightgray', edge_radius: Number = 0,
             cmap: str = 'Blues', cmap_min: Number = None, cmap_max: Number = None,
-            draw_node_indices: bool = False, show_axes: bool = False,
+            flg_draw_node_indices: bool = False, flg_show_axes: bool = False,
     ):
+        """Initialize the class and set up default parameters values"""
+        self.pos = pos
+        self.nodelist = nodelist
+        self.node_color = node_color
+        self.node_alpha = node_alpha
+        self.node_size = node_size
+        self.node_label_func = node_label_func
+        self.node_label_font_size = node_label_font_size
+        self.node_border_color = node_border_color
+        self.node_border_width = node_border_width
+        self.edge_color = edge_color
+        self.edge_radius = edge_radius
+        self.cmap = cmap
+        self.cmap_min = cmap_min
+        self.cmap_max = cmap_max
+        self.flg_draw_node_indices = flg_draw_node_indices
+        self.flg_show_axes = flg_show_axes
+
+    #############
+    # Functions #
+    #############
+    def draw_poset(self, poset, **kwargs):
         raise NotImplementedError
 
     @staticmethod
@@ -100,6 +103,22 @@ class AbstractHasseViz:
     ###################
     # Node properties #
     ###################
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+
+    @property
+    def nodelist(self):
+        return self._nodelist
+
+    @nodelist.setter
+    def nodelist(self, value):
+        self._nodelist = value
+
     @property
     def node_color(self):
         return self._node_color
@@ -206,27 +225,19 @@ class AbstractHasseViz:
     # Binary toggles #
     ##################
     @property
-    def draw_node_indices(self):
-        return self._flag_draw_node_indices
+    def flg_draw_node_indices(self):
+        return self._flg_draw_node_indices
     
-    @draw_node_indices.setter
-    def draw_node_indices(self, value: bool):
-        self._flag_draw_node_indices = value
+    @flg_draw_node_indices.setter
+    def flg_draw_node_indices(self, value: bool):
+        self._flg_draw_node_indices = value
 
     @property
-    def nodelist(self):
-        return self._nodelist
-
-    @nodelist.setter
-    def nodelist(self, value: Tuple[int] or None):
-        self._nodelist = value
-
-    @property
-    def show_axes(self):
+    def flg_show_axes(self):
         return self._show_axes
 
-    @show_axes.setter
-    def show_axes(self, value: bool):
+    @flg_show_axes.setter
+    def flg_show_axes(self, value: bool):
         self._show_axes = value
 
 
@@ -241,7 +252,7 @@ class NetworkxHasseViz(AbstractHasseViz):
             node_border_color: str = None, node_border_width: Number = None,
             edge_color: str = None, edge_radius: Number = None,
             cmap: str = None, cmap_min: Number = None, cmap_max: Number = None,
-            draw_node_indices: bool = None, show_axes: bool = None,
+            flg_draw_node_indices: bool = None, flg_show_axes: bool = None,
     ):
         pos = self.get_nodes_position(poset) if pos is None else pos
 
@@ -266,14 +277,14 @@ class NetworkxHasseViz(AbstractHasseViz):
                 node_label_func=node_label_func, node_label_font_size=node_label_font_size
             )
 
-        draw_node_indices = get_not_none(draw_node_indices, self.draw_node_indices)
-        if draw_node_indices:
+        flg_draw_node_indices = get_not_none(flg_draw_node_indices, self.flg_draw_node_indices)
+        if flg_draw_node_indices:
             self._draw_node_indices(
                 G, pos, ax, nodelist,
             )
 
-        show_axes = get_not_none(show_axes, self.show_axes)
-        if show_axes:
+        flg_show_axes = get_not_none(flg_show_axes, self.flg_show_axes)
+        if flg_show_axes:
             ax.set_axis_on()
         else:
             ax.set_axis_off()
