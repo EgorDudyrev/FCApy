@@ -16,7 +16,7 @@ class AbstractHasseViz:
     def __init__(
             self,
             pos: Dict[int, Tuple[Number, Number]] = None,
-            nodelist: Tuple[int] = None,
+            nodelist: Tuple[int] = None, edgelist: Tuple[int, int] = None,
             node_color: str = 'lightgray', node_alpha: Number = 1, node_size: Number = 300,
             node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = 12,
             node_border_color: str = 'white', node_border_width: Number = 1,
@@ -34,6 +34,7 @@ class AbstractHasseViz:
         self.node_label_font_size = node_label_font_size
         self.node_border_color = node_border_color
         self.node_border_width = node_border_width
+        self.edgelist = edgelist
         self.edge_color = edge_color
         self.edge_radius = edge_radius
         self.cmap = cmap
@@ -42,12 +43,19 @@ class AbstractHasseViz:
         self.flg_draw_node_indices = flg_draw_node_indices
         self.flg_show_axes = flg_show_axes
 
-    #############
-    # Functions #
-    #############
-    def draw_poset(self, poset, **kwargs):
+    ##################
+    # Draw functions #
+    ##################
+    def draw_poset(self, poset: POSet, **kwargs):
         raise NotImplementedError
 
+    def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], **kwargs):
+        """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""
+        raise NotImplementedError
+
+    ##########################
+    # Other useful functions #
+    ##########################
     @staticmethod
     def get_nodes_position(poset: POSet, layout='fcart', **kwargs):
         """Return a dict of nodes positions in a line diagram"""
@@ -60,17 +68,20 @@ class AbstractHasseViz:
         kwargs_used = get_kwargs_used(kwargs, layout_func)
         return layout_func(poset, **kwargs_used)
 
-    def _filter_nodes_edges(self, G, nodelist=None):
-        if nodelist is not None:
-            nodelist = self.nodelist
-            missing_nodeset = set(G.nodes) - set(nodelist)
-        else:
-            nodelist, missing_nodeset = list(G.nodes), set()
+    def _filter_nodes_edges(self, G, nodelist=None, edgelist=None):
+        # set up default values if none specified
+        nodelist = get_not_none(nodelist, self.nodelist)
+        edgelist = get_not_none(edgelist, self.edgelist)
 
-        edgelist = [
-            e for e in G.edges
-            if e[0] not in missing_nodeset and e[1] not in missing_nodeset
-        ]
+        # draw all nodes if none is still specified
+        if nodelist is None:
+            nodelist = list(G.nodes)
+        missing_nodeset = set(G.nodes) - set(nodelist)
+
+        # draw only the edges for the drawn nodes. If other is not specified
+        if edgelist is None:
+            edgelist = [e for e in G.edges if all([v not in missing_nodeset for v in e[:2]])]
+
         return nodelist, edgelist
 
     @staticmethod
@@ -181,6 +192,14 @@ class AbstractHasseViz:
     # Edge properties #
     ###################
     @property
+    def edgelist(self):
+        return self._edgelist
+
+    @edgelist.setter
+    def edgelist(self, value):
+        self._edgelist = value
+
+    @property
     def edge_color(self):
         return self._edge_color
 
@@ -255,6 +274,9 @@ class NetworkxHasseViz(AbstractHasseViz):
         G = poset.to_networkx('down')
         kwargs_used = get_kwargs_used(kwargs, self._filter_nodes_edges)
         nodelist, edgelist = self._filter_nodes_edges(G, **kwargs_used)
+        for k in ['nodelist', 'edgelist']:
+            if k in kwargs:
+                del kwargs[k]
 
         kwargs_used = get_kwargs_used(kwargs, self._draw_edges)
         self._draw_edges(G, pos, ax, edgelist, **kwargs_used)
@@ -276,6 +298,38 @@ class NetworkxHasseViz(AbstractHasseViz):
             ax.set_axis_on()
         else:
             ax.set_axis_off()
+
+        return G, pos, nodelist, edgelist
+
+    def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=plt.Axes, **kwargs):
+        """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""
+        G, pos, nodelist, _ = self.draw_poset(poset, ax, **dict(kwargs, edgelist=[]))
+
+        edge_labels_map = {}
+        for e in edges:
+            child_i, parent_i, label = e
+            edge_labels_map[(parent_i, child_i)] = edge_labels_map.get((parent_i, child_i), []) + [label]
+
+        edgelist = list(edge_labels_map)
+
+        multiedges = list(set([el for i, el in enumerate(edgelist) if el in edgelist[i + 1:]]))
+        for edge, labels in edge_labels_map.items():
+            if len(labels) % 2 == 0:
+                r_func = lambda i: (i // 2 + 1) * ((-1) ** (i % 2))
+            else:
+                r_func = lambda i: ((i - 1) // 2 + 1) * ((-1) ** (i % 2 + 1))
+
+            for i, label in enumerate(labels):
+                r = r_func(i)
+                self._draw_edges(G, pos, ax, [edge], edge_radius=r*0.1)
+
+        import networkx as nx
+        nx.draw_networkx_edge_labels(
+            G, pos,
+            edge_labels={edge: '\n'.join(labels) for edge, labels in edge_labels_map.items()},
+            rotate=False,
+        )
+        return G, pos, nodelist, edgelist
 
     def _draw_nodes(
             self, G, pos, ax, nodelist,
