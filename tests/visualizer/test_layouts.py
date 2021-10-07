@@ -75,3 +75,12 @@ def test_layouts_dict():
 
     for x in ['multipartite', 'fcart']:
         pos = hasse_layouts.LAYOUTS[x](L)
+
+
+def test_find_nodes_edges_overlay():
+    pos_right = {0: (0, 0), 1: (1, -1), 2: (1, -2), 3: (0, -3)}
+    pos_wrong = {0: (0, 0), 1: (0, -1), 2: (0, -2), 3: (0, -3)}
+    edges = [(0, 1), (0, 3), (1, 2)]
+
+    assert hasse_layouts.find_nodes_edges_overlay(pos_wrong, edges) == {(0, 3): [1, 2]}
+    assert hasse_layouts.find_nodes_edges_overlay(pos_right, edges) == {}

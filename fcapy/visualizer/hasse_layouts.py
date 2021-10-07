@@ -2,6 +2,8 @@
 This module provides a set of functions to derive a layout (node positions) for a given POSet
 
 """
+from typing import List, Dict, Tuple
+
 
 import networkx as nx
 from frozendict import frozendict
@@ -87,3 +89,8 @@ LAYOUTS = frozendict({
     'multipartite': multipartite_layout,
     'fcart': fcart_layout,
 })
+
+
+def find_nodes_edges_overlay(pos: Dict[int, Tuple[int, int]], edges: List[Tuple[int, int]])\
+        -> Dict[Tuple[int, int], List[int]]:
+    raise NotImplementedError
