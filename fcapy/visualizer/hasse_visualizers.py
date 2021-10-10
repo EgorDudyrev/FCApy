@@ -163,7 +163,7 @@ class NetworkxHasseViz(AbstractHasseViz):
             kwargs_used = get_kwargs_used(kwargs, self._draw_node_labels)
             self._draw_node_labels(poset, G, pos, ax, nodelist, **kwargs_used)
 
-        flg_draw_node_indices = kwargs.get('flg_draw_node_indices', self._draw_node_indices)
+        flg_draw_node_indices = kwargs.get('flg_draw_node_indices', self.flg_draw_node_indices)
         if flg_draw_node_indices:
             self._draw_node_indices(G, pos, ax, nodelist)
 
