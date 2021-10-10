@@ -9,43 +9,47 @@ from fcapy.utils.utils import get_kwargs_used, get_not_none
 from fcapy.lattice import ConceptLattice
 
 from typing import Tuple, Callable, Dict
-from numbers import Number
+from pydantic import BaseModel
 
 
-class AbstractHasseViz:
-    def __init__(
-            self,
-            pos: Dict[int, Tuple[Number, Number]] = None,
-            nodelist: Tuple[int] = None, edgelist: Tuple[int, int] = None,
-            node_color: str = 'lightgray', node_alpha: Number = 1, node_size: Number = 300,
-            node_label_func: Callable[[int, POSet], str] = None, node_label_font_size: int = 12,
-            node_border_color: str = 'white', node_border_width: Number = 1,
-            edge_color: str = 'lightgray', edge_radius: Number = 0,
-            cmap: str = 'Blues', cmap_min: Number = None, cmap_max: Number = None,
-            flg_draw_node_indices: bool = False, flg_show_axes: bool = False,
-    ):
-        """Initialize the class and set up default parameters values"""
-        self.pos = pos
-        self.nodelist = nodelist
-        self.node_color = node_color
-        self.node_alpha = node_alpha
-        self.node_size = node_size
-        self.node_label_func = node_label_func
-        self.node_label_font_size = node_label_font_size
-        self.node_border_color = node_border_color
-        self.node_border_width = node_border_width
-        self.edgelist = edgelist
-        self.edge_color = edge_color
-        self.edge_radius = edge_radius
-        self.cmap = cmap
-        self.cmap_min = cmap_min
-        self.cmap_max = cmap_max
-        self.flg_draw_node_indices = flg_draw_node_indices
-        self.flg_show_axes = flg_show_axes
+class AbstractHasseViz(BaseModel):
+    """An abstract class for Hasse visualizer that keeps all the possible visualization parameters"""
 
-    ##################
-    # Draw functions #
-    ##################
+    #####################
+    # Fields            #
+    #####################
+    pos: Dict[int, Tuple[float, float]] = None
+
+    # Node fields
+    nodelist: Tuple[int] = None
+    node_color: str = 'lightgray'
+
+    node_alpha: float = 1
+    node_size: float = 300
+    node_label_func: Callable[[int, POSet], str] = None
+    node_label_font_size: int = 12
+    node_border_color: str = 'white'
+    node_border_width: float = 1
+
+    # Edge fields
+    edgelist: Tuple[int, int] = None
+    edge_color: str = 'lightgray'
+    edge_radius: float = 0
+
+    # Colormap fields
+    cmap: str = 'Blues'
+    cmap_min: float = None
+    cmap_max: float = None
+
+    # Binary toggles
+    flg_draw_node_indices: bool = False
+    flg_show_axes: bool = False
+
+    #####################
+    # Functions         #
+    #####################
+
+    # Drawing functions
     def draw_poset(self, poset: POSet, **kwargs):
         raise NotImplementedError
 
@@ -60,9 +64,7 @@ class AbstractHasseViz:
             kwargs['node_label_func'] = lambda c_i, L: self.concept_lattice_label_func(c_i, L, **kwargs_used)
         self.draw_poset(lattice, **kwargs)
 
-    ##########################
-    # Other useful functions #
-    ##########################
+    # Other useful functions
     @staticmethod
     def get_nodes_position(poset: POSet, layout='fcart', **kwargs):
         """Return a dict of nodes positions in a line diagram"""
@@ -120,159 +122,11 @@ class AbstractHasseViz:
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
 
-    ###################
-    # Node properties #
-    ###################
-    @property
-    def pos(self):
-        return self._pos
-
-    @pos.setter
-    def pos(self, value):
-        self._pos = value
-
-    @property
-    def nodelist(self):
-        return self._nodelist
-
-    @nodelist.setter
-    def nodelist(self, value):
-        self._nodelist = value
-
-    @property
-    def node_color(self):
-        return self._node_color
-
-    @node_color.setter
-    def node_color(self, value: str or Tuple[str]):
-        self._node_color = value
-
-    @property
-    def node_alpha(self):
-        return self._node_alpha
-
-    @node_alpha.setter
-    def node_alpha(self, value: float):
-        self._node_alpha = value
-
-    @property
-    def node_size(self):
-        return self._node_size
-
-    @node_size.setter
-    def node_size(self, value: float):
-        self._node_size = value
-
-    @property
-    def node_label_func(self):
-        return self._node_label_func
-
-    @node_label_func.setter
-    def node_label_func(self, value: Callable):
-        self._node_label_func = value
-
-    @property
-    def node_label_font_size(self):
-        return self._node_label_font_size
-
-    @node_label_font_size.setter
-    def node_label_font_size(self, value: float):
-        self._node_label_font_size = value
-
-    @property
-    def node_border_color(self):
-        return self._node_border_color
-
-    @node_border_color.setter
-    def node_border_color(self, value: str or Tuple[str]):
-        self._node_border_color = value
-
-    @property
-    def node_border_width(self):
-        return self._node_border_width
-
-    @node_border_width.setter
-    def node_border_width(self, value: float):
-        self._node_border_width = value
-
-    ###################
-    # Edge properties #
-    ###################
-    @property
-    def edgelist(self):
-        return self._edgelist
-
-    @edgelist.setter
-    def edgelist(self, value):
-        self._edgelist = value
-
-    @property
-    def edge_color(self):
-        return self._edge_color
-
-    @edge_color.setter
-    def edge_color(self, value: str or Tuple[str]):
-        self._edge_color = value
-
-    @property
-    def edge_radius(self):
-        return self._edge_radius
-
-    @edge_radius.setter
-    def edge_radius(self, value: float):
-        self._edge_radius = value
-
-    #######################
-    # Colormap properties #
-    #######################
-    @property
-    def cmap(self):
-        return self._cmap
-
-    @cmap.setter
-    def cmap(self, value: str):
-        self._cmap = value
-
-    @property
-    def cmap_min(self):
-        return self._cmap_min
-
-    @cmap_min.setter
-    def cmap_min(self, value: float):
-        self._cmap_min = value
-
-    @property
-    def cmap_max(self):
-        return self._cmap_max
-
-    @cmap_max.setter
-    def cmap_max(self, value: float):
-        self._cmap_max = value
-
-    ##################
-    # Binary toggles #
-    ##################
-    @property
-    def flg_draw_node_indices(self):
-        return self._flg_draw_node_indices
-    
-    @flg_draw_node_indices.setter
-    def flg_draw_node_indices(self, value: bool):
-        self._flg_draw_node_indices = value
-
-    @property
-    def flg_show_axes(self):
-        return self._show_axes
-
-    @flg_show_axes.setter
-    def flg_show_axes(self, value: bool):
-        self._show_axes = value
-
 
 class NetworkxHasseViz(AbstractHasseViz):
-    import matplotlib.pyplot as plt
+    f"""A class to draw Hasse visualisations via Networkx package"""
 
-    def draw_poset(self, poset: POSet, ax=plt.Axes, **kwargs):
+    def draw_poset(self, poset: POSet, ax=None, **kwargs):
         """Draw a Partially Ordered Set as Hasse diagram with Networkx package
 
         WARNING: Please specify `ax` parameter in order for the function to work properly
@@ -337,7 +191,7 @@ class NetworkxHasseViz(AbstractHasseViz):
         """
         super(NetworkxHasseViz, self).draw_concept_lattice(lattice, **kwargs)
 
-    def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=plt.Axes, **kwargs):
+    def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=None, **kwargs):
         """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""
         G, pos, nodelist, _ = self.draw_poset(poset, ax, **dict(kwargs, edgelist=[]))
 

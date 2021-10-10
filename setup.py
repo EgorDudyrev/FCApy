@@ -26,6 +26,7 @@ def run_install(**kwargs):
             'matplotlib',
             'networkx>=2.5',
             'plotly',
+            'pydantic',
         ],
         'poset': [
             'networkx>=2.5',
