@@ -218,6 +218,7 @@ class NetworkxHasseViz(AbstractHasseViz):
             G, pos,
             edge_labels={edge: '\n'.join(labels) for edge, labels in edge_labels_map.items()},
             rotate=False,
+            ax=ax
         )
         return G, pos, nodelist, edgelist
 
