@@ -197,6 +197,10 @@ class NetworkxHasseViz(AbstractHasseViz):
 
         edge_label_rotate = kwargs.get('edge_label_rotate', False)
         edge_label_pos = kwargs.get('edge_label_pos', 0.9)
+        edge_color = kwargs.get('edge_color', self.edge_color)
+
+        is_edge_color_rgba_single = len(edge_color) in {3, 4} and all([isinstance(x, float) for x in edge_color])
+        is_edge_color_specific = len(edge_color) == len(edges) and not is_edge_color_rgba_single
 
         edge_labels_map = {}
         for e in edges:
@@ -206,6 +210,7 @@ class NetworkxHasseViz(AbstractHasseViz):
         edgelist = list(edge_labels_map)
 
         multiedges = list(set([el for i, el in enumerate(edgelist) if el in edgelist[i + 1:]]))
+
         for edge, labels in edge_labels_map.items():
             if len(labels) % 2 == 0:
                 r_func = lambda i: (i // 2 + 1) * ((-1) ** (i % 2))
@@ -213,8 +218,15 @@ class NetworkxHasseViz(AbstractHasseViz):
                 r_func = lambda i: ((i - 1) // 2 + 1) * ((-1) ** (i % 2 + 1))
 
             for i, label in enumerate(labels):
+                if is_edge_color_specific:
+                    edge_lbl = (edge[1], edge[0], label)
+                    edge_lbl_i = edges.index(edge_lbl)
+                    edge_color_ = edge_color[edge_lbl_i]
+                else:
+                    edge_color_ = edge_color
+
                 r = r_func(i)
-                self._draw_edges(G, pos, ax, [edge], edge_radius=r*0.1)
+                self._draw_edges(G, pos, ax, [edge], edge_radius=r*0.1, edge_color=[edge_color_])
 
         import networkx as nx
         nx.draw_networkx_edge_labels(
