@@ -195,6 +195,9 @@ class NetworkxHasseViz(AbstractHasseViz):
         """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""
         G, pos, nodelist, _ = self.draw_poset(poset, ax, **dict(kwargs, edgelist=[]))
 
+        edge_label_rotate = kwargs.get('edge_label_rotate', False)
+        edge_label_pos = kwargs.get('edge_label_pos', 0.9)
+
         edge_labels_map = {}
         for e in edges:
             child_i, parent_i, label = e
@@ -217,7 +220,8 @@ class NetworkxHasseViz(AbstractHasseViz):
         nx.draw_networkx_edge_labels(
             G, pos,
             edge_labels={edge: '\n'.join(labels) for edge, labels in edge_labels_map.items()},
-            rotate=False,
+            rotate=edge_label_rotate,
+            ax=ax, label_pos=edge_label_pos
         )
         return G, pos, nodelist, edgelist
 
