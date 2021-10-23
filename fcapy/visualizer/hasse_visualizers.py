@@ -85,11 +85,11 @@ class AbstractHasseViz(BaseModel):
         # draw all nodes if none is still specified
         if nodelist is None:
             nodelist = list(G.nodes)
-        missing_nodeset = set(G.nodes) - set(nodelist)
 
         # draw only the edges for the drawn nodes. If other is not specified
         if edgelist is None:
-            edgelist = [e for e in G.edges if all([v not in missing_nodeset for v in e[:2]])]
+            edgelist = list(G.edges)
+        edgelist = [e for e in edgelist if all([v in nodelist for v in e[:2]])]
 
         return nodelist, edgelist
 
