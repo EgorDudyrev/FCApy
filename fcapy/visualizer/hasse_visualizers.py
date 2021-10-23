@@ -4,12 +4,30 @@ This module provides visualizers to draw Hasse diagrams
 WARNING: The module is in production. It has not been fully tested and designed yet.
 """
 from fcapy.poset import POSet
-from fcapy.visualizer.hasse_layouts import LAYOUTS
+from fcapy.visualizer.hasse_layouts import LAYOUTS, find_nodes_edges_overlay
 from fcapy.utils.utils import get_kwargs_used, get_not_none
 from fcapy.lattice import ConceptLattice
 
 from typing import Tuple, Callable, Dict
 from pydantic import BaseModel
+
+import logging
+
+
+class NodeEdgeOverlayWarning(UserWarning):
+    def __init__(self, overlays: Dict[Tuple[int, int], Tuple[int, ...]]):
+        self.overlays = overlays
+
+    def __str__(self):
+        msg = '\n'.join([
+            "Some lines in the Hasse diagram overlap the nodes.",
+            "Please, modify the ``pos`` dictionary parameter manually. "
+            "You can obtain the default ``pos`` via AbstractHasseViz.get_nodes_position(...) function.",
+            "",
+            "The problematic edges and nodes (in the form of {edge: overlapped nodes indexes}) are:",
+            f"{self.overlays}",
+        ])
+        return msg
 
 
 class AbstractHasseViz(BaseModel):
@@ -115,6 +133,23 @@ class AbstractHasseViz(BaseModel):
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
 
+    def _retrieve_pos(self, poset, kwargs, nodelist, edgelist):
+        pos_defined = kwargs.get('pos', self.pos)
+        if pos_defined is None:
+            kwargs_used = get_kwargs_used(kwargs, self.get_nodes_position)
+            pos = self.get_nodes_position(poset, **kwargs_used)
+        else:
+            pos = pos_defined
+
+        overlays = find_nodes_edges_overlay(pos, nodelist, edgelist)
+        if len(overlays) > 0:
+            #warnings.warn(str(overlays), NodeEdgeOverlayWarning)
+            logging.warning(NodeEdgeOverlayWarning(overlays))
+
+        if 'pos' in kwargs:
+            del kwargs['pos']
+        return pos
+
 
 class NetworkxHasseViz(AbstractHasseViz):
     f"""A class to draw Hasse visualisations via Networkx package"""
@@ -137,17 +172,14 @@ class NetworkxHasseViz(AbstractHasseViz):
             "Please specify `ax` parameter in order for the function to work properly." \
             "You may obtain the `ax` value via ```import matplotlib.pyplot as plt; fig, ax = plt.subplots()```"
 
-        pos_defined = kwargs.get('pos', self.pos)
-        pos = self.get_nodes_position(poset) if pos_defined is None else pos_defined
-        if 'pos' in kwargs:
-            del kwargs['pos']
-
         G = poset.to_networkx('down')
         kwargs_used = get_kwargs_used(kwargs, self._filter_nodes_edges)
         nodelist, edgelist = self._filter_nodes_edges(G, **kwargs_used)
         for k in ['nodelist', 'edgelist']:
             if k in kwargs:
                 del kwargs[k]
+
+        pos = self._retrieve_pos(poset, kwargs, nodelist, edgelist)
 
         kwargs_used = get_kwargs_used(kwargs, self._draw_edges)
         self._draw_edges(G, pos, ax, edgelist, **kwargs_used)
