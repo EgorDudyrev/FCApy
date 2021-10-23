@@ -80,6 +80,16 @@ def test_concept_lattice_label_func():
 
 
 def test_draw_concept_lattice_networkx():
+    def compare_figure_png(fig, fname):
+        with io.BytesIO() as buff:
+            fig.savefig(buff, format='png', dpi=300)
+            buff.seek(0)
+            im_fig = plt.imread(buff)
+
+        im_file = image.imread(fname)
+        assert ((im_fig-im_file)<1e-6).all(), f"Cannot recreate the figure from file {fname}"
+
+    # The simplest case
     path = 'data/animal_movement.json'
     K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
@@ -90,11 +100,18 @@ def test_draw_concept_lattice_networkx():
         L, ax=ax, flg_node_indices=False,
     )
     fig.tight_layout()
+    compare_figure_png(fig, 'data/animal_movement_lattice.png')
 
-    with io.BytesIO() as buff:
-        fig.savefig(buff, format='png', dpi=300)
-        buff.seek(0)
-        im = plt.imread(buff)
+    # Specify optional parameters
+    pos = vsl.get_nodes_position(L)
+    G = L.to_networkx()
+    nodelist = list(G.nodes)
+    edgelist = list(G.edges)
 
-    im_true = image.imread('data/animal_movement_lattice.png')
-    assert ((im-im_true) < 1e-6).all()
+    fig, ax = plt.subplots(figsize=(7, 5))
+    vsl.draw_concept_lattice(
+        L, ax=ax, flg_node_indices=True, flg_axes=True,
+        pos=pos, nodelist=nodelist, edgelist=edgelist
+    )
+    fig.tight_layout()
+    compare_figure_png(fig, 'data/animal_movement_lattice_overloaded.png')
