@@ -2,6 +2,8 @@
 This module provides a set of functions to derive a layout (node positions) for a given POSet
 
 """
+from typing import List, Dict, Tuple
+
 
 import networkx as nx
 from frozendict import frozendict
@@ -87,3 +89,36 @@ LAYOUTS = frozendict({
     'multipartite': multipartite_layout,
     'fcart': fcart_layout,
 })
+
+
+def find_nodes_edges_overlay(
+        pos: Dict[int, Tuple[int, int]],
+        nodes: Tuple[int],
+        edges: Tuple[Tuple[int, int]]
+) -> Dict[Tuple[int, int], Tuple[int]]:
+    def sq_dist(a_pos, b_pos):
+        return (a_pos[0] - b_pos[0]) ** 2 + (a_pos[1] - b_pos[0]) ** 2
+
+    def test_is_on_line(a_pos, b_pos, v_pos) -> bool:
+        if not b_pos[1] <= v_pos[1] <= a_pos[1]:  # Since b_pos[1] always <= a_pos[1] due to Hasse diagram nature
+            return False
+
+        if not (a_pos[0] <= v_pos[0] <= b_pos[0] or b_pos[0] <= v_pos[0] <= a_pos[0]):
+            return False
+
+        dist_ab = sq_dist(a_pos, b_pos)
+        dist_av = sq_dist(a_pos, v_pos)
+        dist_vb = sq_dist(v_pos, b_pos)
+        if (dist_av + dist_vb) - dist_ab < 1e-6:
+            return False
+
+        return True
+
+    overlays = {
+        edge: [v_idx for v_idx in nodes
+               if v_idx not in edge and test_is_on_line(pos[edge[0]], pos[edge[1]], pos[v_idx])]
+        for edge in edges
+    }
+
+    overlays = {edge: tuple(overs) for edge, overs in overlays.items() if len(overs) > 0}
+    return overlays
