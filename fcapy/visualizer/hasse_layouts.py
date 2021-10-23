@@ -93,6 +93,7 @@ LAYOUTS = frozendict({
 
 def find_nodes_edges_overlay(
         pos: Dict[int, Tuple[int, int]],
+        nodes: Tuple[int],
         edges: Tuple[Tuple[int, int]]
 ) -> Dict[Tuple[int, int], Tuple[int]]:
     def sq_dist(a_pos, b_pos):
@@ -114,8 +115,8 @@ def find_nodes_edges_overlay(
         return True
 
     overlays = {
-        edge: [v_idx for v_idx, v_pos in pos.items()
-               if v_idx not in edge and test_is_on_line(pos[edge[0]], pos[edge[1]], v_pos)]
+        edge: [v_idx for v_idx in nodes
+               if v_idx not in edge and test_is_on_line(pos[edge[0]], pos[edge[1]], pos[v_idx])]
         for edge in edges
     }
 

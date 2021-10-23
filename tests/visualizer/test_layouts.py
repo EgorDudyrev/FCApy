@@ -81,6 +81,7 @@ def test_find_nodes_edges_overlay():
     pos_right = {0: (0, 0), 1: (1, -1), 2: (1, -2), 3: (0, -3)}
     pos_wrong = {0: (0, 0), 1: (0, -1), 2: (0, -2), 3: (0, -3)}
     edges = [(0, 1), (0, 3), (1, 2)]
+    nodes = [0, 1, 2, 3]
 
-    assert hasse_layouts.find_nodes_edges_overlay(pos_wrong, edges) == {(0, 3): (1, 2)}
-    assert hasse_layouts.find_nodes_edges_overlay(pos_right, edges) == {}
+    assert hasse_layouts.find_nodes_edges_overlay(pos_wrong, nodes, edges) == {(0, 3): (1, 2)}
+    assert hasse_layouts.find_nodes_edges_overlay(pos_right, nodes, edges) == {}
