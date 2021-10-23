@@ -42,8 +42,8 @@ class AbstractHasseViz(BaseModel):
     cmap_max: float = None
 
     # Binary toggles
-    flg_draw_node_indices: bool = False
-    flg_show_axes: bool = False
+    flg_node_indices: bool = False
+    flg_axes: bool = False
 
     #####################
     # Functions         #
@@ -96,21 +96,21 @@ class AbstractHasseViz(BaseModel):
     @staticmethod
     def concept_lattice_label_func(
             c_i: int, lattice: ConceptLattice,
-            flg_draw_new_intent_count_prefix: bool = True, max_new_intent_count: int = 2,
-            flg_draw_new_extent_count_prefix: bool = True, max_new_extent_count: int = 2
+            flg_new_intent_count_prefix: bool = True, max_new_intent_count: int = 2,
+            flg_new_extent_count_prefix: bool = True, max_new_extent_count: int = 2
     ) -> str:
-        def short_set_repr(set_: set, flg_draw_count_prefix: bool, max_count: int) -> str:
+        def short_set_repr(set_: set, flg_count_prefix: bool, max_count: int) -> str:
             if len(set_) > 0:
-                s = f"{len(set_)}: " if flg_draw_count_prefix else ""
+                s = f"{len(set_)}: " if flg_count_prefix else ""
                 s += ', '.join(sorted(set_)[:max_count])
             else:
                 s = ''
             return s
 
         new_intent_str = short_set_repr(lattice.get_concept_new_intent(c_i),
-                                        flg_draw_new_intent_count_prefix, max_new_intent_count)
+                                        flg_new_intent_count_prefix, max_new_intent_count)
         new_extent_str = short_set_repr(lattice.get_concept_new_extent(c_i),
-                                        flg_draw_new_extent_count_prefix, max_new_extent_count)
+                                        flg_new_extent_count_prefix, max_new_extent_count)
 
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
@@ -156,12 +156,12 @@ class NetworkxHasseViz(AbstractHasseViz):
             kwargs_used = get_kwargs_used(kwargs, self._draw_node_labels)
             self._draw_node_labels(poset, G, pos, ax, nodelist, **kwargs_used)
 
-        flg_draw_node_indices = kwargs.get('flg_draw_node_indices', self.flg_draw_node_indices)
-        if flg_draw_node_indices:
+        flg_node_indices = kwargs.get('flg_node_indices', self.flg_node_indices)
+        if flg_node_indices:
             self._draw_node_indices(G, pos, ax, nodelist)
 
-        flg_show_axes = kwargs.get('flg_show_axes', self.flg_show_axes)
-        if flg_show_axes:
+        flg_axes = kwargs.get('flg_axes', self.flg_axes)
+        if flg_axes:
             ax.set_axis_on()
         else:
             ax.set_axis_off()
