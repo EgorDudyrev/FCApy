@@ -42,8 +42,8 @@ class AbstractHasseViz(BaseModel):
     cmap_max: float = None
 
     # Binary toggles
-    flg_draw_node_indices: bool = False
-    flg_show_axes: bool = False
+    flg_node_indices: bool = False
+    flg_axes: bool = False
 
     #####################
     # Functions         #
@@ -85,39 +85,32 @@ class AbstractHasseViz(BaseModel):
         # draw all nodes if none is still specified
         if nodelist is None:
             nodelist = list(G.nodes)
-        missing_nodeset = set(G.nodes) - set(nodelist)
 
         # draw only the edges for the drawn nodes. If other is not specified
         if edgelist is None:
-            edgelist = [e for e in G.edges if all([v not in missing_nodeset for v in e[:2]])]
+            edgelist = list(G.edges)
+        edgelist = [e for e in edgelist if all([v in nodelist for v in e[:2]])]
 
         return nodelist, edgelist
 
     @staticmethod
     def concept_lattice_label_func(
             c_i: int, lattice: ConceptLattice,
-            flg_draw_new_intent_count_prefix: bool = True, max_new_intent_count: int = 2,
-            flg_draw_new_extent_count_prefix: bool = True, max_new_extent_count: int = 2
+            flg_new_intent_count_prefix: bool = True, max_new_intent_count: int = 2,
+            flg_new_extent_count_prefix: bool = True, max_new_extent_count: int = 2
     ) -> str:
-        new_intent = list(lattice.get_concept_new_intent(c_i))
-        if len(new_intent) > 0:
-            new_intent_str = f"{len(new_intent)}: " if flg_draw_new_intent_count_prefix else ""
-            new_intent_str += ', '.join(new_intent[:max_new_intent_count])
-            if len(new_intent_str) > 0 \
-                    and max_new_intent_count is not None and len(new_intent) > max_new_intent_count:
-                new_intent_str += '...'
-        else:
-            new_intent_str = ''
+        def short_set_repr(set_: set, flg_count_prefix: bool, max_count: int) -> str:
+            if len(set_) > 0:
+                s = f"{len(set_)}: " if flg_count_prefix else ""
+                s += ', '.join(sorted(set_)[:max_count])
+            else:
+                s = ''
+            return s
 
-        new_extent = list(lattice.get_concept_new_extent(c_i))
-        if len(new_extent) > 0:
-            new_extent_str = f"{len(new_extent)}: " if flg_draw_new_extent_count_prefix else ""
-            new_extent_str += ', '.join(new_extent[:max_new_extent_count])
-            if len(new_extent_str) > 0 \
-                    and max_new_extent_count is not None and len(new_extent) > max_new_extent_count:
-                new_extent_str += '...'
-        else:
-            new_extent_str = ''
+        new_intent_str = short_set_repr(lattice.get_concept_new_intent(c_i),
+                                        flg_new_intent_count_prefix, max_new_intent_count)
+        new_extent_str = short_set_repr(lattice.get_concept_new_extent(c_i),
+                                        flg_new_extent_count_prefix, max_new_extent_count)
 
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
@@ -140,6 +133,10 @@ class NetworkxHasseViz(AbstractHasseViz):
         viz.draw_poset(poset, ax=ax, ...)
         ```
         """
+        assert ax is not None,\
+            "Please specify `ax` parameter in order for the function to work properly." \
+            "You may obtain the `ax` value via ```import matplotlib.pyplot as plt; fig, ax = plt.subplots()```"
+
         pos_defined = kwargs.get('pos', self.pos)
         pos = self.get_nodes_position(poset) if pos_defined is None else pos_defined
         if 'pos' in kwargs:
@@ -163,12 +160,12 @@ class NetworkxHasseViz(AbstractHasseViz):
             kwargs_used = get_kwargs_used(kwargs, self._draw_node_labels)
             self._draw_node_labels(poset, G, pos, ax, nodelist, **kwargs_used)
 
-        flg_draw_node_indices = kwargs.get('flg_draw_node_indices', self.flg_draw_node_indices)
-        if flg_draw_node_indices:
+        flg_node_indices = kwargs.get('flg_node_indices', self.flg_node_indices)
+        if flg_node_indices:
             self._draw_node_indices(G, pos, ax, nodelist)
 
-        flg_show_axes = kwargs.get('flg_show_axes', self.flg_show_axes)
-        if flg_show_axes:
+        flg_axes = kwargs.get('flg_axes', self.flg_axes)
+        if flg_axes:
             ax.set_axis_on()
         else:
             ax.set_axis_off()
