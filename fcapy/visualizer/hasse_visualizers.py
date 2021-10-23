@@ -133,6 +133,10 @@ class NetworkxHasseViz(AbstractHasseViz):
         viz.draw_poset(poset, ax=ax, ...)
         ```
         """
+        assert ax is not None,\
+            "Please specify `ax` parameter in order for the function to work properly." \
+            "You may obtain the `ax` value via ```import matplotlib.pyplot as plt; fig, ax = plt.subplots()```"
+
         pos_defined = kwargs.get('pos', self.pos)
         pos = self.get_nodes_position(poset) if pos_defined is None else pos_defined
         if 'pos' in kwargs:

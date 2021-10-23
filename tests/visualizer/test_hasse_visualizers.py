@@ -2,6 +2,11 @@ from fcapy.visualizer import hasse_visualizers as viz
 from fcapy.context import FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 
+import io
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import image
+
 import pytest
 
 
@@ -74,5 +79,22 @@ def test_concept_lattice_label_func():
     assert lbl == '1: run\n\n3: dog, horse, zebra'
 
 
-def test__init__():
+def test_draw_concept_lattice_networkx():
+    path = 'data/animal_movement.json'
+    K = FormalContext.read_json(path)
+    L = ConceptLattice.from_context(K)
+
+    fig, ax = plt.subplots(figsize=(7, 5))
     vsl = viz.NetworkxHasseViz()
+    vsl.draw_concept_lattice(
+        L, ax=ax, flg_node_indices=False,
+    )
+    fig.tight_layout()
+
+    with io.BytesIO() as buff:
+        fig.savefig(buff, format='png', dpi=300)
+        buff.seek(0)
+        im = plt.imread(buff)
+
+    im_true = image.imread('data/animal_movement_lattice.png')
+    assert ((im-im_true) < 1e-6).all()
