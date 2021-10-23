@@ -126,7 +126,7 @@ from fcapy.visualizer import ConceptLatticeVisualizer
 plt.figure(figsize=(10, 5))
 
 vsl = ConceptLatticeVisualizer(L)
-vsl.draw_networkx(max_new_extent_count=5, flg_draw_node_indices=True)
+vsl.draw_networkx(max_new_extent_count=5, draw_node_indices=True)
 
 plt.xlim(-0.7,0.7)
 plt.axis(False)
