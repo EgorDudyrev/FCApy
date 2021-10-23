@@ -133,6 +133,16 @@ class AbstractHasseViz(BaseModel):
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
 
+    def _retrieve_nodelist_edgelist(self, poset, kwargs):
+        G = poset.to_networkx('down')
+        kwargs_used = get_kwargs_used(kwargs, self._filter_nodes_edges)
+        nodelist, edgelist = self._filter_nodes_edges(G, **kwargs_used)
+        for k in ['nodelist', 'edgelist']:
+            if k in kwargs:
+                del kwargs[k]
+
+        return G, nodelist, edgelist
+
     def _retrieve_pos(self, poset, kwargs, nodelist, edgelist):
         pos_defined = kwargs.get('pos', self.pos)
         if pos_defined is None:
@@ -172,13 +182,7 @@ class NetworkxHasseViz(AbstractHasseViz):
             "Please specify `ax` parameter in order for the function to work properly." \
             "You may obtain the `ax` value via ```import matplotlib.pyplot as plt; fig, ax = plt.subplots()```"
 
-        G = poset.to_networkx('down')
-        kwargs_used = get_kwargs_used(kwargs, self._filter_nodes_edges)
-        nodelist, edgelist = self._filter_nodes_edges(G, **kwargs_used)
-        for k in ['nodelist', 'edgelist']:
-            if k in kwargs:
-                del kwargs[k]
-
+        G, nodelist, edgelist = self._retrieve_nodelist_edgelist(poset, kwargs)
         pos = self._retrieve_pos(poset, kwargs, nodelist, edgelist)
 
         kwargs_used = get_kwargs_used(kwargs, self._draw_edges)
