@@ -1,5 +1,5 @@
 from fcapy.visualizer import hasse_visualizers as viz
-from fcapy.context import converters
+from fcapy.context import FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 
 import pytest
@@ -20,7 +20,7 @@ def test__init__abstract():
 
 def test_get_nodes_position():
     path = 'data/animal_movement.json'
-    K = converters.read_json(path)
+    K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
 
     vsl = viz.AbstractHasseViz()
@@ -35,7 +35,7 @@ def test_get_nodes_position():
 
 def test_filter_nodes_edges():
     path = 'data/animal_movement.json'
-    K = converters.read_json(path)
+    K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
     G = L.to_networkx()
 
@@ -59,6 +59,19 @@ def test_filter_nodes_edges():
     nodes, edges = vsl._filter_nodes_edges(G, nodelist=nodes_filter, edgelist=edges_filter)
     assert nodes == nodes_filter
     assert edges == [e for e in edges_filter if e[0] in nodes_filter and e[1] in nodes_filter]
+
+
+def test_concept_lattice_label_func():
+    path = 'data/animal_movement.json'
+    K = FormalContext.read_json(path)
+    L = ConceptLattice.from_context(K)
+    vsl = viz.AbstractHasseViz()
+
+    lbl = vsl.concept_lattice_label_func(0, L)
+    assert lbl == '\n\n2: cow, hen'
+
+    lbl = vsl.concept_lattice_label_func(2, L, max_new_extent_count=3)
+    assert lbl == '1: run\n\n3: dog, horse, zebra'
 
 
 def test__init__():

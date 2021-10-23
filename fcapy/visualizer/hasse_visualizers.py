@@ -99,25 +99,18 @@ class AbstractHasseViz(BaseModel):
             flg_draw_new_intent_count_prefix: bool = True, max_new_intent_count: int = 2,
             flg_draw_new_extent_count_prefix: bool = True, max_new_extent_count: int = 2
     ) -> str:
-        new_intent = list(lattice.get_concept_new_intent(c_i))
-        if len(new_intent) > 0:
-            new_intent_str = f"{len(new_intent)}: " if flg_draw_new_intent_count_prefix else ""
-            new_intent_str += ', '.join(new_intent[:max_new_intent_count])
-            if len(new_intent_str) > 0 \
-                    and max_new_intent_count is not None and len(new_intent) > max_new_intent_count:
-                new_intent_str += '...'
-        else:
-            new_intent_str = ''
+        def short_set_repr(set_: set, flg_draw_count_prefix: bool, max_count: int) -> str:
+            if len(set_) > 0:
+                s = f"{len(set_)}: " if flg_draw_count_prefix else ""
+                s += ', '.join(sorted(set_)[:max_count])
+            else:
+                s = ''
+            return s
 
-        new_extent = list(lattice.get_concept_new_extent(c_i))
-        if len(new_extent) > 0:
-            new_extent_str = f"{len(new_extent)}: " if flg_draw_new_extent_count_prefix else ""
-            new_extent_str += ', '.join(new_extent[:max_new_extent_count])
-            if len(new_extent_str) > 0 \
-                    and max_new_extent_count is not None and len(new_extent) > max_new_extent_count:
-                new_extent_str += '...'
-        else:
-            new_extent_str = ''
+        new_intent_str = short_set_repr(lattice.get_concept_new_intent(c_i),
+                                        flg_draw_new_intent_count_prefix, max_new_intent_count)
+        new_extent_str = short_set_repr(lattice.get_concept_new_extent(c_i),
+                                        flg_draw_new_extent_count_prefix, max_new_extent_count)
 
         label = '\n\n'.join([new_intent_str, new_extent_str])
         return label
