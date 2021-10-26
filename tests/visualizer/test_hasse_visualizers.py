@@ -94,6 +94,7 @@ def test_draw_concept_lattice_networkx():
     K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
 
+    plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
     fig, ax = plt.subplots(figsize=(7, 5))
     vsl = viz.NetworkxHasseViz()
     vsl.draw_concept_lattice(
