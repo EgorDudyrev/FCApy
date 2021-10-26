@@ -83,5 +83,14 @@ def test_find_nodes_edges_overlay():
     edges = [(0, 1), (0, 3), (1, 2)]
     nodes = [0, 1, 2, 3]
 
-    assert hasse_layouts.find_nodes_edges_overlay(pos_wrong, nodes, edges) == {(0, 3): (1, 2)}
+    assert hasse_layouts.find_nodes_edges_overlay(pos_wrong, nodes, edges) == {(0, 3): frozenset({1, 2})}
     assert hasse_layouts.find_nodes_edges_overlay(pos_right, nodes, edges) == {}
+
+    # Real world case: Animal concept lattice with no overlaps
+    pos = {
+        0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
+        4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5)
+    }
+    nodes = (0, 1, 2, 3, 4, 5, 6, 7)
+    edges = ((0, 1), (0, 2), (0, 3), (1, 4), (1, 5), (2, 4), (3, 5), (3, 6), (4, 7), (5, 7), (6, 7))
+    assert hasse_layouts.find_nodes_edges_overlay(pos, nodes, edges) == {}
