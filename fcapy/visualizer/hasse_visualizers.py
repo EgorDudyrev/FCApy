@@ -4,12 +4,13 @@ This module provides visualizers to draw Hasse diagrams
 WARNING: The module is in production. It has not been fully tested and designed yet.
 """
 from fcapy.poset import POSet
-from fcapy.visualizer.hasse_layouts import LAYOUTS, find_nodes_edges_overlay
+from fcapy.visualizer.hasse_layouts import find_nodes_edges_overlay
+from fcapy.visualizer.mover import Mover
 from fcapy.utils.utils import get_kwargs_used, get_not_none
 from fcapy.lattice import ConceptLattice
 
 from typing import Tuple, Callable, Dict
-from pydantic import BaseModel
+from attr import dataclass
 
 import logging
 
@@ -22,7 +23,7 @@ class NodeEdgeOverlayWarning(UserWarning):
         msg = '\n'.join([
             "Some lines in the Hasse diagram overlap the nodes.",
             "Please, modify the ``pos`` dictionary parameter manually. "
-            "You can obtain the default ``pos`` via AbstractHasseViz.get_nodes_position(...) function.",
+            "You can obtain the default ``pos`` via Mover.initialize_pos(...) function.",
             "",
             "The problematic edges and nodes (in the form of {edge: overlapped nodes indexes}) are:",
             f"{self.overlays}",
@@ -30,13 +31,15 @@ class NodeEdgeOverlayWarning(UserWarning):
         return msg
 
 
-class AbstractHasseViz(BaseModel):
+@dataclass
+class AbstractHasseViz:
     """An abstract class for Hasse visualizer that keeps all the possible visualization parameters"""
 
     #####################
     # Fields            #
     #####################
-    pos: Dict[int, Tuple[float, float]] = None
+    # Mover object
+    mover: Mover = None
 
     # Node fields
     nodelist: Tuple[int] = None
@@ -83,18 +86,6 @@ class AbstractHasseViz(BaseModel):
         self.draw_poset(lattice, **kwargs)
 
     # Other useful functions
-    @staticmethod
-    def get_nodes_position(poset: POSet, layout='fcart', **kwargs):
-        """Return a dict of nodes positions in a line diagram"""
-        if layout not in LAYOUTS:
-            raise ValueError(
-                f'Layout "{layout}" is not supported. '
-                f'Possible layouts are: {", ".join(LAYOUTS.keys())}'
-            )
-        layout_func = LAYOUTS[layout]
-        kwargs_used = get_kwargs_used(kwargs, layout_func)
-        return layout_func(poset, **kwargs_used)
-
     def _filter_nodes_edges(self, G, nodelist=None, edgelist=None):
         # set up default values if none specified
         nodelist = get_not_none(nodelist, self.nodelist)
@@ -144,12 +135,14 @@ class AbstractHasseViz(BaseModel):
         return G, nodelist, edgelist
 
     def _retrieve_pos(self, poset, kwargs, nodelist, edgelist):
-        pos_defined = kwargs.get('pos', self.pos)
-        if pos_defined is None:
-            kwargs_used = get_kwargs_used(kwargs, self.get_nodes_position)
-            pos = self.get_nodes_position(poset, **kwargs_used)
+        if 'pos' in kwargs:
+            pos = kwargs['pos']
         else:
-            pos = pos_defined
+            if self.mover is None or self.mover.pos is None:
+                self.mover = Mover()
+                kwargs_used = get_kwargs_used(kwargs, self.mover.initialize_pos)
+                self.mover.initialize_pos(poset, **kwargs_used)
+            pos = self.mover.pos
 
         overlays = find_nodes_edges_overlay(pos, nodelist, edgelist)
         if len(overlays) > 0:

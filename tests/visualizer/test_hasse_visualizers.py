@@ -1,4 +1,4 @@
-from fcapy.visualizer import hasse_visualizers as viz
+from fcapy.visualizer import hasse_visualizers as viz, hasse_layouts
 from fcapy.context import FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 
@@ -21,21 +21,6 @@ def test__init__abstract():
 
     with pytest.raises(NotImplementedError):
         vsl.draw_concept_lattice(None)
-
-
-def test_get_nodes_position():
-    path = 'data/animal_movement.json'
-    K = FormalContext.read_json(path)
-    L = ConceptLattice.from_context(K)
-
-    vsl = viz.AbstractHasseViz()
-
-    pos = vsl.get_nodes_position(L)
-
-    pos = vsl.get_nodes_position(L, 'fcart')
-
-    with pytest.raises(ValueError):
-        pos = vsl.get_nodes_position(L, 'FaKeLaYoUt')
 
 
 def test_filter_nodes_edges():
@@ -104,7 +89,7 @@ def test_draw_concept_lattice_networkx():
     compare_figure_png(fig, 'data/animal_movement_lattice.png')
 
     # Specify optional parameters
-    pos = vsl.get_nodes_position(L)
+    pos = hasse_layouts.fcart_layout(L)
     G = L.to_networkx()
     nodelist = list(G.nodes)
     edgelist = list(G.edges)
