@@ -16,7 +16,7 @@ def test_init():
         4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5)
     }
     mvr = Mover(pos=pos)
-    assert pos == pos
+    assert mvr.pos == pos
 
 
 def test_get_nodes_position():
