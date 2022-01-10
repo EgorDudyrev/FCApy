@@ -101,3 +101,45 @@ class Mover:
             raise DifferentHierarchyLevelsError(el_a, el_b, "'swap_nodes'")
 
         self.peers_order[el_a], self.peers_order[el_b] = self.peers_order[el_b], self.peers_order[el_a]
+
+    def shift_node(self, node_i: int, n_nodes_right: int) -> None:
+        node_lvl, node_peer_id = self.levels[node_i], self.peers_order[node_i]
+
+        peers_ids = [i for i, lvl in enumerate(self.levels) if lvl == node_lvl]
+        peers_ids = sorted(peers_ids, key=lambda i: self.peers_order[i])
+
+        nodes_to_swap = peers_ids[node_peer_id+1:] if n_nodes_right >= 0 else peers_ids[:node_peer_id][::-1]
+        nodes_to_swap = nodes_to_swap[:abs(n_nodes_right)]
+
+        for node_swap in nodes_to_swap:
+            self.swap_nodes(node_i, node_swap)
+
+    def jitter_node(self, node_i: int, dx: float) -> None:
+        lvl_id, peer_id = self.levels[node_i], self.peers_order[node_i]
+        pos_peers = self.pos_peers[lvl_id]
+
+        new_x = pos_peers[peer_id] + dx
+
+        is_on_border = peer_id == len(pos_peers) - 1 if dx >= 0 else peer_id == 0
+        if is_on_border:
+            pos_peers[peer_id] = new_x
+            return
+
+        is_preserving_order = new_x < pos_peers[peer_id + 1] if dx >= 0 else new_x > pos_peers[peer_id - 1]
+        if is_preserving_order:
+            pos_peers[peer_id] = new_x
+            return
+
+        # if shifts with other nodes
+        if any([x == new_x for x in pos_peers]):
+            raise AssertionError("New node position overlaps another node")  # TODO: Determine the overlapping node
+
+        if dx >= 0:
+            n_nodes_to_shift = len([x for x in pos_peers[peer_id+1:] if x < new_x])
+        else:
+            n_nodes_to_shift = -len([x for x in pos_peers[:peer_id] if x > new_x])
+
+        self.shift_node(node_i, n_nodes_to_shift)
+
+        peer_id = self.peers_order[node_i]
+        self.pos_peers[lvl_id][peer_id] = new_x

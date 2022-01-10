@@ -67,5 +67,5 @@ def test_shift_node():
     mvr = Mover(pos={k: v for k, v in pos.items()})
     mvr.shift_node(5, n_nodes_right=2)
     pos_true = pos.copy()
-    pos_true[5], pos_true[6], pos_true[8] = pos_true[6], pos_true[8], pos_true[5]
+    pos_true[6], pos_true[8], pos_true[5] = pos_true[5], pos_true[6], pos_true[8]
     assert mvr.pos == pos_true
