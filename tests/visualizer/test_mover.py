@@ -44,3 +44,28 @@ def test_swap_nodes():
 
     with pytest.raises(DifferentHierarchyLevelsError):
         mvr.swap_nodes(1, 4)
+
+
+def test_jitter_node():
+    pos = {
+        0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
+        4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5)
+    }
+    mvr = Mover(pos={k: v for k, v in pos.items()})
+    mvr.jitter_node(node_i=6, dx=0.1)
+    pos_true = pos.copy()
+    pos_true[6] = (pos_true[6][0] + 0.1, pos_true[6][1])
+    assert mvr.pos == pos_true
+
+
+def test_shift_node():
+    pos = {
+        0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
+        4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5),
+        8: (0.8, 0.0)
+    }
+    mvr = Mover(pos={k: v for k, v in pos.items()})
+    mvr.shift_node(5, n_nodes_right=2)
+    pos_true = pos.copy()
+    pos_true[5], pos_true[6], pos_true[8] = pos_true[6], pos_true[8], pos_true[5]
+    assert mvr.pos == pos_true
