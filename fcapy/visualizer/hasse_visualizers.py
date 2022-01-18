@@ -138,11 +138,13 @@ class AbstractHasseViz:
         if 'pos' in kwargs:
             pos = kwargs['pos']
         else:
-            if self.mover is None or self.mover.pos is None:
+            if self.mover is None:
                 self.mover = Mover()
+            pos = self.mover.pos
+            if pos is None:
                 kwargs_used = get_kwargs_used(kwargs, self.mover.initialize_pos)
                 self.mover.initialize_pos(poset, **kwargs_used)
-            pos = self.mover.pos
+                pos = self.mover.pos
 
         overlays = find_nodes_edges_overlay(pos, nodelist, edgelist)
         if len(overlays) > 0:

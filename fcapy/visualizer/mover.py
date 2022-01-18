@@ -8,6 +8,8 @@ from fcapy.utils.utils import get_kwargs_used
 
 PosDictType = Dict[int, Tuple[float, float]]
 
+ORIENTATIONS = {'h', 'v'}
+
 
 @dataclass
 class DifferentHierarchyLevelsError(ValueError):
@@ -44,7 +46,8 @@ class Mover:
     pos_levels: Optional[List[float]]
     pos_peers: Optional[List[List[float]]]
 
-    def __init__(self, pos: PosDictType = None):
+    def __init__(self, pos: PosDictType = None, orientation: ORIENTATIONS = 'v'):
+        self.orientation = orientation
         self.pos = pos
 
     @property
@@ -52,8 +55,18 @@ class Mover:
         if self.levels is None:
             return None
 
-        return {el_i: (self.pos_peers[lvl][peer], self.pos_levels[lvl])
-                for el_i, (lvl, peer) in enumerate(zip(self.levels, self.peers_order))}
+        pos = {
+            el_i: (self.pos_peers[lvl][peer], self.pos_levels[lvl])
+            for el_i, (lvl, peer) in enumerate(zip(self.levels, self.peers_order))
+        }
+        assert self.orientation in ORIENTATIONS,\
+            'Assertion error. Wrong layout orientation is set.'\
+            'Make sure Mover.orientation is in enum fcapy.visualizer.mover.ORIENTATIONS'
+
+        if self.orientation == 'h':
+            pos = {el_i: (-y, x) for el_i, (x, y) in pos.items()}
+
+        return pos
 
     @pos.setter
     def pos(self, value: PosDictType):
@@ -63,6 +76,9 @@ class Mover:
             self.pos_levels = None
             self.pos_peers = None
             return
+
+        if self.orientation == 'h':
+            value = {el_i: (y, -x) for el_i, (x, y) in value.items()}
 
         max_el_i = max(value)
         lvl_coords = sorted(set([value[el_i][1] if el_i in value else None for el_i in range(max_el_i + 1)]),
