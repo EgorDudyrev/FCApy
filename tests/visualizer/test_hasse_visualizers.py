@@ -82,7 +82,7 @@ def test_draw_concept_lattice_networkx():
 
     plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
     fig, ax = plt.subplots(figsize=(7, 5))
-    vsl = viz.NetworkxHasseViz()
+    vsl = viz.HasseVizNx()
     vsl.draw_concept_lattice(
         L, ax=ax, flg_node_indices=False, flg_axes=False
     )

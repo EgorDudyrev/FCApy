@@ -154,7 +154,7 @@ class AbstractHasseViz:
         return pos
 
 
-class NetworkxHasseViz(AbstractHasseViz):
+class HasseVizNx(AbstractHasseViz):
     f"""A class to draw Hasse visualisations via Networkx package"""
 
     def draw_poset(self, poset: POSet, ax=None, **kwargs):
@@ -164,7 +164,7 @@ class NetworkxHasseViz(AbstractHasseViz):
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = NetworkxHasseViz()
+        viz = HasseVizNx()
         poset = POSet(...)
 
         fig, ax = plt.subplots()
@@ -204,14 +204,14 @@ class NetworkxHasseViz(AbstractHasseViz):
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = NetworkxHasseViz()
+        viz = HasseVizNx()
         L = ConceptLattice(...)
 
         fig, ax = plt.subplots()
         viz.draw_concept_lattice(L, ax=ax, ...)
         ```
         """
-        super(NetworkxHasseViz, self).draw_concept_lattice(lattice, **kwargs)
+        super(HasseVizNx, self).draw_concept_lattice(lattice, **kwargs)
 
     def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=None, **kwargs):
         """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""

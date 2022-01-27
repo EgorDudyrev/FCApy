@@ -52,7 +52,7 @@ class POSetVisualizer:
         """
         warnings.warn(
             "The use of class POSetVisualizer and its successors is deprecated and will be removed in future versions."
-            "Please, move to use NetworkxHasseViz class for visualization",
+            "Please, move to use HasseVizNx class for visualization",
             FutureWarning
         )
 
