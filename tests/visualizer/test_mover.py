@@ -1,4 +1,4 @@
-from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError
+from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError, UnknownOrientationError
 from fcapy.visualizer import hasse_layouts
 
 from fcapy.context import FormalContext
@@ -96,3 +96,5 @@ def test_orientations():
     pos_v = mvr.pos
     assert pos_true == pos_v
 
+    with pytest.raises(UnknownOrientationError):
+        mvr.orientation = 'UnknownOrientation'
