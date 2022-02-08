@@ -130,6 +130,9 @@ class Mover:
         for node_swap in nodes_to_swap:
             self.swap_nodes(node_i, node_swap)
 
+    def place_node(self, node_i: int, x: float) -> None:
+        self.jitter_node(node_i, x - self.pos[node_i][0])
+
     def jitter_node(self, node_i: int, dx: float) -> None:
         lvl_id, peer_id = self.levels[node_i], self.peers_order[node_i]
         pos_peers = self.pos_peers[lvl_id]
