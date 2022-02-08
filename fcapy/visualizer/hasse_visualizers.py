@@ -191,10 +191,8 @@ class NetworkxHasseViz(AbstractHasseViz):
             self._draw_node_indices(G, pos, ax, nodelist)
 
         flg_axes = kwargs.get('flg_axes', self.flg_axes)
-        if flg_axes:
-            ax.set_axis_on()
-        else:
-            ax.set_axis_off()
+        for spine in ['right', 'top', 'left', 'bottom']:
+            ax.spines[spine].set_visible(flg_axes)
 
         return G, pos, nodelist, edgelist
 
