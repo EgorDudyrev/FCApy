@@ -114,7 +114,7 @@ class POSetVisualizer:
             if e[0] not in missing_nodeset and e[1] not in missing_nodeset
         ]
 
-        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
+        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else 'arc3,rad=0'  # None
         nx.draw_networkx_edges(
             G, self._pos,
             edgelist=edgelist,

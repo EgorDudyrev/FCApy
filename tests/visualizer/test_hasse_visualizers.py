@@ -138,21 +138,21 @@ def test_flg_drop_empty_bottom():
     assert (img0 == img1).all()
 
 
-def test_retrieve_node_color():
+def _retrieve_node_varying_parameter():
     G = nx.Graph([(0, 1), (1, 2), (0, 2)])
     vsl = viz.HasseVizNx()
-    clr = vsl._retrieve_node_color(None, [0, 1, 2], len(G))
-    assert clr == vsl.node_color
+    clr = vsl._retrieve_node_varying_parameter(None, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
+    assert clr == ['DefaultValue'] * 3
 
     clr_orig = ['green', 'yellow', 'blue']
-    clr = vsl._retrieve_node_color(clr_orig, [0, 1], len(G))
+    clr = vsl._retrieve_node_varying_parameter(clr_orig, 'DefaultValue', [0, 1], len(G), 'ParamType')
     assert clr == clr_orig[:2]
 
-    clr = vsl._retrieve_node_color(clr_orig[1:], [0, 1], len(G))
+    clr = vsl._retrieve_node_varying_parameter(clr_orig[1:], 'DefaultValue', [0, 1], len(G), 'ParamType')
     assert clr == clr_orig[1:]
 
-    with pytest.raises(viz.UnsupportedNodeColorError):
-        vsl._retrieve_node_color(clr_orig[:1], [0, 1], len(G))
+    with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
+        vsl._retrieve_node_varying_parameter([clr_orig[0]], 'DefaultValue', [0, 1], len(G), 'ParamType')
 
-    with pytest.raises(viz.UnsupportedNodeColorError):
-        vsl._retrieve_node_color(['yellow'] * 5, [0, 1], len(G))
+    with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
+        vsl._retrieve_node_varying_parameter(['yellow'] * 5, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')

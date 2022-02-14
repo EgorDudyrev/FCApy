@@ -33,24 +33,25 @@ class NodeEdgeOverlayWarning(UserWarning):
         return msg
 
 
-class UnsupportedNodeColorError(ValueError):
-    def __init__(self, node_color, lib_name):
-        self.node_color = node_color
+class UnsupportedNodeVaryingParameterError(ValueError):
+    def __init__(self, param_value, lib_name, param_name):
+        self.param_value = param_value
         self.lib_name = lib_name
+        self.param_name = param_name
 
     def __str__(self):
         msg = '\n'.join([
-            "Node color parameter is unsupported.",
+            f"Node {self.param_name} parameter value is unsupported.",
             "It might be defined in one of the following ways:",
-            f"* a single color to paint every node (ex.: 'red');",
-            f"* a tuple of colors specific to every node in the visualization "
-            f"(ex.: ('red', 'blue', 'green'), given that there are 3 nodes in total); and"
-            f"* a tuple of colors specific to every node in the ``nodelist`` "
-            f"(ex.: ('red', 'blue'), given that there are 2 nodes in ``nodelist`` parameter)",
+            f"* a single {self.param_name} to paint every node (ex. for node_color parameter: 'red');",
+            f"* a tuple of {self.param_name}s specific to every node in the visualization "
+            f"(ex. for node_color parameter: ('red', 'blue', 'green'), given that there are 3 nodes in total); and"
+            f"* a tuple of {self.param_name}s specific to every node in the ``nodelist`` "
+            f"(ex. for node_color parameter: ('red', 'blue'), given that there are 2 nodes in ``nodelist`` parameter)",
             '',
-            f"The color values should be entered in a format, supported by the library used: {self.lib_name}",
+            f"The {self.param_name} values should be entered in a format, supported by the library: {self.lib_name}",
             "",
-            f"The entered node_color parameter value is: {self.node_color}",
+            f"The entered node {self.param_name} parameter value is: {self.param_value}",
         ])
         return msg
 
@@ -69,6 +70,7 @@ class AbstractHasseViz:
     # Node fields
     nodelist: Tuple[int] = None
     node_color: str = 'lightgray'
+    node_shape: str = 'o'
 
     node_alpha: float = 1
     node_size: float = 300
@@ -205,15 +207,22 @@ class AbstractHasseViz:
         return pos
 
     def _retrieve_node_color(self, node_color, nodelist, graph_size):
-        node_color = get_not_none(node_color, self.node_color)
+        return self._retrieve_node_varying_parameter(node_color, self.node_color, nodelist, graph_size, 'color')
 
-        if not isinstance(node_color, str):
-            if not len(node_color) in {len(nodelist), graph_size}:
-                raise UnsupportedNodeColorError(node_color, self.LIB_NAME)
+    def _retrieve_node_shape(self, node_shape, nodelist, graph_size):
+        return
 
-            if len(node_color) == graph_size:
-                node_color = [clr for i, clr in enumerate(node_color) if i in nodelist]
-        return node_color
+    def _retrieve_node_varying_parameter(self, param_value, default_value, nodelist, graph_size, param_name):
+        param_value = get_not_none(param_value, default_value)
+
+        if isinstance(param_value, str):
+            return [param_value] * len(nodelist)
+        if len(param_value) == len(nodelist):
+            return param_value
+        if len(param_value) == graph_size:
+            return [v for i, v in enumerate(param_value) if i in nodelist]
+
+        raise UnsupportedNodeVaryingParameterError(param_value, self.LIB_NAME, param_name)
 
 
 class HasseVizNx(AbstractHasseViz):
@@ -324,29 +333,33 @@ class HasseVizNx(AbstractHasseViz):
             self, G, pos, ax, nodelist,
             node_color=None, cmap=None, node_alpha=None,
             node_border_width=None, node_border_color=None,
-            cmap_min=None, cmap_max=None, node_size=None
+            cmap_min=None, cmap_max=None, node_size=None,
+            node_shape=None,
     ):
-        node_color = self._retrieve_node_color(node_color, nodelist, len(G))
-
-        cmap = get_not_none(cmap, self.cmap)
-        node_alpha = get_not_none(node_alpha, self.node_alpha)
-        node_border_width = get_not_none(node_border_width, self.node_border_width)
-        node_border_color = get_not_none(node_border_color, self.node_border_color)
-        cmap_min = get_not_none(cmap_min, self.cmap_min)
-        cmap_max = get_not_none(cmap_max, self.cmap_max)
-        node_size = get_not_none(node_size, self.node_size)
+        kwargs_static = dict(
+            ax=ax,
+            cmap=get_not_none(cmap, self.cmap),
+            alpha=get_not_none(node_alpha, self.node_alpha),
+            linewidths=get_not_none(node_border_width, self.node_border_width),
+            edgecolors=get_not_none(node_border_color, self.node_border_color),
+            vmin=get_not_none(cmap_min, self.cmap_min),
+            vmax=get_not_none(cmap_max, self.cmap_max),
+            node_size=get_not_none(node_size, self.node_size),
+        )
 
         import networkx as nx
 
-        nx.draw_networkx_nodes(
-            G, pos,
-            nodelist=nodelist,
-            node_color=node_color, cmap=cmap, alpha=node_alpha,
-            linewidths=node_border_width, edgecolors=node_border_color,
-            vmin=cmap_min, vmax=cmap_max,
-            ax=ax,
-            node_size=node_size
-        )
+        node_color = self._retrieve_node_varying_parameter(node_color, self.node_color, nodelist, len(G), 'color')
+        node_shape = self._retrieve_node_varying_parameter(node_shape, self.node_shape, nodelist, len(G), 'shape')
+        for color, shape in set(zip(node_color, node_shape)):
+            nlist = [node_i for (node_i, clr, shp) in zip(nodelist, node_color, node_shape)
+                     if clr == color and shp == shape]
+            print(nlist, color, shape)
+            nx.draw_networkx_nodes(
+                G, pos,
+                nodelist=nlist, node_color=color, node_shape=shape,
+                **kwargs_static
+            )
 
     def _draw_node_labels(
             self, poset, G, pos, ax, nodelist,
