@@ -6,6 +6,7 @@ import io
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image
+import networkx as nx
 
 import pytest
 
@@ -135,3 +136,23 @@ def test_flg_drop_empty_bottom():
     img0 = lattice_to_img(L, [c_i for c_i in range(len(L)) if c_i != L.bottom_concept_i], False)
     img1 = lattice_to_img(L, None, True)
     assert (img0 == img1).all()
+
+
+def test_retrieve_node_color():
+    G = nx.Graph([(0, 1), (1, 2), (0, 2)])
+    vsl = viz.HasseVizNx()
+    clr = vsl._retrieve_node_color(None, [0, 1, 2], len(G))
+    assert clr == vsl.node_color
+
+    clr_orig = ['green', 'yellow', 'blue']
+    clr = vsl._retrieve_node_color(clr_orig, [0, 1], len(G))
+    assert clr == clr_orig[:2]
+
+    clr = vsl._retrieve_node_color(clr_orig[1:], [0, 1], len(G))
+    assert clr == clr_orig[1:]
+
+    with pytest.raises(viz.UnsupportedNodeColorError):
+        vsl._retrieve_node_color(clr_orig[:1], [0, 1], len(G))
+
+    with pytest.raises(viz.UnsupportedNodeColorError):
+        vsl._retrieve_node_color(['yellow'] * 5, [0, 1], len(G))

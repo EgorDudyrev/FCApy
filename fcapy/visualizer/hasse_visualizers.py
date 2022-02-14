@@ -33,9 +33,32 @@ class NodeEdgeOverlayWarning(UserWarning):
         return msg
 
 
+class UnsupportedNodeColorError(ValueError):
+    def __init__(self, node_color, lib_name):
+        self.node_color = node_color
+        self.lib_name = lib_name
+
+    def __str__(self):
+        msg = '\n'.join([
+            "Node color parameter is unsupported.",
+            "It might be defined in one of the following ways:",
+            f"* a single color to paint every node (ex.: 'red');",
+            f"* a tuple of colors specific to every node in the visualization "
+            f"(ex.: ('red', 'blue', 'green'), given that there are 3 nodes in total); and"
+            f"* a tuple of colors specific to every node in the ``nodelist`` "
+            f"(ex.: ('red', 'blue'), given that there are 2 nodes in ``nodelist`` parameter)",
+            '',
+            f"The color values should be entered in a format, supported by the library used: {self.lib_name}",
+            "",
+            f"The entered node_color parameter value is: {self.node_color}",
+        ])
+        return msg
+
+
 @dataclass
 class AbstractHasseViz:
     """An abstract class for Hasse visualizer that keeps all the possible visualization parameters"""
+    LIB_NAME = "<AbstractLib>"
 
     #####################
     # Fields            #
@@ -181,9 +204,21 @@ class AbstractHasseViz:
             del kwargs['pos']
         return pos
 
+    def _retrieve_node_color(self, node_color, nodelist, graph_size):
+        node_color = get_not_none(node_color, self.node_color)
+
+        if not isinstance(node_color, str):
+            if not len(node_color) in {len(nodelist), graph_size}:
+                raise UnsupportedNodeColorError(node_color, self.LIB_NAME)
+
+            if len(node_color) == graph_size:
+                node_color = [clr for i, clr in enumerate(node_color) if i in nodelist]
+        return node_color
+
 
 class HasseVizNx(AbstractHasseViz):
     f"""A class to draw Hasse visualisations via Networkx package"""
+    LIB_NAME = 'networkx'
 
     def draw_poset(self, poset: POSet, ax=None, **kwargs):
         """Draw a Partially Ordered Set as Hasse diagram with Networkx package
@@ -291,7 +326,8 @@ class HasseVizNx(AbstractHasseViz):
             node_border_width=None, node_border_color=None,
             cmap_min=None, cmap_max=None, node_size=None
     ):
-        node_color = get_not_none(node_color, self.node_color)
+        node_color = self._retrieve_node_color(node_color, nodelist, len(G))
+
         cmap = get_not_none(cmap, self.cmap)
         node_alpha = get_not_none(node_alpha, self.node_alpha)
         node_border_width = get_not_none(node_border_width, self.node_border_width)
