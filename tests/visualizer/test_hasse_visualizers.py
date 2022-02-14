@@ -108,3 +108,30 @@ def test_draw_concept_lattice_networkx():
     fig.tight_layout()
 
     compare_figure_png(fig, 'data/animal_movement_lattice_overloaded.png')
+
+
+def test_flg_drop_empty_bottom():
+    path = 'data/liveinwater.cxt'
+    K = FormalContext.read_cxt(path)
+    L = ConceptLattice.from_context(K)
+
+    def lattice_to_img(L, nodelist, flg_drop_empty_bottom):
+        plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
+
+        fig, ax = plt.subplots(figsize=(7, 5))
+        vsl = viz.HasseVizNx()
+        vsl.draw_concept_lattice(
+            L, ax=ax, flg_node_indices=False, flg_axes=False,
+            nodelist=nodelist, flg_drop_empty_bottom = flg_drop_empty_bottom
+        )
+
+        with io.BytesIO() as buff:
+            fig.savefig(buff, format='png', dpi=300)
+            buff.seek(0)
+            img = plt.imread(buff)
+
+        return img
+
+    img0 = lattice_to_img(L, [c_i for c_i in range(len(L)) if c_i != L.bottom_concept_i], False)
+    img1 = lattice_to_img(L, None, True)
+    assert (img0 == img1).all()

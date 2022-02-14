@@ -8,10 +8,13 @@ from fcapy.visualizer.mover import Mover
 from fcapy.utils.utils import get_kwargs_used as kw_used, get_not_none
 from fcapy.lattice import ConceptLattice
 
+import networkx as nx
+
 from typing import Tuple, Callable, Dict
 from attr import dataclass
 
 import logging
+import warnings
 
 
 class NodeEdgeOverlayWarning(UserWarning):
@@ -83,10 +86,31 @@ class AbstractHasseViz:
             kwargs['node_label_func'] = lambda c_i, L: self.concept_lattice_label_func(
                 c_i, L, **kw_used(kwargs, self.concept_lattice_label_func)
             )
+        # Temporary solution to drop the bottom concept of a `lattice`
+        # if it does not contain any objects and, therefore, any new intent
+        flg_name = 'flg_drop_empty_bottom'
+        if flg_name in kwargs:
+            warnings.warn(
+                f"The flag {flg_name} will be removed in future versions"
+                "since it is an ugly temporary solution",
+                FutureWarning
+            )
+
+            if kwargs[flg_name]:
+                bc_i = lattice.bottom_concept_i
+                if len(lattice[bc_i].extent) == 0:
+                    kwargs['drop_bottom_concept'] = bc_i
+
         self.draw_poset(lattice, **kwargs)
 
     # Other useful functions
-    def _filter_nodes_edges(self, G, nodelist=None, edgelist=None):
+    def _filter_nodes_edges(
+            self,
+            G: nx.Graph,
+            nodelist: Tuple[int, ...] = None,
+            edgelist: Tuple[Tuple[int, int], ...] = None,
+            drop_bottom_concept: int = None
+    ):
         # set up default values if none specified
         nodelist = get_not_none(nodelist, self.nodelist)
         edgelist = get_not_none(edgelist, self.edgelist)
@@ -94,6 +118,10 @@ class AbstractHasseViz:
         # draw all nodes if none is still specified
         if nodelist is None:
             nodelist = list(G.nodes)
+
+        # drop bottom concept for concept lattice (implying it is empty). (See self.draw_concept_lattice(...) func)
+        if drop_bottom_concept:
+            nodelist.remove(drop_bottom_concept)
 
         # draw only the edges for the drawn nodes. If other is not specified
         if edgelist is None:
