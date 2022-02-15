@@ -10,7 +10,7 @@ from fcapy.lattice import ConceptLattice
 
 import networkx as nx
 
-from typing import Tuple, Callable, Dict
+from typing import Tuple, Callable, Dict, Iterable
 from attr import dataclass
 
 import logging
@@ -207,20 +207,22 @@ class AbstractHasseViz:
         return pos
 
     def _retrieve_node_color(self, node_color, nodelist, graph_size):
-        return self._retrieve_node_varying_parameter(node_color, self.node_color, nodelist, graph_size, 'color')
+        return self._parse_node_varying_parameter(node_color, self.node_color, nodelist, graph_size, 'color')
 
     def _retrieve_node_shape(self, node_shape, nodelist, graph_size):
         return
 
-    def _retrieve_node_varying_parameter(self, param_value, default_value, nodelist, graph_size, param_name):
+    def _parse_node_varying_parameter(self, param_value, default_value, nodelist, graph_size, param_name):
         param_value = get_not_none(param_value, default_value)
 
-        if isinstance(param_value, str):
+        if isinstance(param_value, str) or not isinstance(param_value, Iterable):
             return [param_value] * len(nodelist)
+
+        param_value = list(param_value)
         if len(param_value) == len(nodelist):
             return param_value
         if len(param_value) == graph_size:
-            return [v for i, v in enumerate(param_value) if i in nodelist]
+            return [param_value[i] for i in nodelist]
 
         raise UnsupportedNodeVaryingParameterError(param_value, self.LIB_NAME, param_name)
 
@@ -336,28 +338,33 @@ class HasseVizNx(AbstractHasseViz):
             cmap_min=None, cmap_max=None, node_size=None,
             node_shape=None,
     ):
+        lcls = locals()
+
         kwargs_static = dict(
             ax=ax,
-            cmap=get_not_none(cmap, self.cmap),
-            alpha=get_not_none(node_alpha, self.node_alpha),
-            linewidths=get_not_none(node_border_width, self.node_border_width),
-            edgecolors=get_not_none(node_border_color, self.node_border_color),
-            vmin=get_not_none(cmap_min, self.cmap_min),
-            vmax=get_not_none(cmap_max, self.cmap_max),
-            node_size=get_not_none(node_size, self.node_size),
+            cmap=lcls.get('cmap', self.cmap),
+            alpha=lcls.get('node_alpha', self.node_alpha),
+            linewidths=lcls.get('node_border_width', self.node_border_width),
+            edgecolors=lcls.get('node_border_color', self.node_border_color),
+            vmin=lcls.get('cmap_min', self.cmap_min),
+            vmax=lcls.get('cmap_max', self.cmap_max),
         )
+
+        node_color, node_shape, node_size = [
+            self._parse_node_varying_parameter(lcls[pname], self.__dict__[pname], nodelist, len(G), pname)
+            for pname in ['node_color', 'node_shape', 'node_size']
+        ]
 
         import networkx as nx
 
-        node_color = self._retrieve_node_varying_parameter(node_color, self.node_color, nodelist, len(G), 'color')
-        node_shape = self._retrieve_node_varying_parameter(node_shape, self.node_shape, nodelist, len(G), 'shape')
         for color, shape in set(zip(node_color, node_shape)):
             nlist = [node_i for (node_i, clr, shp) in zip(nodelist, node_color, node_shape)
                      if clr == color and shp == shape]
-            print(nlist, color, shape)
+            sizes = [node_size[i] for i in nlist]
+
             nx.draw_networkx_nodes(
                 G, pos,
-                nodelist=nlist, node_color=color, node_shape=shape,
+                nodelist=nlist, node_color=color, node_shape=shape, node_size=sizes,
                 **kwargs_static
             )
 
