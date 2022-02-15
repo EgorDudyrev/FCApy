@@ -322,7 +322,6 @@ class HasseVizNx(AbstractHasseViz):
                 r = r_func(i)
                 self._draw_edges(G, pos, ax, [edge], edge_radius=r*0.1, edge_color=[edge_color_])
 
-        import networkx as nx
         nx.draw_networkx_edge_labels(
             G, pos,
             edge_labels={edge: '\n'.join(labels) for edge, labels in edge_labels_map.items()},
@@ -355,8 +354,6 @@ class HasseVizNx(AbstractHasseViz):
             for pname in ['node_color', 'node_shape', 'node_size']
         ]
 
-        import networkx as nx
-
         for color, shape in set(zip(node_color, node_shape)):
             nlist = [node_i for (node_i, clr, shp) in zip(nodelist, node_color, node_shape)
                      if clr == color and shp == shape]
@@ -375,8 +372,6 @@ class HasseVizNx(AbstractHasseViz):
         node_label_func = get_not_none(node_label_func, self.node_label_func)
         node_label_font_size = int(get_not_none(node_label_font_size, self.node_label_font_size))
 
-        import networkx as nx
-
         labels = {el_i: node_label_func(el_i, poset) for el_i in nodelist}
         nx.draw_networkx_labels(
             G, pos,
@@ -387,8 +382,6 @@ class HasseVizNx(AbstractHasseViz):
         )
 
     def _draw_node_indices(self, G, pos, ax, nodelist):
-        import networkx as nx
-
         labels = {el_i: f"{el_i}" for el_i in nodelist}
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels)
 
@@ -398,8 +391,6 @@ class HasseVizNx(AbstractHasseViz):
     ):
         edge_radius = get_not_none(edge_radius, self.edge_radius)
         edge_color = get_not_none(edge_color, self.edge_color)
-
-        import networkx as nx
 
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(
