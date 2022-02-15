@@ -252,7 +252,8 @@ class HasseVizNx(AbstractHasseViz):
         G, nodelist, edgelist = self._retrieve_nodelist_edgelist(poset, kwargs)
         pos = self._retrieve_pos(poset, kwargs, nodelist, edgelist)
 
-        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self._draw_edges))
+        self._setup_legend(ax, **kw_used(kwargs, self._setup_legend))
+        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self   ._draw_edges))
         self._draw_nodes(G, pos, ax, nodelist, **kw_used(kwargs, self._draw_nodes))
 
         node_label_func = kwargs.get('node_label_func', self.node_label_func)
@@ -336,6 +337,8 @@ class HasseVizNx(AbstractHasseViz):
             node_border_width=None, node_border_color=None,
             cmap_min=None, cmap_max=None, node_size=None,
             node_shape=None,
+            color_legend=None,
+            shape_legend=None,
     ):
         lcls = locals()
 
@@ -364,6 +367,24 @@ class HasseVizNx(AbstractHasseViz):
                 nodelist=nlist, node_color=color, node_shape=shape, node_size=sizes,
                 **kwargs_static
             )
+
+    def _setup_legend(self, ax, node_color_legend=None, node_shape_legend=None):
+        G = nx.Graph([(0, 0)])
+        nodelist = [0]
+        pos = {0: (0, 0)}
+
+        if node_color_legend:
+            lgnd_kwargs = dict(nodelist=nodelist, node_size=100)
+            for k, v in node_color_legend.items():
+                nx.draw_networkx_nodes(G, pos, node_color=k, label=v, **lgnd_kwargs)
+            nx.draw_networkx_nodes(G, pos, node_color=[ax.get_facecolor()], **lgnd_kwargs)
+
+        if node_shape_legend:
+            lgnd_kwargs = dict(nodelist=nodelist, node_color=[ax.get_facecolor()],
+                               linewidths=2,  node_size=100)
+            for k, v in node_shape_legend.items():
+                nx.draw_networkx_nodes(G, pos, node_shape=k, label=v, edgecolors='black', **lgnd_kwargs)
+                nx.draw_networkx_nodes(G, pos, node_shape=k, edgecolors='white', **lgnd_kwargs)
 
     def _draw_node_labels(
             self, poset, G, pos, ax, nodelist,
