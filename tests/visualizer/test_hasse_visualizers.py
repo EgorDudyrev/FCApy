@@ -6,6 +6,7 @@ import io
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image
+import networkx as nx
 
 import pytest
 
@@ -82,7 +83,7 @@ def test_draw_concept_lattice_networkx():
 
     plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
     fig, ax = plt.subplots(figsize=(7, 5))
-    vsl = viz.NetworkxHasseViz()
+    vsl = viz.HasseVizNx()
     vsl.draw_concept_lattice(
         L, ax=ax, flg_node_indices=False, flg_axes=False
     )
@@ -108,3 +109,50 @@ def test_draw_concept_lattice_networkx():
     fig.tight_layout()
 
     compare_figure_png(fig, 'data/animal_movement_lattice_overloaded.png')
+
+
+def test_flg_drop_empty_bottom():
+    path = 'data/liveinwater.cxt'
+    K = FormalContext.read_cxt(path)
+    L = ConceptLattice.from_context(K)
+
+    def lattice_to_img(L, nodelist, flg_drop_empty_bottom):
+        plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
+
+        fig, ax = plt.subplots(figsize=(7, 5))
+        vsl = viz.HasseVizNx()
+        vsl.draw_concept_lattice(
+            L, ax=ax, flg_node_indices=False, flg_axes=False,
+            nodelist=nodelist, flg_drop_empty_bottom = flg_drop_empty_bottom
+        )
+
+        with io.BytesIO() as buff:
+            fig.savefig(buff, format='png', dpi=300)
+            buff.seek(0)
+            img = plt.imread(buff)
+
+        return img
+
+    img0 = lattice_to_img(L, [c_i for c_i in range(len(L)) if c_i != L.bottom_concept_i], False)
+    img1 = lattice_to_img(L, None, True)
+    assert (img0 == img1).all()
+
+
+def _retrieve_node_varying_parameter():
+    G = nx.Graph([(0, 1), (1, 2), (0, 2)])
+    vsl = viz.HasseVizNx()
+    clr = vsl._retrieve_node_varying_parameter(None, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
+    assert clr == ['DefaultValue'] * 3
+
+    clr_orig = ['green', 'yellow', 'blue']
+    clr = vsl._retrieve_node_varying_parameter(clr_orig, 'DefaultValue', [0, 1], len(G), 'ParamType')
+    assert clr == clr_orig[:2]
+
+    clr = vsl._retrieve_node_varying_parameter(clr_orig[1:], 'DefaultValue', [0, 1], len(G), 'ParamType')
+    assert clr == clr_orig[1:]
+
+    with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
+        vsl._retrieve_node_varying_parameter([clr_orig[0]], 'DefaultValue', [0, 1], len(G), 'ParamType')
+
+    with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
+        vsl._retrieve_node_varying_parameter(['yellow'] * 5, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')

@@ -25,6 +25,18 @@ class DifferentHierarchyLevelsError(ValueError):
         return msg
 
 
+@dataclass
+class UnknownOrientationError(ValueError):
+    orientation: str
+
+    def __str__(self):
+        msg = '\n'.join([
+            f'Unknown layout orientation received: {self.orientation}.',
+            f'The list of possible orientations is given is as follows: {", ".join(ORIENTATIONS)}'
+        ])
+        return msg
+
+
 class Mover:
     """Class to make node moving in Hasse Diagrams easier
 
@@ -51,22 +63,55 @@ class Mover:
         self.pos = pos
 
     @property
-    def pos(self) -> Optional[PosDictType]:
+    def orientation(self):
+        return self._orientation
+
+    @orientation.setter
+    def orientation(self, value):
+        if value not in ORIENTATIONS:
+            raise UnknownOrientationError(value)
+        self._orientation = value
+
+    @property
+    def posx(self) -> Optional[Tuple[float, ...]]:
         if self.levels is None:
             return None
 
-        pos = {
-            el_i: (self.pos_peers[lvl][peer], self.pos_levels[lvl])
-            for el_i, (lvl, peer) in enumerate(zip(self.levels, self.peers_order))
-        }
-        assert self.orientation in ORIENTATIONS,\
-            'Assertion error. Wrong layout orientation is set.'\
-            'Make sure Mover.orientation is in enum fcapy.visualizer.mover.ORIENTATIONS'
+        if self.orientation == 'v':
+            return self._get_nodes_peer_pos()
+        # Assuming self.orientation == 'h'
+        return tuple([-lvl_pos for lvl_pos in self._get_nodes_level_pos()])
 
-        if self.orientation == 'h':
-            pos = {el_i: (-y, x) for el_i, (x, y) in pos.items()}
+    @posx.setter
+    def posx(self, value: Tuple[float, ...]):
+        if self.orientation == 'v':
+            self._set_nodes_peers_pos(value)
+        else:  # Assuming self.orientation == 'h'
+            self._set_node_level_pos(value, reverse=False)
 
-        return pos
+    @property
+    def posy(self) -> Optional[Tuple[float, ...]]:
+        if self.levels is None:
+            return None
+
+        if self.orientation == 'v':
+            return self._get_nodes_level_pos()
+        # Assuming self.orientation == 'h'
+        return self._get_nodes_peer_pos()
+
+    @posy.setter
+    def posy(self, value: Tuple[float, ...]):
+        if self.orientation == 'v':
+            # Set levels positions and order
+            self._set_node_level_pos(value, reverse=True)
+        else:  # Assuming self.orientation == 'h'
+            self._set_nodes_peers_pos(value)
+
+    @property
+    def pos(self) -> Optional[PosDictType]:
+        if self.levels is None:
+            return None
+        return {el_i: (x, y) for el_i, (x, y) in enumerate(zip(self.posx, self.posy))}
 
     @pos.setter
     def pos(self, value: PosDictType):
@@ -76,6 +121,20 @@ class Mover:
             self.pos_levels = None
             self.pos_peers = None
             return
+
+        max_el_i = max(value)
+        assert len(value) == max_el_i+1, "Assertion error. Please, specify the positions of all nodes"
+
+        posx, posy = list(zip(*[value[el_i] for el_i in range(max_el_i + 1)]))
+
+        if self.orientation == 'v':
+            self.posy = posy
+            self.posx = posx
+        else:  # Assuming self.orientation == 'h'
+            self.posx = posx
+            self.posy = posy
+
+
 
         if self.orientation == 'h':
             value = {el_i: (y, -x) for el_i, (x, y) in value.items()}
@@ -159,3 +218,30 @@ class Mover:
 
         peer_id = self.peers_order[node_i]
         self.pos_peers[lvl_id][peer_id] = new_x
+
+    def place_node(self, node_i: int, x: float) -> None:
+        self.jitter_node(node_i, x - self.pos[node_i][0])
+
+    def _get_nodes_peer_pos(self) -> Optional[Tuple[float, ...]]:
+        if self.levels is None:
+            return None
+        return tuple([self.pos_peers[lvl][peer] for lvl, peer in zip(self.levels, self.peers_order)])
+
+    def _get_nodes_level_pos(self) -> Optional[Tuple[float, ...]]:
+        if self.levels is None:
+            return None
+        return tuple([self.pos_levels[lvl] for lvl in self.levels])
+
+    def _set_nodes_peers_pos(self, value: Tuple[float, ...]) -> None:
+        peers_by_lvl = [[] for _ in range(len(self.pos_levels))]
+        for el_i, lvl in enumerate(self.levels):
+            peers_by_lvl[lvl].append(el_i)
+        peers_by_lvl = [sorted(peers, key=lambda el_i: value[el_i]) for peers in peers_by_lvl]
+
+        self.pos_peers = [[value[el_i]for el_i in peers] for peers in peers_by_lvl]
+        self.peers_order = [peers_by_lvl[lvl].index(el_i) for el_i, lvl in enumerate(self.levels)]
+
+    def _set_node_level_pos(self, value: Tuple[float, ...], reverse: bool = True) -> None:
+        self.pos_levels = sorted(set(value), reverse=reverse)
+        lvl_coords_inv_dct = {coord: lvl_i for lvl_i, coord in enumerate(self.pos_levels)}
+        self.levels = [lvl_coords_inv_dct[v] for v in value]

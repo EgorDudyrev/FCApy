@@ -1,4 +1,4 @@
-from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError
+from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError, UnknownOrientationError
 from fcapy.visualizer import hasse_layouts
 
 from fcapy.context import FormalContext
@@ -46,6 +46,18 @@ def test_swap_nodes():
         mvr.swap_nodes(1, 4)
 
 
+def test_place_node():
+    pos = {
+        0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
+        4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5)
+    }
+    mvr = Mover(pos={k: v for k, v in pos.items()})
+    mvr.place_node(node_i=6, x=0.6)
+    pos_true = pos.copy()
+    pos_true[6] = (0.6, pos_true[6][1])
+    assert mvr.pos == pos_true
+
+
 def test_jitter_node():
     pos = {
         0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
@@ -84,3 +96,5 @@ def test_orientations():
     pos_v = mvr.pos
     assert pos_true == pos_v
 
+    with pytest.raises(UnknownOrientationError):
+        mvr.orientation = 'UnknownOrientation'

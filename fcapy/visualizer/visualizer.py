@@ -9,6 +9,8 @@ from fcapy.utils.utils import get_kwargs_used
 import networkx as nx
 from collections.abc import Iterable
 
+import warnings
+
 
 class POSetVisualizer:
     """
@@ -48,6 +50,12 @@ class POSetVisualizer:
         label_font_size: `int`
             The size of a font size when labeling the nodes
         """
+        warnings.warn(
+            "The use of class POSetVisualizer and its successors is deprecated and will be removed in future versions."
+            "Please, move to use HasseVizNx class for visualization",
+            FutureWarning
+        )
+
         assert poset is not None, "Cannot visualize an empty poset"
 
         self._poset = poset
@@ -106,7 +114,7 @@ class POSetVisualizer:
             if e[0] not in missing_nodeset and e[1] not in missing_nodeset
         ]
 
-        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
+        cs = f'arc3,rad={edge_radius}' if edge_radius is not None else 'arc3,rad=0'  # None
         nx.draw_networkx_edges(
             G, self._pos,
             edgelist=edgelist,

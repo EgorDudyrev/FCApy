@@ -21,7 +21,9 @@ def check_intersection(
         Bias of the first line
     b1: `float`
         Bias of the second line
-    close_dist: `float`
+    close_dist: `float`visualizer.Visualizer:
+    A class to visualize the `ConceptLattice`
+
         Minimum distance between lines to consider them intersecting
 
     Returns

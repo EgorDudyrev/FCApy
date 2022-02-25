@@ -1,7 +1,6 @@
 """
 This module provides visualizers to draw Hasse diagrams
 
-WARNING: The module is in production. It has not been fully tested and designed yet.
 """
 from fcapy.poset import POSet
 from fcapy.visualizer.hasse_layouts import find_nodes_edges_overlay
@@ -9,10 +8,13 @@ from fcapy.visualizer.mover import Mover
 from fcapy.utils.utils import get_kwargs_used as kw_used, get_not_none
 from fcapy.lattice import ConceptLattice
 
-from typing import Tuple, Callable, Dict
+import networkx as nx
+
+from typing import Tuple, Callable, Dict, Iterable
 from attr import dataclass
 
 import logging
+import warnings
 
 
 class NodeEdgeOverlayWarning(UserWarning):
@@ -31,9 +33,33 @@ class NodeEdgeOverlayWarning(UserWarning):
         return msg
 
 
+class UnsupportedNodeVaryingParameterError(ValueError):
+    def __init__(self, param_value, lib_name, param_name):
+        self.param_value = param_value
+        self.lib_name = lib_name
+        self.param_name = param_name
+
+    def __str__(self):
+        msg = '\n'.join([
+            f"Node {self.param_name} parameter value is unsupported.",
+            "It might be defined in one of the following ways:",
+            f"* a single {self.param_name} to paint every node (ex. for node_color parameter: 'red');",
+            f"* a tuple of {self.param_name}s specific to every node in the visualization "
+            f"(ex. for node_color parameter: ('red', 'blue', 'green'), given that there are 3 nodes in total); and"
+            f"* a tuple of {self.param_name}s specific to every node in the ``nodelist`` "
+            f"(ex. for node_color parameter: ('red', 'blue'), given that there are 2 nodes in ``nodelist`` parameter)",
+            '',
+            f"The {self.param_name} values should be entered in a format, supported by the library: {self.lib_name}",
+            "",
+            f"The entered node {self.param_name} parameter value is: {self.param_value}",
+        ])
+        return msg
+
+
 @dataclass
 class AbstractHasseViz:
     """An abstract class for Hasse visualizer that keeps all the possible visualization parameters"""
+    LIB_NAME = "<AbstractLib>"
 
     #####################
     # Fields            #
@@ -44,6 +70,7 @@ class AbstractHasseViz:
     # Node fields
     nodelist: Tuple[int] = None
     node_color: str = 'lightgray'
+    node_shape: str = 'o'
 
     node_alpha: float = 1
     node_size: float = 300
@@ -84,10 +111,31 @@ class AbstractHasseViz:
             kwargs['node_label_func'] = lambda c_i, L: self.concept_lattice_label_func(
                 c_i, L, **kw_used(kwargs, self.concept_lattice_label_func)
             )
+        # Temporary solution to drop the bottom concept of a `lattice`
+        # if it does not contain any objects and, therefore, any new intent
+        flg_name = 'flg_drop_empty_bottom'
+        if flg_name in kwargs:
+            warnings.warn(
+                f"The flag {flg_name} will be removed in future versions"
+                "since it is an ugly temporary solution",
+                FutureWarning
+            )
+
+            if kwargs[flg_name]:
+                bc_i = lattice.bottom_concept_i
+                if len(lattice[bc_i].extent) == 0:
+                    kwargs['drop_bottom_concept'] = bc_i
+
         self.draw_poset(lattice, **kwargs)
 
     # Other useful functions
-    def _filter_nodes_edges(self, G, nodelist=None, edgelist=None):
+    def _filter_nodes_edges(
+            self,
+            G: nx.Graph,
+            nodelist: Tuple[int, ...] = None,
+            edgelist: Tuple[Tuple[int, int], ...] = None,
+            drop_bottom_concept: int = None
+    ):
         # set up default values if none specified
         nodelist = get_not_none(nodelist, self.nodelist)
         edgelist = get_not_none(edgelist, self.edgelist)
@@ -95,6 +143,10 @@ class AbstractHasseViz:
         # draw all nodes if none is still specified
         if nodelist is None:
             nodelist = list(G.nodes)
+
+        # drop bottom concept for concept lattice (implying it is empty). (See self.draw_concept_lattice(...) func)
+        if drop_bottom_concept:
+            nodelist.remove(drop_bottom_concept)
 
         # draw only the edges for the drawn nodes. If other is not specified
         if edgelist is None:
@@ -154,9 +206,30 @@ class AbstractHasseViz:
             del kwargs['pos']
         return pos
 
+    def _retrieve_node_color(self, node_color, nodelist, graph_size):
+        return self._parse_node_varying_parameter(node_color, self.node_color, nodelist, graph_size, 'color')
 
-class NetworkxHasseViz(AbstractHasseViz):
+    def _retrieve_node_shape(self, node_shape, nodelist, graph_size):
+        return
+
+    def _parse_node_varying_parameter(self, param_value, default_value, nodelist, graph_size, param_name):
+        param_value = get_not_none(param_value, default_value)
+
+        if isinstance(param_value, str) or not isinstance(param_value, Iterable):
+            return [param_value] * len(nodelist)
+
+        param_value = list(param_value)
+        if len(param_value) == len(nodelist):
+            return param_value
+        if len(param_value) == graph_size:
+            return [param_value[i] for i in nodelist]
+
+        raise UnsupportedNodeVaryingParameterError(param_value, self.LIB_NAME, param_name)
+
+
+class HasseVizNx(AbstractHasseViz):
     f"""A class to draw Hasse visualisations via Networkx package"""
+    LIB_NAME = 'networkx'
 
     def draw_poset(self, poset: POSet, ax=None, **kwargs):
         """Draw a Partially Ordered Set as Hasse diagram with Networkx package
@@ -165,7 +238,7 @@ class NetworkxHasseViz(AbstractHasseViz):
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = NetworkxHasseViz()
+        viz = HasseVizNx()
         poset = POSet(...)
 
         fig, ax = plt.subplots()
@@ -179,7 +252,8 @@ class NetworkxHasseViz(AbstractHasseViz):
         G, nodelist, edgelist = self._retrieve_nodelist_edgelist(poset, kwargs)
         pos = self._retrieve_pos(poset, kwargs, nodelist, edgelist)
 
-        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self._draw_edges))
+        self._setup_legend(ax, **kw_used(kwargs, self._setup_legend))
+        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self   ._draw_edges))
         self._draw_nodes(G, pos, ax, nodelist, **kw_used(kwargs, self._draw_nodes))
 
         node_label_func = kwargs.get('node_label_func', self.node_label_func)
@@ -191,10 +265,8 @@ class NetworkxHasseViz(AbstractHasseViz):
             self._draw_node_indices(G, pos, ax, nodelist)
 
         flg_axes = kwargs.get('flg_axes', self.flg_axes)
-        if flg_axes:
-            ax.set_axis_on()
-        else:
-            ax.set_axis_off()
+        for spine in ['right', 'top', 'left', 'bottom']:
+            ax.spines[spine].set_visible(flg_axes)
 
         return G, pos, nodelist, edgelist
 
@@ -205,14 +277,14 @@ class NetworkxHasseViz(AbstractHasseViz):
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = NetworkxHasseViz()
+        viz = HasseVizNx()
         L = ConceptLattice(...)
 
         fig, ax = plt.subplots()
         viz.draw_concept_lattice(L, ax=ax, ...)
         ```
         """
-        super(NetworkxHasseViz, self).draw_concept_lattice(lattice, **kwargs)
+        super(HasseVizNx, self).draw_concept_lattice(lattice, **kwargs)
 
     def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=None, **kwargs):
         """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""
@@ -251,7 +323,6 @@ class NetworkxHasseViz(AbstractHasseViz):
                 r = r_func(i)
                 self._draw_edges(G, pos, ax, [edge], edge_radius=r*0.1, edge_color=[edge_color_])
 
-        import networkx as nx
         nx.draw_networkx_edge_labels(
             G, pos,
             edge_labels={edge: '\n'.join(labels) for edge, labels in edge_labels_map.items()},
@@ -264,28 +335,56 @@ class NetworkxHasseViz(AbstractHasseViz):
             self, G, pos, ax, nodelist,
             node_color=None, cmap=None, node_alpha=None,
             node_border_width=None, node_border_color=None,
-            cmap_min=None, cmap_max=None, node_size=None
+            cmap_min=None, cmap_max=None, node_size=None,
+            node_shape=None,
+            color_legend=None,
+            shape_legend=None,
     ):
-        node_color = get_not_none(node_color, self.node_color)
-        cmap = get_not_none(cmap, self.cmap)
-        node_alpha = get_not_none(node_alpha, self.node_alpha)
-        node_border_width = get_not_none(node_border_width, self.node_border_width)
-        node_border_color = get_not_none(node_border_color, self.node_border_color)
-        cmap_min = get_not_none(cmap_min, self.cmap_min)
-        cmap_max = get_not_none(cmap_max, self.cmap_max)
-        node_size = get_not_none(node_size, self.node_size)
+        lcls = locals()
 
-        import networkx as nx
-
-        nx.draw_networkx_nodes(
-            G, pos,
-            nodelist=nodelist,
-            node_color=node_color, cmap=cmap, alpha=node_alpha,
-            linewidths=node_border_width, edgecolors=node_border_color,
-            vmin=cmap_min, vmax=cmap_max,
+        kwargs_static = dict(
             ax=ax,
-            node_size=node_size
+            cmap=lcls.get('cmap', self.cmap),
+            alpha=lcls.get('node_alpha', self.node_alpha),
+            linewidths=lcls.get('node_border_width', self.node_border_width),
+            edgecolors=lcls.get('node_border_color', self.node_border_color),
+            vmin=lcls.get('cmap_min', self.cmap_min),
+            vmax=lcls.get('cmap_max', self.cmap_max),
         )
+
+        node_color, node_shape, node_size = [
+            self._parse_node_varying_parameter(lcls[pname], self.__dict__[pname], nodelist, len(G), pname)
+            for pname in ['node_color', 'node_shape', 'node_size']
+        ]
+
+        for color, shape in set(zip(node_color, node_shape)):
+            nlist = [node_i for (node_i, clr, shp) in zip(nodelist, node_color, node_shape)
+                     if clr == color and shp == shape]
+            sizes = [node_size[i] for i in nlist]
+
+            nx.draw_networkx_nodes(
+                G, pos,
+                nodelist=nlist, node_color=color, node_shape=shape, node_size=sizes,
+                **kwargs_static
+            )
+
+    def _setup_legend(self, ax, node_color_legend=None, node_shape_legend=None):
+        G = nx.Graph([(0, 0)])
+        nodelist = [0]
+        pos = {0: (0, 0)}
+
+        if node_color_legend:
+            lgnd_kwargs = dict(nodelist=nodelist, node_size=100)
+            for k, v in node_color_legend.items():
+                nx.draw_networkx_nodes(G, pos, node_color=k, label=v, **lgnd_kwargs)
+            nx.draw_networkx_nodes(G, pos, node_color=[ax.get_facecolor()], **lgnd_kwargs)
+
+        if node_shape_legend:
+            lgnd_kwargs = dict(nodelist=nodelist, node_color=[ax.get_facecolor()],
+                               linewidths=2,  node_size=100)
+            for k, v in node_shape_legend.items():
+                nx.draw_networkx_nodes(G, pos, node_shape=k, label=v, edgecolors='black', **lgnd_kwargs)
+                nx.draw_networkx_nodes(G, pos, node_shape=k, edgecolors='white', **lgnd_kwargs)
 
     def _draw_node_labels(
             self, poset, G, pos, ax, nodelist,
@@ -293,8 +392,6 @@ class NetworkxHasseViz(AbstractHasseViz):
     ):
         node_label_func = get_not_none(node_label_func, self.node_label_func)
         node_label_font_size = int(get_not_none(node_label_font_size, self.node_label_font_size))
-
-        import networkx as nx
 
         labels = {el_i: node_label_func(el_i, poset) for el_i in nodelist}
         nx.draw_networkx_labels(
@@ -306,8 +403,6 @@ class NetworkxHasseViz(AbstractHasseViz):
         )
 
     def _draw_node_indices(self, G, pos, ax, nodelist):
-        import networkx as nx
-
         labels = {el_i: f"{el_i}" for el_i in nodelist}
         nx.draw_networkx_labels(G, pos, ax=ax, labels=labels)
 
@@ -317,8 +412,6 @@ class NetworkxHasseViz(AbstractHasseViz):
     ):
         edge_radius = get_not_none(edge_radius, self.edge_radius)
         edge_color = get_not_none(edge_color, self.edge_color)
-
-        import networkx as nx
 
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(
