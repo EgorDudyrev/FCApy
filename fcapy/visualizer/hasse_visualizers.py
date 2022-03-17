@@ -83,6 +83,7 @@ class AbstractHasseViz:
     edgelist: Tuple[int, int] = None
     edge_color: str = 'lightgray'
     edge_radius: float = 0
+    edge_width: float = 1
 
     # Colormap fields
     cmap: str = 'Blues'
@@ -408,16 +409,20 @@ class HasseVizNx(AbstractHasseViz):
 
     def _draw_edges(
             self, G, pos, ax, edgelist,
-            edge_radius=None, edge_color=None
+            edge_radius=None, edge_color=None,
+            edge_width=None, node_size=None,
     ):
         edge_radius = get_not_none(edge_radius, self.edge_radius)
         edge_color = get_not_none(edge_color, self.edge_color)
+        edge_width = get_not_none(edge_width, self.edge_width)
+        node_size = get_not_none(node_size, self.node_size)
 
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(
             G, pos,
             edgelist=edgelist,
-            edge_color=edge_color,
+            edge_color=edge_color, width=edge_width,
+            node_size=node_size,
             arrowstyle='-', connectionstyle=cs,
-            ax=ax
+            ax=ax,
         )
