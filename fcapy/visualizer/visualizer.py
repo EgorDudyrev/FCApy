@@ -3,7 +3,7 @@ This module provides a class `Visualizer` to visualize a `ConceptLattice`
 """
 from fcapy.poset import POSet
 from fcapy.lattice import ConceptLattice
-from fcapy.visualizer.hasse_layouts import LAYOUTS
+from fcapy.visualizer.line_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used
 
 import networkx as nx
@@ -52,7 +52,7 @@ class POSetVisualizer:
         """
         warnings.warn(
             "The use of class POSetVisualizer and its successors is deprecated and will be removed in future versions."
-            "Please, move to use HasseVizNx class for visualization",
+            "Please, move to use LineVizNx class for visualization",
             FutureWarning
         )
 

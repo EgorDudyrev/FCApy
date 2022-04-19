@@ -1,5 +1,5 @@
 from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError, UnknownOrientationError
-from fcapy.visualizer import hasse_layouts
+from fcapy.visualizer import line_layouts
 
 from fcapy.context import FormalContext
 from fcapy.lattice import ConceptLattice

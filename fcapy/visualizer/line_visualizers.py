@@ -1,9 +1,9 @@
 """
-This module provides visualizers to draw Hasse diagrams
+This module provides visualizers to draw line diagrams
 
 """
 from fcapy.poset import POSet
-from fcapy.visualizer.hasse_layouts import find_nodes_edges_overlay
+from fcapy.visualizer.line_layouts import find_nodes_edges_overlay
 from fcapy.visualizer.mover import Mover
 from fcapy.utils.utils import get_kwargs_used as kw_used, get_not_none
 from fcapy.lattice import ConceptLattice
@@ -23,7 +23,7 @@ class NodeEdgeOverlayWarning(UserWarning):
 
     def __str__(self):
         msg = '\n'.join([
-            "Some lines in the Hasse diagram overlap the nodes.",
+            "Some lines in the line diagram overlap the nodes.",
             "Please, modify the ``pos`` dictionary parameter manually. "
             "You can obtain the default ``pos`` via Mover.initialize_pos(...) function.",
             "",
@@ -57,8 +57,8 @@ class UnsupportedNodeVaryingParameterError(ValueError):
 
 
 @dataclass
-class AbstractHasseViz:
-    """An abstract class for Hasse visualizer that keeps all the possible visualization parameters"""
+class AbstractLineViz:
+    """An abstract class for line visualizer that keeps all the possible visualization parameters"""
     LIB_NAME = "<AbstractLib>"
 
     #####################
@@ -228,18 +228,18 @@ class AbstractHasseViz:
         raise UnsupportedNodeVaryingParameterError(param_value, self.LIB_NAME, param_name)
 
 
-class HasseVizNx(AbstractHasseViz):
-    f"""A class to draw Hasse visualisations via Networkx package"""
+class LineVizNx(AbstractLineViz):
+    f"""A class to draw line visualisations via Networkx package"""
     LIB_NAME = 'networkx'
 
     def draw_poset(self, poset: POSet, ax=None, **kwargs):
-        """Draw a Partially Ordered Set as Hasse diagram with Networkx package
+        """Draw a Partially Ordered Set as a line diagram with Networkx package
 
         WARNING: Please specify `ax` parameter in order for the function to work properly
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = HasseVizNx()
+        viz = LineVizNx()
         poset = POSet(...)
 
         fig, ax = plt.subplots()
@@ -278,14 +278,14 @@ class HasseVizNx(AbstractHasseViz):
         e.g.
         ```
         import matplotlib.pyplot as plt
-        viz = HasseVizNx()
+        viz = LineVizNx()
         L = ConceptLattice(...)
 
         fig, ax = plt.subplots()
         viz.draw_concept_lattice(L, ax=ax, ...)
         ```
         """
-        super(HasseVizNx, self).draw_concept_lattice(lattice, **kwargs)
+        super(LineVizNx, self).draw_concept_lattice(lattice, **kwargs)
 
     def draw_quiver(self, poset: POSet, edges: Tuple[int, int, str], ax=None, **kwargs):
         """Quiver = directed graph with multiple edges between pairs of nodes. WARNING: It's the test feature"""

@@ -2,7 +2,7 @@
 This module provides a set of functions to derive a layout (node positions) for a given POSet
 
 """
-from typing import List, Dict, Tuple, FrozenSet
+from typing import Dict, Tuple, FrozenSet
 
 import networkx as nx
 from frozendict import frozendict
@@ -99,7 +99,7 @@ def find_nodes_edges_overlay(
         return ((a_pos[0] - b_pos[0]) ** 2 + (a_pos[1] - b_pos[1]) ** 2)**0.5
 
     def test_is_on_line(a_pos, b_pos, v_pos) -> bool:
-        if not b_pos[1] <= v_pos[1] <= a_pos[1]:  # Since b_pos[1] always <= a_pos[1] due to Hasse diagram nature
+        if not b_pos[1] <= v_pos[1] <= a_pos[1]:  # Since b_pos[1] always <= a_pos[1] due to line diagram nature
             return False
 
         if not (a_pos[0] <= v_pos[0] <= b_pos[0] or b_pos[0] <= v_pos[0] <= a_pos[0]):

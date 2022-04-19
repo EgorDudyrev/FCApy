@@ -1,4 +1,4 @@
-from fcapy.visualizer import hasse_visualizers as viz, hasse_layouts
+from fcapy.visualizer import line_visualizers as viz, line_layouts
 from fcapy.context import FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
 
@@ -12,7 +12,7 @@ import pytest
 
 
 def test__init__abstract():
-    vsl = viz.AbstractHasseViz()
+    vsl = viz.AbstractLineViz()
 
     with pytest.raises(NotImplementedError):
         vsl.draw_poset(None)
@@ -34,7 +34,7 @@ def test_filter_nodes_edges():
     nodes_filter = [0, 1, 3, 4, 5]
     edges_filter = [(0,1), (0,2), (1,4), (2,4)]
 
-    vsl = viz.AbstractHasseViz()
+    vsl = viz.AbstractLineViz()
     nodes, edges = vsl._filter_nodes_edges(G)
     assert nodes == nodes_all
     assert edges == edges_all
@@ -56,7 +56,7 @@ def test_concept_lattice_label_func():
     path = 'data/animal_movement.json'
     K = FormalContext.read_json(path)
     L = ConceptLattice.from_context(K)
-    vsl = viz.AbstractHasseViz()
+    vsl = viz.AbstractLineViz()
 
     lbl = vsl.concept_lattice_label_func(0, L)
     assert lbl == '\n\n2: cow, hen'
@@ -83,7 +83,7 @@ def test_draw_concept_lattice_networkx():
 
     plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
     fig, ax = plt.subplots(figsize=(7, 5))
-    vsl = viz.HasseVizNx()
+    vsl = viz.LineVizNx()
     vsl.draw_concept_lattice(
         L, ax=ax, flg_node_indices=False, flg_axes=False
     )
@@ -94,7 +94,7 @@ def test_draw_concept_lattice_networkx():
     compare_figure_png(fig, 'data/animal_movement_lattice.png')
 
     # Specify optional parameters
-    pos = hasse_layouts.fcart_layout(L)
+    pos = line_layouts.fcart_layout(L)
     G = L.to_networkx()
     nodelist = list(G.nodes)
     edgelist = list(G.edges)
@@ -120,7 +120,7 @@ def test_flg_drop_empty_bottom():
         plt.rcParams['figure.facecolor'] = (1, 1, 1, 1)
 
         fig, ax = plt.subplots(figsize=(7, 5))
-        vsl = viz.HasseVizNx()
+        vsl = viz.LineVizNx()
         vsl.draw_concept_lattice(
             L, ax=ax, flg_node_indices=False, flg_axes=False,
             nodelist=nodelist, flg_drop_empty_bottom = flg_drop_empty_bottom
@@ -140,7 +140,7 @@ def test_flg_drop_empty_bottom():
 
 def _retrieve_node_varying_parameter():
     G = nx.Graph([(0, 1), (1, 2), (0, 2)])
-    vsl = viz.HasseVizNx()
+    vsl = viz.LineVizNx()
     clr = vsl._retrieve_node_varying_parameter(None, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
     assert clr == ['DefaultValue'] * 3
 

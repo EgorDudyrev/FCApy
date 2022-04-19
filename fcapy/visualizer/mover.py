@@ -3,7 +3,7 @@ from typing import Dict, Tuple, List, Optional
 from attr import dataclass
 
 from fcapy.poset import POSet
-from fcapy.visualizer.hasse_layouts import LAYOUTS
+from fcapy.visualizer.line_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used
 
 PosDictType = Dict[int, Tuple[float, float]]
