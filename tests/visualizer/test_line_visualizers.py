@@ -1,6 +1,8 @@
-from fcapy.visualizer import line_visualizers as viz, line_layouts
+import fcapy.visualizer.mover
+from fcapy.visualizer import line_visualizers as viz, line_layouts, mover
 from fcapy.context import FormalContext
 from fcapy.lattice.concept_lattice import ConceptLattice
+
 
 import io
 import numpy as np
@@ -138,21 +140,36 @@ def test_flg_drop_empty_bottom():
     assert (img0 == img1).all()
 
 
-def _retrieve_node_varying_parameter():
+def test_parse_node_varying_parameter():
     G = nx.Graph([(0, 1), (1, 2), (0, 2)])
     vsl = viz.LineVizNx()
-    clr = vsl._retrieve_node_varying_parameter(None, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
+    clr = vsl._parse_node_varying_parameter(None, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
     assert clr == ['DefaultValue'] * 3
 
     clr_orig = ['green', 'yellow', 'blue']
-    clr = vsl._retrieve_node_varying_parameter(clr_orig, 'DefaultValue', [0, 1], len(G), 'ParamType')
+    clr = vsl._parse_node_varying_parameter(clr_orig, 'DefaultValue', [0, 1], len(G), 'ParamType')
     assert clr == clr_orig[:2]
 
-    clr = vsl._retrieve_node_varying_parameter(clr_orig[1:], 'DefaultValue', [0, 1], len(G), 'ParamType')
+    clr = vsl._parse_node_varying_parameter(clr_orig[1:], 'DefaultValue', [0, 1], len(G), 'ParamType')
     assert clr == clr_orig[1:]
 
     with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
-        vsl._retrieve_node_varying_parameter([clr_orig[0]], 'DefaultValue', [0, 1], len(G), 'ParamType')
+        vsl._parse_node_varying_parameter([clr_orig[0]], 'DefaultValue', [0, 1], len(G), 'ParamType')
 
     with pytest.raises(viz.UnsupportedNodeVaryingParameterError):
-        vsl._retrieve_node_varying_parameter(['yellow'] * 5, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
+        vsl._parse_node_varying_parameter(['yellow'] * 5, 'DefaultValue', [0, 1, 2], len(G), 'ParamType')
+
+
+def test_init_mover():
+    path = 'data/liveinwater.cxt'
+    K = FormalContext.read_cxt(path)
+    L = ConceptLattice.from_context(K)
+
+    vsl = viz.LineVizNx()
+    vsl.init_mover_per_poset(L)
+    pos = vsl.mover.pos
+    
+    mvr = mover.Mover()
+    mvr.initialize_pos(L)
+    pos_true = mvr.pos
+    assert pos == pos_true

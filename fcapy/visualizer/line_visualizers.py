@@ -206,12 +206,9 @@ class AbstractLineViz:
         if 'pos' in kwargs:
             pos = kwargs['pos']
         else:
-            if self.mover is None:
-                self.mover = Mover()
+            if self.mover is None or self.mover.pos is None:
+                self.init_mover_per_poset(poset, **kwargs)
             pos = self.mover.pos
-            if pos is None:
-                self.mover.initialize_pos(poset, **kw_used(kwargs, self.mover.initialize_pos))
-                pos = self.mover.pos
 
         overlays = find_nodes_edges_overlay(pos, nodelist, edgelist)
         if len(overlays) > 0:
@@ -236,6 +233,11 @@ class AbstractLineViz:
             return [param_value[i] for i in nodelist]
 
         raise UnsupportedNodeVaryingParameterError(param_value, self.LIB_NAME, param_name)
+
+    def init_mover_per_poset(self, poset: POSet, **kwargs):
+        """Construct mover with default positions given Partially Ordered set"""
+        self.mover = Mover()
+        self.mover.initialize_pos(poset, **kw_used(kwargs, self.mover.initialize_pos))
 
 
 class LineVizNx(AbstractLineViz):
