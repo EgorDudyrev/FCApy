@@ -3,7 +3,7 @@ from typing import Dict, Tuple, List, Optional
 from attr import dataclass
 
 from fcapy.poset import POSet
-from fcapy.visualizer.hasse_layouts import LAYOUTS
+from fcapy.visualizer.line_layouts import LAYOUTS
 from fcapy.utils.utils import get_kwargs_used
 
 PosDictType = Dict[int, Tuple[float, float]]
@@ -64,6 +64,7 @@ class Mover:
 
     @property
     def orientation(self):
+        """Whether the diagram is oriented vertically "v" (from top to bottom) or horizontally "h" """
         return self._orientation
 
     @orientation.setter
@@ -74,6 +75,7 @@ class Mover:
 
     @property
     def posx(self) -> Optional[Tuple[float, ...]]:
+        """Property to get/set nodes coordinates along X-axis"""
         if self.levels is None:
             return None
 
@@ -91,6 +93,7 @@ class Mover:
 
     @property
     def posy(self) -> Optional[Tuple[float, ...]]:
+        """Property to get/set nodes coordinates along Y-axis"""
         if self.levels is None:
             return None
 
@@ -109,6 +112,7 @@ class Mover:
 
     @property
     def pos(self) -> Optional[PosDictType]:
+        """Property to get/set the nodes positions in the form of dictionary {node_i: (x_coord, y_coord)}"""
         if self.levels is None:
             return None
         return {el_i: (x, y) for el_i, (x, y) in enumerate(zip(self.posx, self.posy))}
@@ -133,8 +137,6 @@ class Mover:
         else:  # Assuming self.orientation == 'h'
             self.posx = posx
             self.posy = posy
-
-
 
         if self.orientation == 'h':
             value = {el_i: (y, -x) for el_i, (x, y) in value.items()}
@@ -171,6 +173,7 @@ class Mover:
         self.pos = layout_func(poset, **kwargs_used)
 
     def swap_nodes(self, el_a: int, el_b: int) -> None:
+        """Put the node `el_a` in the position of node `el_b` and node `el_b` in the position of node `el_a`"""
         lvl_a, lvl_b = [self.levels[el] for el in [el_a, el_b]]
         if lvl_a is None or lvl_b is None or lvl_a != lvl_b:
             raise DifferentHierarchyLevelsError(el_a, el_b, "'swap_nodes'")
@@ -178,6 +181,7 @@ class Mover:
         self.peers_order[el_a], self.peers_order[el_b] = self.peers_order[el_b], self.peers_order[el_a]
 
     def shift_node(self, node_i: int, n_nodes_right: int) -> None:
+        """Move the node `node_i` over `n_nodes_right` nodes to the right (if positive) or to the left (othw.)"""
         node_lvl, node_peer_id = self.levels[node_i], self.peers_order[node_i]
 
         peers_ids = [i for i, lvl in enumerate(self.levels) if lvl == node_lvl]
@@ -190,6 +194,7 @@ class Mover:
             self.swap_nodes(node_i, node_swap)
 
     def jitter_node(self, node_i: int, dx: float) -> None:
+        """Move the position of node `node_i` by `dx`"""
         lvl_id, peer_id = self.levels[node_i], self.peers_order[node_i]
         pos_peers = self.pos_peers[lvl_id]
 
@@ -220,19 +225,23 @@ class Mover:
         self.pos_peers[lvl_id][peer_id] = new_x
 
     def place_node(self, node_i: int, x: float) -> None:
+        """Put the node `node_i` in the `x` coordinate"""
         self.jitter_node(node_i, x - self.pos[node_i][0])
 
     def _get_nodes_peer_pos(self) -> Optional[Tuple[float, ...]]:
+        """Get nodes positions among the peers (whether it is currently X-axis or Y-axis)"""
         if self.levels is None:
             return None
         return tuple([self.pos_peers[lvl][peer] for lvl, peer in zip(self.levels, self.peers_order)])
 
     def _get_nodes_level_pos(self) -> Optional[Tuple[float, ...]]:
+        """Get nodes positions among the levels (whether it is currently Y-axis or X-axis)"""
         if self.levels is None:
             return None
         return tuple([self.pos_levels[lvl] for lvl in self.levels])
 
     def _set_nodes_peers_pos(self, value: Tuple[float, ...]) -> None:
+        """Set nodes positions among the peers (whether it is currently X-axis or Y-axis)"""
         peers_by_lvl = [[] for _ in range(len(self.pos_levels))]
         for el_i, lvl in enumerate(self.levels):
             peers_by_lvl[lvl].append(el_i)
@@ -242,6 +251,7 @@ class Mover:
         self.peers_order = [peers_by_lvl[lvl].index(el_i) for el_i, lvl in enumerate(self.levels)]
 
     def _set_node_level_pos(self, value: Tuple[float, ...], reverse: bool = True) -> None:
+        """Set nodes positions among the levels (whether it is currently Y-axis or X-axis)"""
         self.pos_levels = sorted(set(value), reverse=reverse)
         lvl_coords_inv_dct = {coord: lvl_i for lvl_i, coord in enumerate(self.pos_levels)}
         self.levels = [lvl_coords_inv_dct[v] for v in value]

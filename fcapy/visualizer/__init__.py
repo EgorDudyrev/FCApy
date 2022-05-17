@@ -3,7 +3,7 @@ This subpackage provides a number of options to visualize objects of `fcapy` pac
 
 Classes
 -------
-hasse_visualizers.HasseVizNx:
+hasse_visualizers.LineVizNx:
     A class to visualize the `POSet` (incl. `ConceptLattice`) via NetworkX package.
 mover.Mover:
     A class to move nodes in a visualization in a user friendly fashion.
@@ -30,7 +30,7 @@ visualizer:
     to visualize a `POSet` or a `ConceptLattice` respectively
 
 """
-from .hasse_visualizers import HasseVizNx
+from .line_visualizers import LineVizNx
 from .mover import Mover
 
 from .visualizer import POSetVisualizer, ConceptLatticeVisualizer
