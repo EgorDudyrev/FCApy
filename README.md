@@ -121,18 +121,15 @@ print(L.top_concept_i, L.bottom_concept_i)
 One can draw Hasse diagram of the lattice by `visualizer` subpackage:
 ```python
 import matplotlib.pyplot as plt
-from fcapy.visualizer import ConceptLatticeVisualizer
-
-plt.figure(figsize=(10, 5))
-
-vsl = ConceptLatticeVisualizer(L)
-vsl.draw_networkx(max_new_extent_count=5, draw_node_indices=True)
-
-plt.xlim(-0.7,0.7)
-plt.axis(False)
+from fcapy.visualizer import LineVizNx
+fig, ax = plt.subplots(figsize=(10, 5))
+vsl = LineVizNx()
+vsl.draw_concept_lattice(L, ax=ax, flg_node_indices=True)
+ax.set_title('"Animal movement" concept lattice', fontsize=18)
 plt.tight_layout()
 plt.show()
 ```
+
 <p align="center">
   <img width="616" src="https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/docs/images/animal_context_lattice.png" />
 </p>
