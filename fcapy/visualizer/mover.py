@@ -8,7 +8,7 @@ from fcapy.utils.utils import get_kwargs_used
 
 PosDictType = Dict[int, Tuple[float, float]]
 
-ORIENTATIONS = {'h', 'v'}
+DIRECTIONS = {'h', 'v'}
 
 
 @dataclass
@@ -26,13 +26,13 @@ class DifferentHierarchyLevelsError(ValueError):
 
 
 @dataclass
-class UnknownOrientationError(ValueError):
-    orientation: str
+class UnknownDirectionError(ValueError):
+    direction: str
 
     def __str__(self):
         msg = '\n'.join([
-            f'Unknown layout orientation received: {self.orientation}.',
-            f'The list of possible orientations is given is as follows: {", ".join(ORIENTATIONS)}'
+            f'Unknown layout direction received: {self.direction}.',
+            f'The list of possible directions is given is as follows: {", ".join(DIRECTIONS)}'
         ])
         return msg
 
@@ -40,9 +40,20 @@ class UnknownOrientationError(ValueError):
 class Mover:
     """Class to make node moving in Hasse Diagrams easier
 
-    Methods
-    -------
+    Properties
+    ----------
     pos: get/set nodes position in {element_idx: (x_coord, y_coord)} format
+    posx: get/set the list of x coordinates of nodes
+    posy: get/set the list of y coordinates of nodes
+    direction: get/set the direction of the visualization ("v" for vertical, "h" for horizontal)
+    
+    Functions to move the nodes
+    ---------------------------
+    swap_nodes(el_a, el_b): Put the node `el_a` in the pos. of node `el_b` and node `el_b` in the pos. of node `el_a`
+    shift_node(node_i, n_nodes_right): Move the node `node_i` over `n_nodes_right` nodes to the right (if positive)
+        or to the left (othw.)
+    jitter_node(node_i, dx): Move the position of node `node_i` by `dx`
+    place_node(node_i, x): Put the node `node_i` in the `x` coordinate
 
     Attributes
     ----------
@@ -58,20 +69,20 @@ class Mover:
     pos_levels: Optional[List[float]]
     pos_peers: Optional[List[List[float]]]
 
-    def __init__(self, pos: PosDictType = None, orientation: ORIENTATIONS = 'v'):
-        self.orientation = orientation
+    def __init__(self, pos: PosDictType = None, direction: DIRECTIONS = 'v'):
+        self.direction = direction
         self.pos = pos
 
     @property
-    def orientation(self):
+    def direction(self):
         """Whether the diagram is oriented vertically "v" (from top to bottom) or horizontally "h" """
-        return self._orientation
+        return self._direction
 
-    @orientation.setter
-    def orientation(self, value):
-        if value not in ORIENTATIONS:
-            raise UnknownOrientationError(value)
-        self._orientation = value
+    @direction.setter
+    def direction(self, value):
+        if value not in DIRECTIONS:
+            raise UnknownDirectionError(value)
+        self._direction = value
 
     @property
     def posx(self) -> Optional[Tuple[float, ...]]:
@@ -79,16 +90,16 @@ class Mover:
         if self.levels is None:
             return None
 
-        if self.orientation == 'v':
+        if self.direction == 'v':
             return self._get_nodes_peer_pos()
-        # Assuming self.orientation == 'h'
+        # Assuming self.direction == 'h'
         return tuple([-lvl_pos for lvl_pos in self._get_nodes_level_pos()])
 
     @posx.setter
     def posx(self, value: Tuple[float, ...]):
-        if self.orientation == 'v':
+        if self.direction == 'v':
             self._set_nodes_peers_pos(value)
-        else:  # Assuming self.orientation == 'h'
+        else:  # Assuming self.direction == 'h'
             self._set_node_level_pos(value, reverse=False)
 
     @property
@@ -97,17 +108,17 @@ class Mover:
         if self.levels is None:
             return None
 
-        if self.orientation == 'v':
+        if self.direction == 'v':
             return self._get_nodes_level_pos()
-        # Assuming self.orientation == 'h'
+        # Assuming self.direction == 'h'
         return self._get_nodes_peer_pos()
 
     @posy.setter
     def posy(self, value: Tuple[float, ...]):
-        if self.orientation == 'v':
+        if self.direction == 'v':
             # Set levels positions and order
             self._set_node_level_pos(value, reverse=True)
-        else:  # Assuming self.orientation == 'h'
+        else:  # Assuming self.direction == 'h'
             self._set_nodes_peers_pos(value)
 
     @property
@@ -131,14 +142,14 @@ class Mover:
 
         posx, posy = list(zip(*[value[el_i] for el_i in range(max_el_i + 1)]))
 
-        if self.orientation == 'v':
+        if self.direction == 'v':
             self.posy = posy
             self.posx = posx
-        else:  # Assuming self.orientation == 'h'
+        else:  # Assuming self.direction == 'h'
             self.posx = posx
             self.posy = posy
 
-        if self.orientation == 'h':
+        if self.direction == 'h':
             value = {el_i: (y, -x) for el_i, (x, y) in value.items()}
 
         max_el_i = max(value)

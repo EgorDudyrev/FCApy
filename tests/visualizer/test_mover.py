@@ -1,4 +1,4 @@
-from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError, UnknownOrientationError
+from fcapy.visualizer.mover import Mover, DifferentHierarchyLevelsError, UnknownDirectionError
 from fcapy.visualizer import line_layouts
 
 from fcapy.context import FormalContext
@@ -83,18 +83,18 @@ def test_shift_node():
     assert mvr.pos == pos_true
 
 
-def test_orientations():
+def test_directions():
     pos_true = {
         0: (0.0, 1.0), 1: (-0.5, 0.5), 2: (0.0, 0.5), 3: (0.5, 0.5),
         4: (-0.5, 0.0), 5: (0.0, 0.0), 6: (0.5, 0.0), 7: (0.0, -0.5),
         8: (0.8, 0.0)
     }
     mvr = Mover(pos={k: v for k, v in pos_true.items()})
-    mvr.orientation = 'h'
+    mvr.direction = 'h'
     pos_h = mvr.pos
-    mvr.orientation = 'v'
+    mvr.direction = 'v'
     pos_v = mvr.pos
     assert pos_true == pos_v
 
-    with pytest.raises(UnknownOrientationError):
-        mvr.orientation = 'UnknownOrientation'
+    with pytest.raises(UnknownDirectionError):
+        mvr.direction = 'UnknownDirection'
