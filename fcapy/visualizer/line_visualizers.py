@@ -93,6 +93,7 @@ class AbstractLineViz:
     # Binary toggles
     flg_node_indices: bool = False
     flg_axes: bool = False
+    flg_drop_bottom_concept: bool = False
 
     #####################
     # Functions         #
@@ -119,14 +120,18 @@ class AbstractLineViz:
         if flg_name in kwargs:
             warnings.warn(
                 f"The flag {flg_name} will be removed in future versions"
-                "since it is just a temporary solution",
+                "since it is just a temporary solution. "
+                "Please, use `flg_drop_bottom_concept` parameter",
                 FutureWarning
             )
 
             if kwargs[flg_name]:
                 bc_i = lattice.bottom_concept_i
                 if len(lattice[bc_i].extent) == 0:
-                    kwargs['drop_bottom_concept'] = bc_i
+                    kwargs['flg_drop_bottom_concept'] = True
+
+        kwargs['bottom_concept_i_to_drop'] = lattice.bottom_concept_i \
+            if kwargs.get('flg_drop_bottom_concept', self.flg_drop_bottom_concept) else None
 
         self.draw_poset(lattice, **kwargs)
 
@@ -136,7 +141,7 @@ class AbstractLineViz:
             G: nx.Graph,
             nodelist: Tuple[int, ...] = None,
             edgelist: Tuple[Tuple[int, int], ...] = None,
-            drop_bottom_concept: int = None
+            bottom_concept_i_to_drop: int = None
     ):
         """Return the list of nodes to draw and edges associated to the nodes.
 
@@ -151,8 +156,8 @@ class AbstractLineViz:
             nodelist = list(G.nodes)
 
         # drop bottom concept for concept lattice (implying it is empty). (See self.draw_concept_lattice(...) func)
-        if drop_bottom_concept:
-            nodelist.remove(drop_bottom_concept)
+        if bottom_concept_i_to_drop:
+            nodelist.remove(bottom_concept_i_to_drop)
 
         # draw only the edges for the drawn nodes. If other is not specified
         if edgelist is None:
@@ -388,18 +393,24 @@ class LineVizNx(AbstractLineViz):
         nodelist = [0]
         pos = {0: (0, 0)}
 
+        fclr = ax.get_facecolor()
         if node_color_legend:
             lgnd_kwargs = dict(nodelist=nodelist, node_size=100)
             for k, v in node_color_legend.items():
                 nx.draw_networkx_nodes(G, pos, node_color=k, label=v, **lgnd_kwargs)
-            nx.draw_networkx_nodes(G, pos, node_color=[ax.get_facecolor()], **lgnd_kwargs)
+
+            lgnd_kwargs_overlap = lgnd_kwargs.copy()
+            lgnd_kwargs_overlap['linewidths'] = lgnd_kwargs_overlap.get('linewidths', 1) + 1
+            nx.draw_networkx_nodes(G, pos, node_color=[fclr], edgecolors=[fclr], **lgnd_kwargs_overlap)
 
         if node_shape_legend:
-            lgnd_kwargs = dict(nodelist=nodelist, node_color=[ax.get_facecolor()],
-                               linewidths=2,  node_size=100)
+            lgnd_kwargs = dict(nodelist=nodelist, node_color=[fclr], linewidths=2,  node_size=100)
+            lgnd_kwargs_overlap = lgnd_kwargs.copy()
+            lgnd_kwargs_overlap['linewidths'] = lgnd_kwargs_overlap.get('linewidths', 1) + 1
+
             for k, v in node_shape_legend.items():
                 nx.draw_networkx_nodes(G, pos, node_shape=k, label=v, edgecolors='black', **lgnd_kwargs)
-                nx.draw_networkx_nodes(G, pos, node_shape=k, edgecolors='white', **lgnd_kwargs)
+                nx.draw_networkx_nodes(G, pos, node_shape=k, edgecolors=[fclr], **lgnd_kwargs_overlap)
 
     def _draw_node_labels(
             self, poset, G, pos, ax, nodelist,
