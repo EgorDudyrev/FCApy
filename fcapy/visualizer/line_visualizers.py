@@ -246,7 +246,7 @@ class AbstractLineViz:
 
 
 class LineVizNx(AbstractLineViz):
-    f"""A class to draw line visualisations via Networkx package"""
+    """A class to draw line visualisations via Networkx package"""
     LIB_NAME = 'networkx'
 
     def draw_poset(self, poset: POSet, ax=None, **kwargs):
