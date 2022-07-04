@@ -35,6 +35,10 @@ Visualizer
 .. autosummary::
     :toctree: generated/
 
+    visualizer.LineVizNx
+    visualizer.Mover
+
+    Classes to be deleted in future
     visualizer.ConceptLatticeVisualizer
     visualizer.POSetVisualizer
 
