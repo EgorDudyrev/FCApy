@@ -38,7 +38,8 @@ Visualizer
     visualizer.LineVizNx
     visualizer.Mover
 
-    Classes to be deleted in future
+Classes to be deleted in the future
+.. autosummary::
     visualizer.ConceptLatticeVisualizer
     visualizer.POSetVisualizer
 
