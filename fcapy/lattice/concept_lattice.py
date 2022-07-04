@@ -23,7 +23,7 @@ if LIB_INSTALLED['numpy']:
 
 
 class ConceptLattice(Lattice):
-    r"""A class used to represent Concept Lattice object from FCA theory
+    """A class used to represent Concept Lattice object from FCA theory
 
     Methods
     -------
@@ -416,7 +416,7 @@ class ConceptLattice(Lattice):
         use_object_indices: `bool`
             A flag whether to return a dict with keys as object indices (if True) or object names (if False)
         use_generators: `bool`
-            A flag whether to describe object of `context by closed concept intents (if False) or their generators (o/w)
+            A flag whether to describe object of `context` by closed concept intents (if False) or their generators (o/w)
         use_tqdm: `bool`
             A flag whether to visualize the progress of the algorithm with tqdm bar
         return_generators_extents: `bool`

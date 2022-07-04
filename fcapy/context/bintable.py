@@ -16,15 +16,15 @@ class BinTable:
 
     Methods
     -------
-    all(self, axis=None)
+    all(self, axis=None)  :noindex:
         Return whether all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2) are True
-    any(self, axis=None)
+    any(self, axis=None)  :noindex:
         Return whether any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True
-    sum(self, axis=None)
+    sum(self, axis=None)  :noindex
         Return sum of all elements (``axis`` =0), rows in columns (``axis`` =1), columns in rows (``axis`` =2)
-    arrow_up(self, row_indexes, base_columns=None)
+    arrow_up(self, row_indexes, base_columns=None)  :noindex:
         Return the maximal set of columns in which all rows (``row_indexes``) are True
-    arrow_down(self, column_indexes, base_rows=None)
+    arrow_down(self, column_indexes, base_rows=None)  :noindex:
         Return the maximal set of rows in which all columns (``column_indexes``) are True
 
     """
@@ -189,14 +189,14 @@ class BinTable:
         return list_data
 
     def __eq__(self, other):
-        """Compare is this BinTable is equal to the ``other``"""
+        """Compare is this BinTable is equal to the ``other`` """
         return self._data == other.data
 
     def __hash__(self):
         return hash(tuple([tuple(row) for row in self._data]))
 
     def all(self, axis=None):
-        """Check if all rows in columns (``axis``=1), columns in rows (``axis``=2), or both (``axis``=0) are True"""
+        """Check if all rows in columns (``axis`` =1), columns in rows (``axis`` =2), or both (``axis`` =0) are True"""
         def check_all_true(ar):
             return ar.all() if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else all(ar)
 

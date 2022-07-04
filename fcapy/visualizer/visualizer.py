@@ -90,6 +90,7 @@ class POSetVisualizer:
         nodelist:list = None
     ):
         """Draw line diagram of the `POSet` with `networkx` package
+
         Parameters
         ----------
         draw_node_indices: `bool`

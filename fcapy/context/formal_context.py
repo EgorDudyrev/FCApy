@@ -18,22 +18,22 @@ class FormalContext:
 
     Methods
     -------
-    intention(objects)
+    intention(objects)  :noindex:
         Return maximal set of attributes which are shared by given ``objects``
-    extension(attributes)
+    extension(attributes)  :noindex:
         Return maximal set of objects which share given ``attributes``
-    intention_i(object_indexes)
+    intention_i(object_indexes)  :noindex:
         Offer the same logic as intention(...) but objects and attributes are defined by their indexes
-    extension_i(attribute_indexes)
+    extension_i(attribute_indexes)  :noindex:
         Offer the same logic as extension(...) but objects and attributes are defined by their indexes
 
-    write_cxt(path=None)
+    write_cxt(path=None)  :noindex:
         Convert the FormalContext into cxt file format (save if ``path`` is given)
-    write_json(path=None)
+    write_json(path=None)  :noindex:
         Convert the FormalContext into json file format (save if ``path`` is given)
-    write_csv(path=None, **kwargs)
+    write_csv(path=None, **kwargs)  :noindex:
         Convert the FormalContext into csv file format (save if ``path`` is given)
-    to_pandas()
+    to_pandas()  :noindex:
         Convert the FormalContext into pandas.DataFrame object
 
     Notes

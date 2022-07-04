@@ -28,10 +28,10 @@ class DecisionLatticePredictor:
 
     Methods
     -------
-    fit(context):
+    fit(context)  :noindex:
         Construct a concept lattice based on ``context``
         and calculate interestingness measures to predict the ``context.target`` values
-    predict(context)
+    predict(context)  :noindex:
         Predict ``context.target`` variables based on ``context.data``
 
     """
@@ -430,14 +430,14 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
 
     Methods
     -------
-    fit(context):
+    fit(context)  :noindex:
         Construct a concept lattice based on ``context``
         and calculate interestingness measures to predict the ``context.target`` values
         (Inherited from `DecisionLatticePredictor` class)
-    predict(context)
+    predict(context)  :noindex:
         Predict ``context.target`` labels based on ``context.data``
         (Inherited from `DecisionLatticePredictor` class)
-    predict_proba(context)
+    predict_proba(context)  :noindex:
         Predict probabilities of ``context.target`` labels based on ``context.data``
 
     """
@@ -515,11 +515,11 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
 
     Methods
     -------
-    fit(context):
+    fit(context)  :noindex:
         Construct a concept lattice based on ``context``
         and calculate interestingness measures to predict the ``context.target`` values
         (Inherited from `DecisionLatticePredictor` class)
-    predict(context)
+    predict(context)  :noindex:
         Predict context.target labels based on context.data
         (Inherited from `DecisionLatticePredictor` class)
 

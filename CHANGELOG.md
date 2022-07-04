@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.4] - 2022-07-04
+
+Pretty and easier-to-use visualizations via NetworkX.
+
+### Added
+
+Rewrite visualizer submodule to make visualizations more versatile and easy to use.
+* Add LineVizNx: a class to visualize POSets and Concept Lattices via NetworkX  
+* Add Mover: a class to simplify the positioning of nodes in a visualization
+* Add many NetworkX-like parameters to AbstractLineViz to form an interface for future visualization extensions 
+
+_Disclaimer_: The release was in production for too much time.
+So something may not work properly (although it should).
+I will try to publish the following releases more often.
+
+
 ## [0.1.3] - 2021-09-09
 ### Added
 
