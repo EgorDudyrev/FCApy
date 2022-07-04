@@ -8,7 +8,7 @@ from fcapy.utils.utils import get_kwargs_used
 
 PosDictType = Dict[int, Tuple[float, float]]
 
-DIRECTIONS = {'h', 'v'}
+DIRECTIONS = frozenset({'h', 'v'})
 
 
 @dataclass
