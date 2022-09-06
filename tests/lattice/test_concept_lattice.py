@@ -281,3 +281,19 @@ def test_conditional_generators_dict():
     for k in condgens_dict.keys():
         assert set(condgens_dict[k]) == set(condgens_dict_approx[k]),\
             'ConceptLattice.get_conditional_generators_dict failed. Approximate method gives wrong results'
+
+
+def test_measures():
+    K = converters.read_csv('data/mango_bin.csv')
+    L = ConceptLattice.from_context(K)
+
+    meas1 = np.random.random(len(L))
+    meas2 = np.random.random(len(L))
+    for i, c in enumerate(L):
+        c.measures['m1'] = meas1[i]
+        c.measures['m2'] = meas2[i]
+
+    meas_dict = L.measures
+    assert all(meas_dict['m1'] == meas1)
+    assert all(meas_dict['m2'] == meas2)
+    assert len(meas_dict) == 2

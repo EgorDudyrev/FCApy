@@ -20,10 +20,18 @@ from frozendict import frozendict
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
     import numpy as np
+    from numpy.typing import NDArray
 
 
 class ConceptLattice(Lattice):
     """A class used to represent Concept Lattice object from FCA theory
+
+    Properties
+    ----------
+    concepts: List[Union[FormalConcept, PatternConcept]]
+        A list of concepts in the lattice
+    measures: Dict[str, np.typing.NDArray]
+        Dictionary with precomputed interestingness measures values of concepts
 
     Methods
     -------
@@ -138,6 +146,20 @@ class ConceptLattice(Lattice):
     def bottom_concept(self) -> Union[FormalConcept, PatternConcept]:
         """The bottom (the smallest) concept"""
         return self.concepts[self.bottom_concept_i]
+
+    @property
+    def measures(self) -> Dict[str, NDArray]:
+        """The dictionary containing all precomputed interestingness measures of concepts"""
+        meas_dict = {}
+        for i, c in enumerate(self):
+            for k, v in c.measures.items():
+                if k not in meas_dict:
+                    meas_dict[k] = [None] * i
+
+                meas_dict[k].append(v)
+        meas_dict = {k: np.array(vs) for k, vs in meas_dict.items()}
+        assert len(set([len(vs) for vs in meas_dict.values()])) == 1
+        return meas_dict
 
     @staticmethod
     def get_top_bottom_concepts_i(
@@ -329,6 +351,7 @@ class ConceptLattice(Lattice):
             for c_i, c in enumerate(self.concepts):
                 c.measures[name] = func(c_i, self, context)
         else:
+            # TODO: Reflect these measures in the docstring
             possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability',
                                  'target_entropy', 'mean_information_gain']
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
