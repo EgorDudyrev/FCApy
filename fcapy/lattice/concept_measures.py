@@ -66,5 +66,5 @@ def target_entropy(c_i, lattice: ConceptLattice, context: FormalContext):
 
 def mean_information_gain(c_i, lattice: ConceptLattice):
     h = lattice[c_i].measures['target_entropy']
-    mean_parent_h = np.mean([lattice[parent_i].measures['target_entropy'] for parent_i in lattice.super_elements(c_i)])
+    mean_parent_h = np.mean([lattice[parent_i].measures['target_entropy'] for parent_i in lattice.ancestors(c_i)])
     return mean_parent_h - h

@@ -14,7 +14,7 @@ def test_complete_comparison():
     subconcepts_dict = lca.complete_comparison([c1, c2, c3, c4])
     subconcepts_dict_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
     assert subconcepts_dict == subconcepts_dict_true,\
-        'lattice_construction.complete_comparison failed. Wrong subconcepts_dict is constructed'
+        'lattice_construction.complete_comparison failed. Wrong children_dict is constructed'
 
     concepts_sorted = [c4, c2, c3, c1]
     subconcepts_dict_sorted = lca.complete_comparison(concepts_sorted, is_concepts_sorted=True)
@@ -217,9 +217,9 @@ def test_remove_concept():
         assert concepts_true == concepts_true1,\
             'remove_concept failed. The original concepts list has been changed during non inplace function call'
         assert subconcepts_dict_true == subconcepts_dict_true1,\
-            'remove_concept failed. The original subconcepts_dict has been changed during non inplace function call'
+            'remove_concept failed. The original children_dict has been changed during non inplace function call'
         assert superconcepts_dict_true == superconcepts_dict_true1, \
-            'remove_concept failed. The original superconcepts_dict has been changed during non inplace function call'
+            'remove_concept failed. The original parents_dict has been changed during non inplace function call'
 
         assert subconcepts_dict == subconcepts_dict_true_new,\
             'remove_concept failed. Subconcept_dict is calculated wrong'
@@ -243,9 +243,9 @@ def test_remove_concept():
         assert concepts_true != concepts_true1,\
             'remove_concept failed. The original concepts list should been changed during inplace function call'
         assert subconcepts_dict_true != subconcepts_dict_true1,\
-            'remove_concept failed. The original subconcepts_dict should been changed during inplace function call'
+            'remove_concept failed. The original children_dict should been changed during inplace function call'
         assert superconcepts_dict_true != superconcepts_dict_true1, \
-            'remove_concept failed. The original superconcepts_dict should been changed during inplace function call'
+            'remove_concept failed. The original parents_dict should been changed during inplace function call'
 
         assert subconcepts_dict == subconcepts_dict_true_new,\
             'remove_concept failed. Subconcept_dict is calculated wrong'

@@ -4,7 +4,7 @@ This module provides a ConceptLattice class. It may be considered as the main mo
 """
 import json
 
-from typing import Tuple, Union, Optional, List, Dict, FrozenSet, Set
+from typing import Tuple, Union, Optional, List, Dict, FrozenSet, Set, Collection
 
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
@@ -67,63 +67,55 @@ class ConceptLattice(Lattice):
     """
     CLASS_NAME = 'ConceptLattice'
 
-    def __init__(self, concepts: List[Union[FormalConcept, PatternConcept]], **kwargs):
+    def __init__(self, concepts: List[FormalConcept or PatternConcept], **kwargs):
         """Construct a ConceptLattice based on a set of ``concepts`` and ``**kwargs`` values
 
         Parameters
         ----------
         concepts: `list`[`FormalConcept` or `PatternConcept`]
         kwargs:
-            subconcepts_dict: `dict`{`int`, `list`[`int`]}
-                A dictionary with subconcept (order) relation on the ``concepts``
-            superconcepts_dict: `dict`{`int`, `list`[`int`]}
-                A dictionary with superconcept (inverse order) relation on the ``concepts``
+            children_dict: `dict`{`int`, `list`[`int`]}
+                A dictionary with children relation (preceding elements) on ``concepts``
+            parents_dict: `dict`{`int`, `list`[`int`]}
+                A dictionary with parents relation (succeeding elements)  on ``concepts``
         """
+        assert not (kwargs.get('children_dict') is not None and kwargs.get('parents_dict') is not None),\
+            'Specify either "children_dict" or "parents_dict", not both at the same time'
 
-        super(ConceptLattice, self).__init__(concepts, self.concepts_leq_func, use_cache=True)
+        children_dict = kwargs.get('children_dict')
+        if kwargs.get('parents_dict') is not None:
+            children_dict = self._transpose_hierarchy(kwargs['parents_dict'])
+        children_dict = {k: frozenset(vs) for k, vs in children_dict.items()} if children_dict is not None else None
 
-        subconcepts_dict = kwargs.get('subconcepts_dict')
-        superconcepts_dict = kwargs.get('superconcepts_dict')
-        if subconcepts_dict is not None or superconcepts_dict is not None:
-            if subconcepts_dict is not None:
-                subconcepts_dict = {c_i: set(subs_i) for c_i, subs_i in subconcepts_dict.items()}
-            if superconcepts_dict is not None:
-                superconcepts_dict = {c_i: set(sups_i) for c_i, sups_i in superconcepts_dict.items()}
-
-            if superconcepts_dict is None:
-                superconcepts_dict = self._transpose_hierarchy(subconcepts_dict)
-            if subconcepts_dict is None:
-                subconcepts_dict = self._transpose_hierarchy(superconcepts_dict)
-
-            self._cache_direct_subelements = subconcepts_dict
-            self._cache_direct_superelements = superconcepts_dict
-            self._cache_subelements = self._closed_relation_cache_by_direct_cache(subconcepts_dict)
-            self._cache_superelements = self._closed_relation_cache_by_direct_cache(superconcepts_dict)
+        super(ConceptLattice, self).__init__(
+            concepts, self.concepts_leq_func,
+            use_cache=True, children_dict=children_dict
+        )
 
         self._generators_dict = {}
 
     @property
-    def superconcepts_dict(self) -> Dict[int, List[int]]:
-        """A dictionary {`concept_index`: list of indexes of closest concepts bigger than concept `concept_index`}"""
-        return self.direct_super_elements_dict
+    def superconcepts_dict(self) -> Dict[int, FrozenSet[int]]:
+        """A dictionary {`concept_index`: list of indexes of the smallest elements bigger than `concept_index`}"""
+        return self.parents_dict
 
     @property
-    def all_superconcepts_dict(self) -> Dict[int, List[int]]:
+    def all_superconcepts_dict(self) -> Dict[int, FrozenSet[int]]:
         """A dictionary {`concept_index`: list of indexes of all concepts bigger than concept `concept_index`}"""
-        return self.super_elements_dict
+        return self.ancestors_dict
 
     @property
-    def subconcepts_dict(self) -> Dict[int, List[int]]:
+    def subconcepts_dict(self) -> Dict[int, FrozenSet[int]]:
         """A dictionary {`concept_index`: list of indexes of closest concepts smaller than concept `concept_index`}"""
-        return self.direct_sub_elements_dict
+        return self.children_dict
 
     @property
-    def all_subconcepts_dict(self) -> Dict[int, List[int]]:
+    def all_subconcepts_dict(self) -> Dict[int, FrozenSet[int]]:
         """A dictionary {`concept_index`: list of indexes of all concepts smaller than concept `concept_index`}"""
-        return self.sub_elements_dict
+        return self.descendants_dict
 
     @property
-    def concepts(self) -> List[Union[FormalConcept, PatternConcept]]:
+    def concepts(self) -> List[FormalConcept or PatternConcept]:
         """A list of concepts of the lattice"""
         return self._elements
 
@@ -163,7 +155,7 @@ class ConceptLattice(Lattice):
 
     @staticmethod
     def get_top_bottom_concepts_i(
-            concepts: List[Union[FormalConcept, PatternConcept]],
+            concepts: List[FormalConcept or PatternConcept],
             is_concepts_sorted: bool = False
     ) -> Tuple[Optional[int], Optional[int]]:
         """Return the indexes of top and bottom concept from the list of ``concepts``
@@ -215,7 +207,7 @@ class ConceptLattice(Lattice):
     @classmethod
     def from_context(
             cls,
-            context: Union[FormalContext, MVContext],
+            context: FormalContext or MVContext,
             algo: Optional[str] = None, **kwargs
     ):
         """Return a `ConceptLattice` constructed on the ``context`` by algorithm ``algo``
@@ -268,10 +260,10 @@ class ConceptLattice(Lattice):
             ltc._elements = concepts_sorted
             ltc._elements_to_index_map = {el: idx for idx, el in enumerate(concepts_sorted)}
             ltc._cache_leq = {}
-            for cache_name in ['direct_subelements', 'subelements', 'direct_superelements', 'superelements']:
+            for cache_name in ['children', 'descendants', 'parents', 'ancestors']:
                 cache_name = f"_cache_{cache_name}"
                 ltc.__dict__[cache_name] = {
-                    map_i_isort[c_i] : {map_i_isort[c1_i] for c1_i in ltc.__dict__[cache_name][c_i]}
+                    map_i_isort[c_i]: {map_i_isort[c1_i] for c1_i in ltc.__dict__[cache_name][c_i]}
                     for c_i in map_isort_i
                 }
 
@@ -289,8 +281,8 @@ class ConceptLattice(Lattice):
 
     @staticmethod
     def sort_concepts(
-            concepts: List[Union[FormalConcept, PatternConcept]]
-    ) -> List[Union[FormalConcept, PatternConcept]]:
+            concepts: List[FormalConcept or PatternConcept]
+    ) -> List[Union[FormalConcept or PatternConcept]]:
         """Return the topologically sorted set of concepts
 
         (ordered by descending of support, lexicographical order of extent indexes)
@@ -300,7 +292,7 @@ class ConceptLattice(Lattice):
             return None
         return sorted(concepts, key=lambda c: (-len(c.extent_i), ','.join([str(g) for g in c.extent_i])))
 
-    def add_concept(self, new_concept: Union[FormalConcept, PatternConcept]):
+    def add_concept(self, new_concept: FormalConcept or PatternConcept):
         """Add concept ``new_concept`` into the lattice"""
         self.add(new_concept)
 
@@ -308,14 +300,15 @@ class ConceptLattice(Lattice):
         """Remove concept ``concept_i`` into the lattice"""
         del self[concept_i]
 
-    def calc_concepts_measures(self, measure: str, context: Union[FormalContext, MVContext] = None):
+    def calc_concepts_measures(self, measure: str, context: FormalContext or MVContext = None):
         """Calculate the values of ``measure`` for each concept in a lattice
 
-        The calculated measure values are stored in ``measures`` property of each ``concept`` from ``ConceptLattice.concepts``
+        The calculated measure values are stored in ``measures`` property
+        of each ``concept`` from ``ConceptLattice.concepts``
 
         Parameters
         ----------
-        measure: `str` in ('LStab', 'UStab', 'stability_bounds', 'stability')
+        measure: `str` in {'stability_bounds', 'LStab', 'UStab', 'stability', 'target_entropy', 'mean_information_gain'}
             The name of the measure to compute
         context: `FormalContext` or `MVContext`
             The context is used when calculating 'stability' measure
@@ -324,10 +317,14 @@ class ConceptLattice(Lattice):
         None
 
         """
+        # TODO: Reflect these measures in the docstring
+        possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability',
+                             'target_entropy', 'mean_information_gain']
+
         from fcapy.lattice import concept_measures as cms
 
         if measure in ('stability_bounds', 'LStab', 'UStab'):
-            for c_i, c in enumerate(self.concepts):
+            for c_i, c in enumerate(self.elements):
                 lb, ub = cms.stability_bounds(c_i, self)
                 c.measures['LStab'] = lb
                 c.measures['UStab'] = ub
@@ -336,24 +333,21 @@ class ConceptLattice(Lattice):
                           "One better use its approximate measure `stability_bounds`")
             assert context is not None, 'ConceptLattice.calc_concepts_measures failed. ' \
                                         'Please specify `context` parameter to calculate the stability'
-            for c_i, c in enumerate(self.concepts):
+            for c_i, c in enumerate(self.elements):
                 s = cms.stability(c_i, self, context)
                 c.measures['Stab'] = s
         elif measure == 'target_entropy':
-            for c_i, c in enumerate(self.concepts):
+            for c_i, c in enumerate(self.elements):
                 c.measures[measure] = cms.target_entropy(c_i, self, context)
         elif measure == 'mean_information_gain':
-            for c_i, c in enumerate(self.concepts):
+            for c_i, c in enumerate(self.elements):
                 c.measures[measure] = cms.mean_information_gain(c_i, self)
         elif isinstance(measure, tuple) and len(measure) == 2:
             name, func = measure
             assert isinstance(name, str), 'Measure name should be a string'
-            for c_i, c in enumerate(self.concepts):
+            for c_i, c in enumerate(self.elements):
                 c.measures[name] = func(c_i, self, context)
         else:
-            # TODO: Reflect these measures in the docstring
-            possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability',
-                                 'target_entropy', 'mean_information_gain']
             raise ValueError(f'ConceptLattice.calc_concepts_measures. The given measure {measure} is unknown. ' +
                              f'Possible measure values are either strings: {",".join(possible_measures)}, ' 
                              f'or a pair (measure_name: str, measure_func: c_i, lattice, context -> float)')
@@ -361,10 +355,10 @@ class ConceptLattice(Lattice):
     @classmethod
     def get_all_superconcepts_dict(
             cls,
-            concepts: List[Union[FormalConcept, PatternConcept]],
-            superconcepts_dict: Dict[int, List[int]]
+            concepts: List[FormalConcept or PatternConcept],
+            parents_dict: Dict[int, Collection[int]]
     ) -> Dict[int, List[int]]:
-        """Return the transitively closed superconcept relation of ``concept`` from ``superconcepts_dict``
+        """Return the transitively closed superconcept relation of ``concept`` from ``parents_dict``
 
         The transitively closed superconcept relation of ``concept`` from ``superconcepts`` means the dict of type:
         {`child_concept_index`: `list` of indexes of all concepts bigger than the child}
@@ -373,54 +367,54 @@ class ConceptLattice(Lattice):
         ----------
         concepts: `list` of `FormalConcept` or `PatternConcept`
             A list of concepts to compute relation on
-        superconcepts_dict: `dict` of type {`int`: `list` of `int`}
+        parents_dict: `dict` of type {`int`: `list` of `int`}
             The superconcept relation of the `concepts (i.e. {`child_concept_index`: `list` of `parent_concept_index`})
 
         Returns
         -------
-        all_superconcepts: `dict` of type {`int`: `list` of `int`}
-            The transitively closed superconcept relation of ``concept`` from ``superconcepts_dict``
+        ancestors: `dict` of type {`int`: `list` of `int`}
+            The transitively closed parents relation of ``concept`` from ``parents_dict``
 
         """
-        all_superconcepts = {}
+        ancestors = {}
         concepts_to_visit = sorted(range(len(concepts)), key=lambda c_i: -concepts[c_i].support)
         for c_i in concepts_to_visit:
-            all_superconcepts[c_i] = superconcepts_dict[c_i].copy()
-            for supc_i in superconcepts_dict[c_i]:
-                all_superconcepts[c_i] |= all_superconcepts[supc_i]
-        return all_superconcepts
+            ancestors[c_i] = parents_dict[c_i].copy()
+            for supc_i in parents_dict[c_i]:
+                ancestors[c_i] |= ancestors[supc_i]
+        return ancestors
 
     @classmethod
     def get_all_subconcepts_dict(
             cls,
             concepts: List[Union[FormalConcept, PatternConcept]],
-            subconcepts_dict: Dict[int, List[int]]
+            children_dict: Dict[int, Collection[int]]
     ) -> Dict[int, List[int]]:
-        """Return the transitively closed superconcept relation of ``concept`` from ``subconcepts_dict``
+        """Return the transitively closed children relation of ``concept`` from ``children_dict``
 
-        The transitively closed subconcept relation of ``concept`` from ``subconcepts_dict`` means the dict of type:
+        The transitively closed children relation of ``concept`` from ``children_dict`` means the dict of type:
         {`parent_concept_index`: `list` of indexes of all concepts smaller than the parent}
 
         Parameters
         ----------
         concepts: `list` of `FormalConcept` or `PatternConcept`
             A list of concepts to compute relation on
-        subconcepts_dict: `dict` of type {`int`: `list` of `int`}
-            The subconcept relation of the ``concepts`` (i.e. {`parent_concept_index`: `list` of `children_concept_index`})
+        children_dict: `dict` of type {`int`: `list` of `int`}
+            The children relation of the ``concepts`` (i.e. {`parent_concept_index`: `list` of `children_concept_index`})
 
         Returns
         -------
-        all_subconcepts: `dict` of type {`int`: `list` of `int`}
-            The transitively closed subconcept relation of ``concept`` from ``subconcepts_dict``
+        descendants: `dict` of type {`int`: `list` of `int`}
+            The transitively closed children relation of ``concept`` from ``children_dict``
 
         """
-        all_subconcepts = {}
+        descendants = {}
         concepts_to_visit = sorted(list(range(len(concepts))), key=lambda c_i: concepts[c_i].support)
         for c_i in concepts_to_visit:
-            all_subconcepts[c_i] = subconcepts_dict[c_i].copy()
-            for subc_i in subconcepts_dict[c_i]:
-                all_subconcepts[c_i] |= all_subconcepts[subc_i]
-        return all_subconcepts
+            descendants[c_i] = children_dict[c_i].copy()
+            for subc_i in children_dict[c_i]:
+                descendants[c_i] |= descendants[subc_i]
+        return descendants
 
     def trace_context(
             self,
@@ -672,7 +666,7 @@ class ConceptLattice(Lattice):
             superconcepts_dict: Dict[int, List[int]],
             is_concepts_sorted: bool = False
     ) -> List[List[int]]:
-        """Return a list of chains of concept indexes from the given set of ``concepts`` and ``superconcepts_dict``
+        """Return a list of chains of concept indexes from the given set of ``concepts`` and ``parents_dict``
 
         A chain of concept indexes is the list of concept indexes
         s.t. the first element of the chain is the index of top (biggest) concept
@@ -788,17 +782,17 @@ class ConceptLattice(Lattice):
             (if ``path`` is not None)
 
         """
-        assert len(self.concepts) >= 3,\
+        assert len(self.elements) >= 3,\
             'ConceptLattice.write_json error. The lattice should have at least 3 concepts to be saved in json'
 
-        arcs = [{"S": s_i, "D": d_i} for s_i, d_is in self.subconcepts_dict.items() for d_i in d_is]
+        arcs = [{"S": s_i, "D": d_i} for s_i, d_is in self.children_dict.items() for d_i in d_is]
 
         lattice_metadata = {
-            'Top': [self.top_concept_i], "Bottom": [self.bottom_concept_i],
-            "NodesCount": len(self.concepts), "ArcsCount": len(arcs)
+            'Top': [self.top_element], "Bottom": [self.bottom_element],
+            "NodesCount": len(self.elements), "ArcsCount": len(arcs)
         }
         nodes_data = {"Nodes": [c.to_dict(json_ready=True) if isinstance(c, PatternConcept) else c.to_dict()
-                                for c in self.concepts]}
+                                for c in self.elements]}
         arcs_data = {"Arcs": arcs}
         file_data = [lattice_metadata, nodes_data, arcs_data]
         json_data = json.dumps(file_data)
@@ -823,6 +817,6 @@ class ConceptLattice(Lattice):
         return self._to_networkx(direction, 'concept')
 
     @staticmethod
-    def concepts_leq_func(a: Union[FormalConcept, PatternConcept], b: Union[FormalConcept, PatternConcept]):
+    def concepts_leq_func(a: FormalConcept or PatternConcept, b: FormalConcept or PatternConcept):
         """A function to compare two formal (or pattern) concepts"""
         return a <= b

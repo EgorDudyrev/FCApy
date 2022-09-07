@@ -20,15 +20,15 @@ def test_concept_lattice_init():
     concepts = [c1, c2, c3, c4]
     ltc = ConceptLattice(concepts)
 
-    superconcepts_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
-    subconcepts_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
-    ltc = ConceptLattice(concepts, superconcepts_dict=superconcepts_dict)
-    assert ltc.subconcepts_dict == subconcepts_dict,\
-        'ConceptLattice.__init__ failed. The calculation of subconcepts based on superconcepts is wrong'
+    parents_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
+    children_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
+    ltc = ConceptLattice(concepts, parents_dict=parents_dict)
+    assert ltc.children_dict == children_dict,\
+        'ConceptLattice.__init__ failed. The calculation of children based on parents is wrong'
 
-    ltc = ConceptLattice(concepts, subconcepts_dict=subconcepts_dict)
-    assert ltc.superconcepts_dict == superconcepts_dict,\
-        'ConceptLattice.__init__ failed. The calculation of superconcepts based on subconcepts is wrong'
+    ltc = ConceptLattice(concepts, children_dict=children_dict)
+    assert ltc.parents_dict == parents_dict,\
+        'ConceptLattice.__init__ failed. The calculation of parents based on children is wrong'
 
     assert ltc.concepts == concepts,\
         'ConceptLattice.__init__ failed. Something is wrong with accessing the concepts property'
@@ -144,14 +144,14 @@ def test__eq__():
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
 
-    ltc3 = ConceptLattice([c1, c2, c4], subconcepts_dict={0: {1}, 1: {2}, 2: set()})
-    ltc3._superconcepts_dict = None
+    ltc3 = ConceptLattice([c1, c2, c4], children_dict={0: {1}, 1: {2}, 2: set()})
+    ltc3._parents_dict = None
     assert ltc1 != ltc3,\
-        "ConceptLattice.__eq__ failed. The lattices should not be equal if their subconcept_dicts are different"
-    ltc4 = ConceptLattice([c1, c2, c4], subconcepts_dict=None, superconcepts_dict={0: set(), 1: {0}, 2: {1}})
-    ltc4._subconcepts_dict = None
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their children_dicts are different"
+    ltc4 = ConceptLattice([c1, c2, c4], children_dict=None, parents_dict={0: set(), 1: {0}, 2: {1}})
+    ltc4._children_dict = None
     assert ltc1 != ltc4, \
-        "ConceptLattice.__eq__ failed. The lattices should not be equal if their superconcept_dicts are different"
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their parents_dicts are different"
 
 
 def test_concept_new_intent_extent():
@@ -202,8 +202,8 @@ def test_get_chains():
 
     assert chains == chains_true, "ConceptLattice.get_chains failed. The result is different from the expected"
 
-    chains_sorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=True)
-    chains_unsorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=False)
+    chains_sorted = ltc._get_chains(ltc.concepts, ltc.parents_dict, is_concepts_sorted=True)
+    chains_unsorted = ltc._get_chains(ltc.concepts, ltc.parents_dict, is_concepts_sorted=False)
     assert chains_sorted == chains_unsorted,\
         "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
 
@@ -218,12 +218,12 @@ def test_add_concept():
     concepts = [concepts[top_concept_i], concepts[bottom_concept_i]] + \
                [c for c_i, c in enumerate(concepts) if c_i not in [top_concept_i, bottom_concept_i]]
     ltc = ConceptLattice(concepts[:2],
-                         subconcepts_dict={0: {1}, 1: set()})
+                         children_dict={0: {1}, 1: set()})
 
     for c in concepts[2:]:
         ltc.add_concept(c)
 
-    ltc_true = ConceptLattice(concepts, subconcepts_dict=lca.complete_comparison(concepts))
+    ltc_true = ConceptLattice(concepts, children_dict=lca.complete_comparison(concepts))
 
     assert ltc == ltc_true, 'ConceptLattice.add_concept failed'
 
@@ -233,10 +233,10 @@ def test_trace_context():
     ctx_train = converters.from_pandas(ctx.to_pandas().drop('mango'))
     ltc = ConceptLattice.from_context(ctx_train)
     bottom_concepts, traced_concepts = ltc.trace_context(ctx_train)
-    all_superconcepts_dict = ltc.get_all_superconcepts_dict(ltc.concepts, ltc.superconcepts_dict)
+    all_parents_dict = ltc.get_all_superconcepts_dict(ltc.concepts, ltc.parents_dict)
     for g in ctx_train.object_names:
         bottom_concept_i = list(bottom_concepts[g])[0]
-        assert traced_concepts[g] - {bottom_concept_i} == all_superconcepts_dict[bottom_concept_i],\
+        assert traced_concepts[g] - {bottom_concept_i} == all_parents_dict[bottom_concept_i],\
             f'ConceptLattice.trace_context failed. Traced concepts are calculated wrong for object {g}'
 
     ctx_test = converters.from_pandas(ctx.to_pandas().loc[['mango']])
@@ -245,7 +245,7 @@ def test_trace_context():
         'ConceptLattice.trace_context failed. Test context traced concepts are calculated wrong'
     traced_concepts_true = {6, 9, 13}
     for c_i in [6, 9, 13]:
-        traced_concepts_true |= all_superconcepts_dict[c_i]
+        traced_concepts_true |= all_parents_dict[c_i]
     assert traced_concepts['mango'] == traced_concepts_true,\
         "ConceptLattice.trace_context failed. Traced concepts for test context are calculated wrong"
 
