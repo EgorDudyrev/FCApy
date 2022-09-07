@@ -68,7 +68,7 @@ class POSet:
                     for el_i, subels_i in descendants_dict.items():
                         for el_i_1 in range(len(self._elements)):
                             leq_dict[(el_i_1, el_i)] = el_i_1 in subels_i
-            else:
+            else:  # if children_dict is None, initialize caches as empty
                 leq_dict, children_dict, descendants_dict, parents_dict, ancestors_dict =\
                     {}, {}, {}, {}, {}
 
@@ -715,7 +715,7 @@ class POSet:
         return direct_relation_cache
 
     @staticmethod
-    def _transpose_hierarchy(hierarchy_dict):
+    def _transpose_hierarchy(hierarchy_dict: Dict[int, Collection[int]]) -> Dict[int, FrozenSet[int]]:
         """Return transposed hierarchy of elements (i.e. turn ancestors into descendants and vice versa)
 
         Parameters
@@ -725,7 +725,7 @@ class POSet:
 
         Returns
         -------
-        new_dict: `dict` of type {`int`: `list` of `int`}
+        new_dict: `dict` of type {`int`: `FrozenSet` of `int`}
             Ancestors if descendants are given, descendants if ancestors are given
         """
         new_dict = {}
@@ -734,6 +734,7 @@ class POSet:
                 new_dict[k] = set()
             for v in vs:
                 new_dict[v] = new_dict.get(v, set()) | {k}
+        new_dict = {k: frozenset(vs) for k, vs in new_dict.items()}
         return new_dict
 
     def to_networkx(self, direction: str or None = 'down'):

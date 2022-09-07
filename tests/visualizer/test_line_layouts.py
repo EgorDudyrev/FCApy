@@ -17,7 +17,7 @@ def test_calc_levels():
     L = ConceptLattice.from_context(K)
 
     c_levels, levels_dict = line_layouts.calc_levels(L)
-    assert all([c_levels[c_i] < c_levels[sub_i] for c_i, subs_i in L.sub_elements_dict.items() for sub_i in subs_i]),\
+    assert all([c_levels[c_i] < c_levels[sub_i] for c_i, subs_i in L.descendants_dict.items() for sub_i in subs_i]),\
         'Calc_levels function failed. Some elements have level not bigger than that of their superelements '
 
 

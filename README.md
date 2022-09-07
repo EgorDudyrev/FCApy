@@ -156,8 +156,9 @@ print(len(L))
 ```
 
 with the most general and the most specific concepts indexes:
+
 ```python
-print(L.top_concept_i, L.bottom_concept_i)
+print(L.top_element, L.bottom_element)
 > 0, 7
 ```
 

@@ -250,5 +250,5 @@ def test_get_minimal_generators():
         "FormalContext.get_minimal_generators failed"
 
     ltc = ConceptLattice.from_context(ctx)
-    for c in ltc.concepts:
+    for c in ltc:
         ctx.get_minimal_generators(c.intent)

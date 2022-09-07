@@ -30,13 +30,11 @@ def test_concept_lattice_init():
     assert ltc.parents_dict == parents_dict,\
         'ConceptLattice.__init__ failed. The calculation of parents based on children is wrong'
 
-    assert ltc.concepts == concepts,\
-        'ConceptLattice.__init__ failed. Something is wrong with accessing the concepts property'
+    assert ltc.elements == concepts,\
+        'ConceptLattice.__init__ failed. Something is wrong with accessing the elements property'
 
-    assert ltc.top_concept_i == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
-    assert ltc.bottom_concept_i == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
-    assert ltc.top_concept == c3, 'ConceptLattice.__init__ failed. The top concept is wrongly assigned'
-    assert ltc.bottom_concept == c1, 'ConceptLattice.__init__ failed. The bottom concept is wrongly assigned'
+    assert ltc.top_element == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
+    assert ltc.bottom_element == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
 
 
 def test_from_context():
@@ -51,7 +49,7 @@ def test_from_context():
     c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=context_hash)
     concepts = [c1, c2, c3, c4]
 
-    assert set(ltc.concepts) == set(concepts),\
+    assert set(ltc) == set(concepts),\
         'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
     ctx = converters.read_csv('data/mango_bin.csv')
@@ -163,10 +161,10 @@ def test_concept_new_intent_extent():
     new_intent_i_true = [set(), {0}, {1}, set()]
     new_intent_true = [set(), {'a'}, {'b'}, set()]
 
-    new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc.concepts))]
-    new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc.concepts))]
-    new_intent_i = [ltc.get_concept_new_intent_i(c_i) for c_i in range(len(ltc.concepts))]
-    new_intent = [ltc.get_concept_new_intent(c_i) for c_i in range(len(ltc.concepts))]
+    new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc))]
+    new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc))]
+    new_intent_i = [ltc.get_concept_new_intent_i(c_i) for c_i in range(len(ltc))]
+    new_intent = [ltc.get_concept_new_intent(c_i) for c_i in range(len(ltc))]
 
     assert new_extent_i == new_extent_i_true,\
         'ConceptLattice.get_concept_new_extent_i failed. The result is different from the expected'
@@ -189,7 +187,7 @@ def test_concept_lattice_unknown_measure():
 def test_sort_concepts():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    sorted_extents = [c.extent for c in ltc.sort_concepts(ltc.concepts)]
+    sorted_extents = [c.extent for c in ltc.sort_concepts(list(ltc))]
     extents_true = [('a', 'b'), ('a',), ('b',), ()]
     assert sorted_extents == extents_true, 'ConceptLattice.sort_concepts failed'
 
@@ -202,8 +200,8 @@ def test_get_chains():
 
     assert chains == chains_true, "ConceptLattice.get_chains failed. The result is different from the expected"
 
-    chains_sorted = ltc._get_chains(ltc.concepts, ltc.parents_dict, is_concepts_sorted=True)
-    chains_unsorted = ltc._get_chains(ltc.concepts, ltc.parents_dict, is_concepts_sorted=False)
+    chains_sorted = ltc._get_chains(list(ltc), ltc.parents_dict, is_concepts_sorted=True)
+    chains_unsorted = ltc._get_chains(list(ltc), ltc.parents_dict, is_concepts_sorted=False)
     assert chains_sorted == chains_unsorted,\
         "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
 
@@ -221,11 +219,11 @@ def test_add_concept():
                          children_dict={0: {1}, 1: set()})
 
     for c in concepts[2:]:
-        ltc.add_concept(c)
+        ltc.add(c)
 
     ltc_true = ConceptLattice(concepts, children_dict=lca.complete_comparison(concepts))
 
-    assert ltc == ltc_true, 'ConceptLattice.add_concept failed'
+    assert ltc == ltc_true, 'ConceptLattice.add failed'
 
 
 def test_trace_context():
@@ -233,7 +231,7 @@ def test_trace_context():
     ctx_train = converters.from_pandas(ctx.to_pandas().drop('mango'))
     ltc = ConceptLattice.from_context(ctx_train)
     bottom_concepts, traced_concepts = ltc.trace_context(ctx_train)
-    all_parents_dict = ltc.get_all_superconcepts_dict(ltc.concepts, ltc.parents_dict)
+    all_parents_dict = ltc.get_all_superconcepts_dict(list(ltc), ltc.parents_dict)
     for g in ctx_train.object_names:
         bottom_concept_i = list(bottom_concepts[g])[0]
         assert traced_concepts[g] - {bottom_concept_i} == all_parents_dict[bottom_concept_i],\
@@ -258,7 +256,7 @@ def test_conditional_generators_dict():
         ext_i = ltc.concepts[c_i].extent_i
         for supc_i, supc_condgens in condgens.items():
             for supc_condgen in supc_condgens:
-                assert set(ctx.extension_i(supc_condgen, base_objects_i=ltc.concepts[supc_i].extent_i)) == set(ext_i), \
+                assert set(ctx.extension_i(supc_condgen, base_objects_i=ltc[supc_i].extent_i)) == set(ext_i), \
                     "ConceptLattice.get_conditional_generators_dict failed"
 
     data = [[5.1, 3.5, 1.4, 0.2],
@@ -270,11 +268,11 @@ def test_conditional_generators_dict():
     ltc = ConceptLattice.from_context(mvctx)
     condgens_dict = ltc.get_conditional_generators_dict(mvctx)
     for c_i, condgens in condgens_dict.items():
-        ext_i = ltc.concepts[c_i].extent_i
+        ext_i = ltc[c_i].extent_i
         for supc_i, supc_condgens in condgens.items():
             for supc_condgen in supc_condgens:
                 assert set(mvctx.extension_i(
-                    supc_condgen, base_objects_i=ltc.concepts[supc_i].extent_i)) == set(ext_i), \
+                    supc_condgen, base_objects_i=ltc[supc_i].extent_i)) == set(ext_i), \
                     "ConceptLattice.get_conditional_generators_dict failed"
 
     condgens_dict_approx = ltc.get_conditional_generators_dict(mvctx, algo='approximate')

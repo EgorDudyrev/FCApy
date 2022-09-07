@@ -71,7 +71,7 @@ def count_line_intersections(pos: dict, poset: POSet, close_dist=1e-2):
     """Count intersections of lines between direct neighbours from ``poset`` placed in ``pos`` coordinates"""
     # at first we have lines: x0, y0, x1, y1: y1 < y0
     lines = [pos[el_i][::-1] + pos[dsub_i][::-1]
-             for el_i, dsubs in poset.direct_sub_elements_dict.items() for dsub_i in dsubs]
+             for el_i, dsubs in poset.children_dict.items() for dsub_i in dsubs]
     # we switch `x` and `y` coordinates to avoid zero division error when computing `k`
     # thus lines become: x0, y0, x1, y1: x1<x0
 

@@ -130,11 +130,11 @@ class AbstractLineViz:
             )
 
             if kwargs[flg_name]:
-                bc_i = lattice.bottom_concept_i
+                bc_i = lattice.bottom_element
                 if len(lattice[bc_i].extent) == 0:
                     kwargs['flg_drop_bottom_concept'] = True
 
-        kwargs['bottom_concept_i_to_drop'] = lattice.bottom_concept_i \
+        kwargs['bottom_concept_i_to_drop'] = lattice.bottom_element \
             if kwargs.get('flg_drop_bottom_concept', self.flg_drop_bottom_concept) else None
 
         self.draw_poset(lattice, **kwargs)
