@@ -16,7 +16,7 @@ class UpperSemiLattice(POSet):
     """
     CLASS_NAME = 'SemiLattice'
 
-    def __init__(self, elements, leq_func, use_cache: bool = True, direct_subelements_dict=None):
+    def __init__(self, elements, leq_func, use_cache: bool = True, children_dict=None):
         """Construct an UpperSemiLattice based on a set of ``elements`` and ``leq_func`` defined on this set
 
         Parameters
@@ -27,12 +27,12 @@ class UpperSemiLattice(POSet):
             A function to compare whether element ``a` from the semillatice is smaller than ``b`` or not
         use_cache : `bool`
             (optional) A flag whether to save for the output of leq_func and other computations in the cache or not
-        direct_subelements_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
+        children_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
             (optional) A dictionary that contains the precomputed direct subelements relation
         """
         if len(elements) == 0:
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
-        super(UpperSemiLattice, self).__init__(elements, leq_func, use_cache, direct_subelements_dict)
+        super(UpperSemiLattice, self).__init__(elements, leq_func, use_cache, children_dict)
 
         top_elements = super(UpperSemiLattice, self).top_elements
         if len(top_elements) != 1:
@@ -92,7 +92,7 @@ class LowerSemiLattice(POSet):
     """
     CLASS_NAME = 'SemiLattice'
 
-    def __init__(self, elements, leq_func, use_cache: bool = True, direct_subelements_dict=None):
+    def __init__(self, elements, leq_func, use_cache: bool = True, children_dict=None):
         """Construct a LowerSemiLattice based on a set of ``elements`` and ``leq_func`` defined on this set
 
         Parameters
@@ -103,12 +103,12 @@ class LowerSemiLattice(POSet):
             A function to compare whether element ``a` from the semillatice is smaller than ``b`` or not
         use_cache : `bool`
             A flag whether to save for the output of leq_func and other computations in the cache or not
-        direct_subelements_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
+        children_dict: `dict` of type {``element_i``: indexes of direct subelements of ``element_i``}
             (optional) A dictionary that contains the precomputed direct subelements relation
         """
         if len(elements) == 0:
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
-        super(LowerSemiLattice, self).__init__(elements, leq_func, use_cache, direct_subelements_dict)
+        super(LowerSemiLattice, self).__init__(elements, leq_func, use_cache, children_dict)
 
         bottom_elements = super(LowerSemiLattice, self).bottom_elements
         if len(bottom_elements) != 1:
