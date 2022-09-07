@@ -2,11 +2,16 @@
 The module provides BinaryTree class which represents a binary tree as a partial case of a poset.
 
 """
+from typing import Collection, Any, Callable, Dict, Tuple
+
 from fcapy.poset.lattice import UpperSemiLattice
 
 
 class BinaryTree(UpperSemiLattice):
-    def __init__(self, elements, leq_func, use_cache: bool = True, children_dict=None):
+    def __init__(
+            self, elements: Collection[Any], leq_func: Callable[[Any, Any], bool],
+            use_cache: bool = True, children_dict: Dict[int, Tuple[int, ...]] = None
+    ):
         """Construct a BinaryTree based on a set of ``elements`` and ``leq_func`` defined on this set
 
         Parameters
@@ -27,7 +32,7 @@ class BinaryTree(UpperSemiLattice):
             if len(dsub_els_i) not in {0, 2}:
                 raise ValueError('Given elements do not result in binary tree')
 
-    def add(self, element, fill_up_cache=True):
+    def add(self, element: Any, fill_up_cache: bool = True):
         """Add an ``element`` to the BinaryTree only if it does not break the binary structure"""
         bottom_elements, _ = self.trace_element(element, 'down')
         if len(bottom_elements) >= 2:
