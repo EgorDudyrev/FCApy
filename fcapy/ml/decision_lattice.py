@@ -578,6 +578,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
             bottom_concept_i = len(concepts)
             concepts.append(bottom_concept)
             for old_bottom_i in bottom_elements:
+                direct_subelements_dict[old_bottom_i] = set(direct_subelements_dict[old_bottom_i])
                 direct_subelements_dict[old_bottom_i].add(bottom_concept_i)
             direct_subelements_dict[bottom_concept_i] = set()
         bottom_elements = POSet(concepts, children_dict=direct_subelements_dict, ).bottom_elements

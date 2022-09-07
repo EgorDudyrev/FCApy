@@ -253,7 +253,7 @@ def test_conditional_generators_dict():
     ltc = ConceptLattice.from_context(ctx)
     condgens_dict = ltc.get_conditional_generators_dict(ctx)
     for c_i, condgens in condgens_dict.items():
-        ext_i = ltc.concepts[c_i].extent_i
+        ext_i = ltc[c_i].extent_i
         for supc_i, supc_condgens in condgens.items():
             for supc_condgen in supc_condgens:
                 assert set(ctx.extension_i(supc_condgen, base_objects_i=ltc[supc_i].extent_i)) == set(ext_i), \

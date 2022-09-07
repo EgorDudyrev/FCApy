@@ -108,7 +108,7 @@ def test_sofia_general():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
     lattice_sofia = cca.sofia_general(ctx, len(concepts_all))
-    concepts_sofia = lattice_sofia.concepts
+    concepts_sofia = list(lattice_sofia)
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_general failed. Sofia algorithm produces wrong number of all concepts' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
@@ -182,24 +182,8 @@ def test_random_forest_concepts():
 
     
 def test_lindig_algorithm():
-    def check_equal_lattices(L_lin, L_cbo):
-        assert len(L_lin) == len(L_cbo), 'lindig_algorithm concepts len mismatch'
-
-        assert set(L_lin) == set(L_cbo), 'lindig_algorithm concepts mismatch'
-
-        assert L_lin == L_cbo, 'lindig_algorithm lattice mismatch'
-
-        # Assert all the cashes are the same
-        lin_cbo_map = {lin_c_i: L_cbo.index(c) for lin_c_i, c in enumerate(L_lin)}
-        for cache_name in ['descendants', 'children', 'ancestors', 'parents']:
-            cache_name = '_cache_' + cache_name
-            for i in range(len(L_lin)):
-                lin = {lin_cbo_map[lin_c_i] for lin_c_i in L_lin.__dict__[cache_name][i]}
-                cbo = {cbo_c_i for cbo_c_i in L_cbo.__dict__[cache_name][lin_cbo_map[i]]}
-                assert lin == cbo, f'Cache `{cache_name}` mismatch. The problematic concept is Lindig #{i}.'
-
     context = FormalContext.read_csv('data/mango_bin.csv')
     L_cbo = ConceptLattice.from_context(context, algo='CbO')
     for iterate_extents in [False, True]:
         L_lin = cca.lindig_algorithm(context, iterate_extents)
-        check_equal_lattices(L_lin, L_cbo)
+        assert L_cbo == L_lin

@@ -269,7 +269,7 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
             concepts_to_remove = [i for i in concepts_to_remove
                                   if i not in [lattice.top_element, lattice.bottom_element]]
             for c_i in concepts_to_remove:
-                lattice.remove_concept(c_i)
+                del lattice[c_i]
 
         itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice]
     return lattice
