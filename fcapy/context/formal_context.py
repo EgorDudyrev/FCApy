@@ -5,6 +5,8 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from itertools import combinations
 from numbers import Integral
+from typing import Tuple, Iterable
+
 from frozendict import frozendict
 import zlib
 
@@ -169,7 +171,7 @@ class FormalContext:
         """A set of target values for supervised ML tasks"""
         return self._target
 
-    def extension_i(self, attribute_indexes, base_objects_i=None):
+    def extension_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None):
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
         Parameters
@@ -187,51 +189,11 @@ class FormalContext:
         extension_i = self._data.arrow_down(attribute_indexes, base_objects_i)
         return extension_i
 
-    def intention_i(self, object_indexes, base_attrs_i=None):
-        """Return indexes of maximal set of attributes which are shared by given ``object_indexes``
+    def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
+            -> Tuple[int, ...]:
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        object_indexes : `list` of `int`
-            Indexes of the objects (from [0, ``n_objects``-1])
-        base_attrs_i : `list` of `int`
-            Indexes of attribute indexes to compute the intention on. Default value: indexes of all the attributes
-
-        Returns
-        -------
-        intention_i : `list` of `int`
-            Indexes of maximal set of attributes which are shared by ``objects_indexes``
-
-        """
-        intention_i = self._data.arrow_up(object_indexes, base_attrs_i)
-        return intention_i
-
-    def intention(self, objects):
-        """Return maximal set of attributes which are shared by given ``objects``
-
-        Parameters
-        ----------
-        objects : `list` of `str`
-            Names of the objects (subset of ``object_names``)
-
-        Returns
-        -------
-        intention: `list` of `str`
-            Names of maximal set of attributes which are shared by given ``objects``
-
-        """
-        obj_indices = []
-        for g in objects:
-            try:
-                obj_indices.append(self._object_names_i_map[g])
-            except KeyError as e:
-                raise KeyError(f'FormalContext.intention: Context does not have an object "{g}"')
-
-        intention_i = self.intention_i(obj_indices)
-        intention = [self._attribute_names[m_idx] for m_idx in intention_i]
-        return intention
-
-    def extension(self, attributes, base_objects=None):
+    def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False):
         """Return maximal set of objects which share given ``attributes``
 
         Parameters
@@ -240,6 +202,8 @@ class FormalContext:
             Names of the attributes (subset of ``attribute_names``)
         base_objects : `list` of `str`
             Set of objects to look for extension on. Default value: all the objects.
+        is_monotone: `bool` (def. False)
+            A flag whether to use antimonotone extension (as default) or the monotone one
         Returns
         -------
         extension : `list` of `str`
@@ -263,9 +227,69 @@ class FormalContext:
         else:
             base_objects_i = list(range(self.n_objects))
 
-        extension_i = self.extension_i(attr_indices, base_objects_i=base_objects_i)
+        extension_i = self.extension_i(attr_indices, base_objects_i)\
+            if not is_monotone else self.extension_monotone_i(attr_indices, base_objects_i)
         extension = [self._object_names[g_idx] for g_idx in extension_i]
         return extension
+
+    def intention_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None):
+        """Return indexes of maximal set of attributes which are shared by given ``object_indexes``
+
+        Parameters
+        ----------
+        object_indexes : `list` of `int`
+            Indexes of the objects (from [0, ``n_objects``-1])
+        base_attrs_i : `list` of `int`
+            Indexes of attribute indexes to compute the intention on. Default value: indexes of all the attributes
+
+        Returns
+        -------
+        intention_i : `list` of `int`
+            Indexes of maximal set of attributes which are shared by ``objects_indexes``
+
+        """
+        intention_i = self._data.arrow_up(object_indexes, base_attrs_i)
+        return intention_i
+
+    def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
+            -> Tuple[int, ...]:
+        """Return indexes of maximal set of attributes shared by any of given ``object_indexes``"""
+        raise NotImplementedError
+
+    def intention(self, objects: Iterable[str], is_monotone: bool = False):
+        """Return maximal set of attributes which are shared by given ``objects``
+
+        Parameters
+        ----------
+        objects : `list` of `str`
+            Names of the objects (subset of ``object_names``)
+        is_monotone: `bool` (def. False)
+            Return monotone intention if set True else return antimonotone intention (as in classical FCA)
+
+        Returns
+        -------
+        intention: `list` of `str`
+            Names of maximal set of attributes which are shared by given ``objects``
+
+
+        Notes
+        -----
+        Antimonotone intention views the common description of objects as intersection of their descriptions.
+        That is, an attribute belongs to antimonotone intention if it is shared by _all_ the given objects.
+
+        Monotone intention view the common description of objects as union of their descriptions.
+        So, an attribute belongs to monotone intention if it is shared by _any_ of the given objects.
+        """
+        obj_indices = []
+        for g in objects:
+            try:
+                obj_indices.append(self._object_names_i_map[g])
+            except KeyError as e:
+                raise KeyError(f'FormalContext.intention: Context does not have an object "{g}"')
+
+        intention_i = self.intention_i(obj_indices) if not is_monotone else self.intention_monotone_i(obj_indices)
+        intention = [self._attribute_names[m_idx] for m_idx in intention_i]
+        return intention
 
     @property
     def n_objects(self):
