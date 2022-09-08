@@ -50,7 +50,7 @@ def run_install(**kwargs):
 
     setuptools.setup(
         name="fcapy",
-        version="0.1.4",
+        version="0.1.5",
         author="Egor Dudyrev",
         author_email="egor.dudyrev@yandex.ru",
         description="A library to work with formal (and pattern) contexts, concepts, lattices",
