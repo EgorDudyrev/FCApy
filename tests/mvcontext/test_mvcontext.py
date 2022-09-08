@@ -208,7 +208,7 @@ def test_get_minimal_generators():
     assert set(mvctx.get_minimal_generators(intent, mg_base)) == mg_true, "MVContext.get_minimal_generators failed"
 
     ltc = ConceptLattice.from_context(mvctx)
-    for c in ltc.concepts:
+    for c in ltc:
         mvctx.get_minimal_generators(c.intent)
 
 
@@ -222,9 +222,9 @@ def test_generators_by_intent_difference():
     mvctx = mvcontext.MVContext(data=X, target=Y, pattern_types=pattern_types, attribute_names=feature_names)[:20]
     ltc = ConceptLattice.from_context(mvctx, algo='Sofia', L_max=100, use_tqdm=True)
     c_i = 3
-    subc_i = sorted(ltc.subconcepts_dict[c_i])[0]
-    mg1 = mvctx.generators_by_intent_difference(ltc.concepts[subc_i].intent_i, ltc.concepts[c_i].intent_i)
-    mg2 = mvctx.get_minimal_generators(ltc.concepts[subc_i].intent_i, base_objects=list(ltc.concepts[c_i].extent_i),
-                                           use_indexes=True)
+    subc_i = sorted(ltc.children_dict[c_i])[0]
+    mg1 = mvctx.generators_by_intent_difference(ltc[subc_i].intent_i, ltc[c_i].intent_i)
+    mg2 = mvctx.get_minimal_generators(ltc[subc_i].intent_i, base_objects=list(ltc[c_i].extent_i),
+                                       use_indexes=True)
 
     assert set(mg1) == set(mg2), "MVContext.generators_by_intent_difference failed"

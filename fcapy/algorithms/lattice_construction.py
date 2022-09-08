@@ -1,6 +1,6 @@
 """
 This module contains a number of function which take a set of formal (or pattern) concepts
-and return its subconcepts_dict
+and return its children_dict
 i.e. the order of given concepts in the form {`parent_concept_index`: `child_concept_index`}.
 
 Parent_concept is a concept which is bigger (or more general) than the child concept
@@ -8,10 +8,16 @@ and there is no other concept between these two.
 
 """
 from copy import deepcopy
+from typing import Collection
+
+from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.utils import utils
 
 
-def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
+def complete_comparison(
+        concepts: Collection[FormalConcept or PatternConcept],
+        is_concepts_sorted: bool = False, n_jobs: int = 1, use_tqdm: bool = False):
     """Return a dict with subconcepts relation on given ``concepts``. A slow but accurate bruteforce method
 
     Parameters
@@ -27,7 +33,7 @@ def complete_comparison(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=F
 
     Returns
     -------
-    subconcepts_dict: `dict`
+    children_dict: `dict`
         A dict of indexes with subconcept relation on the given concepts
         (of type {`parent_concept_index`: `child_concept_index`})
 
@@ -86,7 +92,7 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
 
     Returns
     -------
-    subconcepts_dict: `dict`
+    children_dict: `dict`
             A dict of indexes with spanning tree of subconcept relation on the given ``concepts``
             (of type {`parent_concept_index`: `child_concept_index`})
 
@@ -154,7 +160,7 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
 
     Returns
     -------
-    subconcepts_dict: `dict`
+    children_dict: `dict`
         A dict of indexes with subconcept relation on the given concepts
         (of type {`parent_concept_index`: `child_concept_index`})
 
@@ -280,7 +286,7 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
 
     Returns
     -------
-    subconcepts_dict: `dict`
+    children_dict: `dict`
         A dict of indexes with subconcept relation on the given concepts
         (of type {`parent_concept_index`: `child_concept_index`})
 
@@ -426,7 +432,7 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
 
     Returns
     -------
-    subconcepts_dict: `dict`
+    children_dict: `dict`
         A dict of indexes with subconcept relation on the given concepts
         (of type {`parent_concept_index`: `child_concept_index`})
 
@@ -470,18 +476,18 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
     -------
     concepts: `list` of `FormalConcept` or `PatternConcept`
         A modified list of concepts
-    subconcepts_dict: `dict` of {`int`: `int`}
+    children_dict: `dict` of {`int`: `int`}
         A dict of modified subconcept relation of returned ``concepts``
-    superconcepts_dict: `dict` of {`int`: `int`}
+    parents_dict: `dict` of {`int`: `int`}
         A dict of modified superconcept relation of returned ``concepts``
-    top_concept_i: `int`
+    top_concept: `int`
         An index of the top (biggest) concept of returned ``concepts``
-    bottom_concept_i: `int`
+    bottom_concept: `int`
         An index of the bottom (smallest) concept of returned ``concepts``
 
     """
-    assert new_concept not in concepts, "add_concept error. New concept is already in the concepts list"
-    assert len(concepts) >= 2, 'add_concept error. Concepts list should contain both top and bottom concepts'
+    assert new_concept not in concepts, "add error. New concept is already in the concepts list"
+    assert len(concepts) >= 2, 'add error. Concepts list should contain both top and bottom concepts'
 
     if not inplace:
         concepts = deepcopy(concepts)
@@ -499,7 +505,7 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
 
     assert top_concept_i is not None and bottom_concept_i is not None,\
-        "add_concept error. Concepts list should always have one single top concept and one single bottom concept"
+        "add error. Concepts list should always have one single top concept and one single bottom concept"
 
     if new_concept > concepts[top_concept_i]:
         direct_superconcepts = set()
@@ -581,13 +587,13 @@ def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
     -------
     concepts: `list` of `FormalConcept` or `PatternConcept`
         A modified list of concepts
-    subconcepts_dict: `dict` of {`int`: `int`}
+    children_dict: `dict` of {`int`: `int`}
         A dict of modified subconcept relation of returned ``concepts``
-    superconcepts_dict: `dict` of {`int`: `int`}
+    parents_dict: `dict` of {`int`: `int`}
         A dict of modified superconcept relation of returned ``concepts``
-    top_concept_i: `int`
+    top_concept: `int`
         An index of the top (biggest) concept of returned ``concepts``
-    bottom_concept_i: `int`
+    bottom_concept: `int`
         An index of the bottom (smallest) concept of returned ``concepts``
 
     """

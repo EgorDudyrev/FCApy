@@ -68,6 +68,9 @@ The following repositories complement the package:
 
 
 ### Formal context
+***NB:** The following code suits the current GitHub version of the package.
+If it does not run well on package installed from PyPi,
+please consider the corresponding README available on PyPi.*
 
 The ``context`` subpackage implements a formal context from FCA theory.
 
@@ -156,8 +159,9 @@ print(len(L))
 ```
 
 with the most general and the most specific concepts indexes:
+
 ```python
-print(L.top_concept_i, L.bottom_concept_i)
+print(L.top, L.bottom)
 > 0, 7
 ```
 

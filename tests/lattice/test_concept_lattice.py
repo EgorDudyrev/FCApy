@@ -20,23 +20,21 @@ def test_concept_lattice_init():
     concepts = [c1, c2, c3, c4]
     ltc = ConceptLattice(concepts)
 
-    superconcepts_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
-    subconcepts_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
-    ltc = ConceptLattice(concepts, superconcepts_dict=superconcepts_dict)
-    assert ltc.subconcepts_dict == subconcepts_dict,\
-        'ConceptLattice.__init__ failed. The calculation of subconcepts based on superconcepts is wrong'
+    parents_dict = {0: {1, 3}, 1: {2}, 2: set(), 3: {2}}
+    children_dict = {0: set(), 1: {0}, 2: {1, 3}, 3: {0}}
+    ltc = ConceptLattice(concepts, parents_dict=parents_dict)
+    assert ltc.children_dict == children_dict,\
+        'ConceptLattice.__init__ failed. The calculation of children based on parents is wrong'
 
-    ltc = ConceptLattice(concepts, subconcepts_dict=subconcepts_dict)
-    assert ltc.superconcepts_dict == superconcepts_dict,\
-        'ConceptLattice.__init__ failed. The calculation of superconcepts based on subconcepts is wrong'
+    ltc = ConceptLattice(concepts, children_dict=children_dict)
+    assert ltc.parents_dict == parents_dict,\
+        'ConceptLattice.__init__ failed. The calculation of parents based on children is wrong'
 
-    assert ltc.concepts == concepts,\
-        'ConceptLattice.__init__ failed. Something is wrong with accessing the concepts property'
+    assert ltc.elements == concepts,\
+        'ConceptLattice.__init__ failed. Something is wrong with accessing the elements property'
 
-    assert ltc.top_concept_i == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
-    assert ltc.bottom_concept_i == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
-    assert ltc.top_concept == c3, 'ConceptLattice.__init__ failed. The top concept is wrongly assigned'
-    assert ltc.bottom_concept == c1, 'ConceptLattice.__init__ failed. The bottom concept is wrongly assigned'
+    assert ltc.top == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
+    assert ltc.bottom == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
 
 
 def test_from_context():
@@ -51,7 +49,7 @@ def test_from_context():
     c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=context_hash)
     concepts = [c1, c2, c3, c4]
 
-    assert set(ltc.concepts) == set(concepts),\
+    assert set(ltc) == set(concepts),\
         'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
     ctx = converters.read_csv('data/mango_bin.csv')
@@ -144,14 +142,14 @@ def test__eq__():
     assert not ltc1 == ltc2, "ConceptLattice.__eq__ failed. Two different lattices are classified as the same"
     assert ltc1 != ltc2, "ConceptLattice.__ne__ failed. Two different lattices are not classified as different"
 
-    ltc3 = ConceptLattice([c1, c2, c4], subconcepts_dict={0: {1}, 1: {2}, 2: set()})
-    ltc3._superconcepts_dict = None
+    ltc3 = ConceptLattice([c1, c2, c4], children_dict={0: {1}, 1: {2}, 2: set()})
+    ltc3._parents_dict = None
     assert ltc1 != ltc3,\
-        "ConceptLattice.__eq__ failed. The lattices should not be equal if their subconcept_dicts are different"
-    ltc4 = ConceptLattice([c1, c2, c4], subconcepts_dict=None, superconcepts_dict={0: set(), 1: {0}, 2: {1}})
-    ltc4._subconcepts_dict = None
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their children_dicts are different"
+    ltc4 = ConceptLattice([c1, c2, c4], children_dict=None, parents_dict={0: set(), 1: {0}, 2: {1}})
+    ltc4._children_dict = None
     assert ltc1 != ltc4, \
-        "ConceptLattice.__eq__ failed. The lattices should not be equal if their superconcept_dicts are different"
+        "ConceptLattice.__eq__ failed. The lattices should not be equal if their parents_dicts are different"
 
 
 def test_concept_new_intent_extent():
@@ -163,10 +161,10 @@ def test_concept_new_intent_extent():
     new_intent_i_true = [set(), {0}, {1}, set()]
     new_intent_true = [set(), {'a'}, {'b'}, set()]
 
-    new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc.concepts))]
-    new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc.concepts))]
-    new_intent_i = [ltc.get_concept_new_intent_i(c_i) for c_i in range(len(ltc.concepts))]
-    new_intent = [ltc.get_concept_new_intent(c_i) for c_i in range(len(ltc.concepts))]
+    new_extent_i = [ltc.get_concept_new_extent_i(c_i) for c_i in range(len(ltc))]
+    new_extent = [ltc.get_concept_new_extent(c_i) for c_i in range(len(ltc))]
+    new_intent_i = [ltc.get_concept_new_intent_i(c_i) for c_i in range(len(ltc))]
+    new_intent = [ltc.get_concept_new_intent(c_i) for c_i in range(len(ltc))]
 
     assert new_extent_i == new_extent_i_true,\
         'ConceptLattice.get_concept_new_extent_i failed. The result is different from the expected'
@@ -189,7 +187,7 @@ def test_concept_lattice_unknown_measure():
 def test_sort_concepts():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)
-    sorted_extents = [c.extent for c in ltc.sort_concepts(ltc.concepts)]
+    sorted_extents = [c.extent for c in ltc.sort_concepts(list(ltc))]
     extents_true = [('a', 'b'), ('a',), ('b',), ()]
     assert sorted_extents == extents_true, 'ConceptLattice.sort_concepts failed'
 
@@ -202,8 +200,8 @@ def test_get_chains():
 
     assert chains == chains_true, "ConceptLattice.get_chains failed. The result is different from the expected"
 
-    chains_sorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=True)
-    chains_unsorted = ltc._get_chains(ltc.concepts, ltc.superconcepts_dict, is_concepts_sorted=False)
+    chains_sorted = ltc._get_chains(list(ltc), ltc.parents_dict, is_concepts_sorted=True)
+    chains_unsorted = ltc._get_chains(list(ltc), ltc.parents_dict, is_concepts_sorted=False)
     assert chains_sorted == chains_unsorted,\
         "ConceptLattice.get_chains failed. The result changes with is_concepts_sorted parameter"
 
@@ -218,14 +216,14 @@ def test_add_concept():
     concepts = [concepts[top_concept_i], concepts[bottom_concept_i]] + \
                [c for c_i, c in enumerate(concepts) if c_i not in [top_concept_i, bottom_concept_i]]
     ltc = ConceptLattice(concepts[:2],
-                         subconcepts_dict={0: {1}, 1: set()})
+                         children_dict={0: {1}, 1: set()})
 
     for c in concepts[2:]:
-        ltc.add_concept(c)
+        ltc.add(c)
 
-    ltc_true = ConceptLattice(concepts, subconcepts_dict=lca.complete_comparison(concepts))
+    ltc_true = ConceptLattice(concepts, children_dict=lca.complete_comparison(concepts))
 
-    assert ltc == ltc_true, 'ConceptLattice.add_concept failed'
+    assert ltc == ltc_true, 'ConceptLattice.add failed'
 
 
 def test_trace_context():
@@ -233,10 +231,10 @@ def test_trace_context():
     ctx_train = converters.from_pandas(ctx.to_pandas().drop('mango'))
     ltc = ConceptLattice.from_context(ctx_train)
     bottom_concepts, traced_concepts = ltc.trace_context(ctx_train)
-    all_superconcepts_dict = ltc.get_all_superconcepts_dict(ltc.concepts, ltc.superconcepts_dict)
+    all_parents_dict = ltc.get_all_superconcepts_dict(list(ltc), ltc.parents_dict)
     for g in ctx_train.object_names:
         bottom_concept_i = list(bottom_concepts[g])[0]
-        assert traced_concepts[g] - {bottom_concept_i} == all_superconcepts_dict[bottom_concept_i],\
+        assert traced_concepts[g] - {bottom_concept_i} == all_parents_dict[bottom_concept_i],\
             f'ConceptLattice.trace_context failed. Traced concepts are calculated wrong for object {g}'
 
     ctx_test = converters.from_pandas(ctx.to_pandas().loc[['mango']])
@@ -245,7 +243,7 @@ def test_trace_context():
         'ConceptLattice.trace_context failed. Test context traced concepts are calculated wrong'
     traced_concepts_true = {6, 9, 13}
     for c_i in [6, 9, 13]:
-        traced_concepts_true |= all_superconcepts_dict[c_i]
+        traced_concepts_true |= all_parents_dict[c_i]
     assert traced_concepts['mango'] == traced_concepts_true,\
         "ConceptLattice.trace_context failed. Traced concepts for test context are calculated wrong"
 
@@ -255,10 +253,10 @@ def test_conditional_generators_dict():
     ltc = ConceptLattice.from_context(ctx)
     condgens_dict = ltc.get_conditional_generators_dict(ctx)
     for c_i, condgens in condgens_dict.items():
-        ext_i = ltc.concepts[c_i].extent_i
+        ext_i = ltc[c_i].extent_i
         for supc_i, supc_condgens in condgens.items():
             for supc_condgen in supc_condgens:
-                assert set(ctx.extension_i(supc_condgen, base_objects_i=ltc.concepts[supc_i].extent_i)) == set(ext_i), \
+                assert set(ctx.extension_i(supc_condgen, base_objects_i=ltc[supc_i].extent_i)) == set(ext_i), \
                     "ConceptLattice.get_conditional_generators_dict failed"
 
     data = [[5.1, 3.5, 1.4, 0.2],
@@ -270,14 +268,30 @@ def test_conditional_generators_dict():
     ltc = ConceptLattice.from_context(mvctx)
     condgens_dict = ltc.get_conditional_generators_dict(mvctx)
     for c_i, condgens in condgens_dict.items():
-        ext_i = ltc.concepts[c_i].extent_i
+        ext_i = ltc[c_i].extent_i
         for supc_i, supc_condgens in condgens.items():
             for supc_condgen in supc_condgens:
                 assert set(mvctx.extension_i(
-                    supc_condgen, base_objects_i=ltc.concepts[supc_i].extent_i)) == set(ext_i), \
+                    supc_condgen, base_objects_i=ltc[supc_i].extent_i)) == set(ext_i), \
                     "ConceptLattice.get_conditional_generators_dict failed"
 
     condgens_dict_approx = ltc.get_conditional_generators_dict(mvctx, algo='approximate')
     for k in condgens_dict.keys():
         assert set(condgens_dict[k]) == set(condgens_dict_approx[k]),\
             'ConceptLattice.get_conditional_generators_dict failed. Approximate method gives wrong results'
+
+
+def test_measures():
+    K = converters.read_csv('data/mango_bin.csv')
+    L = ConceptLattice.from_context(K)
+
+    meas1 = np.random.random(len(L))
+    meas2 = np.random.random(len(L))
+    for i, c in enumerate(L):
+        c.measures['m1'] = meas1[i]
+        c.measures['m2'] = meas2[i]
+
+    meas_dict = L.measures
+    assert all(meas_dict['m1'] == meas1)
+    assert all(meas_dict['m2'] == meas2)
+    assert len(meas_dict) == 2

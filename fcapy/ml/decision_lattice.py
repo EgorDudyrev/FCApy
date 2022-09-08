@@ -87,7 +87,7 @@ class DecisionLatticePredictor:
         self._lattice = ConceptLattice.from_context(context, algo=self._algo, use_tqdm=use_tqdm, **self._algo_params)
         if self._use_generators:
             self.compute_generators(context, self._generators_algo, use_tqdm)
-        for c_i, c in enumerate(self._lattice.concepts):
+        for c_i, c in enumerate(self._lattice):
             metrics = self.calc_concept_prediction_metrics(c_i, context.target)
             c.measures = dict(metrics, **c.measures)
 
@@ -208,7 +208,7 @@ class DecisionLatticePredictor:
             The list of indexes of nodes in the tree
         direct_parents: `list` of `int`
             The list of parents of the nodes
-        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+        children_dict: `dict` of type {`parent_i`: `set` of children indexes  }
             The dict mapping each node index to the indexes of its children
         premises: `list` of `frozendict`
             The full premises of each node
@@ -268,7 +268,7 @@ class DecisionLatticePredictor:
             The list of indexes of nodes in the tree
         direct_parents: `list` of `int`
             The list of parents of the nodes
-        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+        children_dict: `dict` of type {`parent_i`: `set` of children indexes  }
             The dict mapping each node index to the indexes of its children
         premises: `list` of `frozendict`
             The full premises of each node
@@ -303,7 +303,7 @@ class DecisionLatticePredictor:
             The list of indexes of nodes in the tree
         direct_parents: `list` of `int`
             The list of parents of the nodes
-        direct_subelements_dict: `dict` of type {`parent_i`: `set` of children indexes  }
+        children_dict: `dict` of type {`parent_i`: `set` of children indexes  }
             The dict mapping each node index to the indexes of its children
         premises: `list` of `frozendict`
             The full premises of each node
@@ -338,10 +338,10 @@ class DecisionLatticePredictor:
 
         S.t. the predictions of the sum equal to the sum of predictions of the summands
         """
-        # 1. Uniting up the concepts
+        # 1. Uniting up the elements
         new_concepts = [c for c in other.lattice if c not in self.lattice]
         for c in new_concepts:
-            self.lattice.add_concept(c)
+            self.lattice.add(c)
 
         other_self_c_i_map = {other_c_i: self.lattice.index(c) for other_c_i, c in enumerate(other.lattice)}
 
@@ -420,7 +420,7 @@ class DecisionLatticePredictor:
             for ps_i in ps_is:
                 sv[list(ge['ext_']), ps_i] += dy_norm
 
-        bias = self._decisions[(None, self._lattice.top_concept_i, frozendict({}))]
+        bias = self._decisions[(None, self._lattice.top, frozendict({}))]
         return sv, bias
 
 
@@ -443,7 +443,7 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
     """
     def calc_concept_prediction_metrics(self, c_i, Y):
         """Calculate the target prediction for concept ``c_i`` based on ground truth targets ``Y``"""
-        extent_i = self._lattice.concepts[c_i].extent_i
+        extent_i = self._lattice[c_i].extent_i
 
         classes = sorted(set(Y))
         self._class_names = classes
@@ -469,7 +469,7 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
         return metrics
 
     def average_concepts_predictions(self, concepts_i):
-        """Average label predictions of concepts with indexes ``concepts_i`` to get a final prediction"""
+        """Average label predictions of elements with indexes ``concepts_i`` to get a final prediction"""
         if len(concepts_i) == 0:
             return None
 
@@ -488,11 +488,11 @@ class DecisionLatticeClassifier(DecisionLatticePredictor):
         return predictions >= 0.5
 
     def average_concepts_class_probabilities(self, concepts_i):
-        """Average predictions of concepts with indexes ``concepts_i`` to get a final probability prediction"""
+        """Average predictions of elements with indexes ``concepts_i`` to get a final probability prediction"""
         if len(concepts_i) == 0:
             return None
 
-        predictions = [self._lattice.concepts[c_i].measures['class_probabilities'] for c_i in concepts_i]
+        predictions = [self._lattice[c_i].measures['class_probabilities'] for c_i in concepts_i]
         probs_per_class = [sum(row) / len(row) if len(row) > 0 else None for row in zip(*predictions)]  # transpose data
         return probs_per_class
 
@@ -526,7 +526,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
     """
     def calc_concept_prediction_metrics(self, c_i, Y):
         """Calculate the target prediction for concept ```c_i`` based on ground truth targets ``Y``"""
-        extent_i = self._lattice.concepts[c_i].extent_i
+        extent_i = self._lattice[c_i].extent_i
         metrics = {"mean_y": sum([Y[g_i] for g_i in extent_i])/len(extent_i) if len(extent_i) else None}
         return metrics
 
@@ -534,7 +534,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         """Average label predictions of concepts with indexes ``concepts_i`` to get a final prediction"""
         if len(concepts_i) == 0:
             return None
-        predictions = [self._lattice.concepts[c_i].measures['mean_y'] for c_i in concepts_i]
+        predictions = [self._lattice[c_i].measures['mean_y'] for c_i in concepts_i]
         avg_prediction = sum(predictions)/len(predictions) if len(predictions) > 0 else None
         return avg_prediction
 
@@ -567,20 +567,21 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
             raise TypeError(f'Decision Tree of type {type(dtree)} is not supported')
 
 
-        # Construct concepts based on premises of decision tree
+        # Construct elements based on premises of decision tree
         hash_ = context.hash_fixed()
         concepts = [concept_from_descr_i(p, context, hash_) for p in premises]
 
-        # Check if concepts make a lattice. If not, add a bottom concept
-        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict).bottom_elements
+        # Check if elements make a lattice. If not, add a bottom concept
+        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict).bottoms
         if len(bottom_elements) > 1:
             bottom_concept = concept_from_descr_i(context.intention_i([]), context)
             bottom_concept_i = len(concepts)
             concepts.append(bottom_concept)
             for old_bottom_i in bottom_elements:
+                direct_subelements_dict[old_bottom_i] = set(direct_subelements_dict[old_bottom_i])
                 direct_subelements_dict[old_bottom_i].add(bottom_concept_i)
             direct_subelements_dict[bottom_concept_i] = set()
-        bottom_elements = POSet(concepts, direct_subelements_dict=direct_subelements_dict,).bottom_elements
+        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict, ).bottoms
         assert len(bottom_elements) == 1
 
         L = ConceptLattice(concepts, subconcepts_dict=direct_subelements_dict)
@@ -612,7 +613,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         for dtree in estimators[1:]:
             dl_gb += cls.from_decision_tree(dtree, context, random_state=dtree.random_state)
         dl_gb *= gb.learning_rate
-        dl_gb._decisions[(None, dl_gb.lattice.top_concept_i, frozendict({}))] += gb.init_.constant_[0, 0]
+        dl_gb._decisions[(None, dl_gb.lattice.top, frozendict({}))] += gb.init_.constant_[0, 0]
         return dl_gb
 
     @classmethod
@@ -624,5 +625,5 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         dl_xgb = cls.from_decision_tree(boosters[0], context)
         for booster in boosters[1:]:
             dl_xgb += cls.from_decision_tree(booster, context)
-        dl_xgb._decisions[(None, dl_xgb.lattice.top_concept_i, frozendict({}))] += bias
+        dl_xgb._decisions[(None, dl_xgb.lattice.top, frozendict({}))] += bias
         return dl_xgb

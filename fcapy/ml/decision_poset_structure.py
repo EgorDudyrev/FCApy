@@ -50,7 +50,7 @@ class DecisionRule:
 
 class DecisionPOSet(POSet):
     def __init__(self, decision_rules=None, premises=None, targets=None,
-                 use_cache: bool = True, leq_premise_func=None, direct_subelements_dict=None):
+                 use_cache: bool = True, leq_premise_func=None, children_dict=None):
         #if premises is not None and targets is not None:
         #    decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
         #elif decision_rules is None:
@@ -64,7 +64,7 @@ class DecisionPOSet(POSet):
         if not isinstance(premises, POSet):
             premises = POSet(
                 elements=premises, leq_func=leq_premise_func,
-                use_cache=use_cache, direct_subelements_dict=direct_subelements_dict
+                use_cache=use_cache, children_dict=children_dict
             )
 
         assert len(set(premises)) == len(premises), 'All premises should be unique'
@@ -78,7 +78,7 @@ class DecisionPOSet(POSet):
         #    decision_rules = [DecisionRule(p, t) for p, t in zip(premises, targets)]
         #super(DecisionPOSet, self).__init__(
         #    elements=decision_rules, leq_func=compare_premise_function,
-        #    use_cache=use_cache, direct_subelements_dict=direct_subelements_dict
+        #    use_cache=use_cache, children_dict=children_dict
         #)
 
     @property
@@ -158,7 +158,7 @@ class DecisionPOSet(POSet):
             targets_sum.append(t_a + t_b)
 
         dposet_sum = DecisionPOSet(premises=prems_sum, targets=targets_sum, use_cache=self._use_cache,
-                                   direct_subelements_dict=self.__dict__.get('_cache_direct_subelements'))
+                                   children_dict=self.__dict__.get('_cache_children'))
 
         return dposet_sum
 
@@ -172,7 +172,7 @@ class DecisionPOSet(POSet):
 
         diff_poset = deepcopy(self)
         for drule_i, drule in enumerate(diff_poset.decision_rules):
-            dsup_rules_i = diff_poset.direct_super_elements(drule_i)
+            dsup_rules_i = diff_poset.parents(drule_i)
 
             del diff_poset._elements_to_index_map[drule]
             drule._target -= sum([old_targets[dsup_i] for dsup_i in dsup_rules_i])
@@ -184,7 +184,7 @@ class DecisionPOSet(POSet):
 
         int_poset = deepcopy(self)
         for drule_i, drule in enumerate(int_poset.decision_rules):
-            sup_rules_i = int_poset.super_elements(drule_i)
+            sup_rules_i = int_poset.ancestors(drule_i)
 
             del int_poset._elements_to_index_map[drule]
             drule._target += sum([old_targets[sup_i] for sup_i in sup_rules_i])

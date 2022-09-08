@@ -1,9 +1,9 @@
 """
-This module provides a set of functions to compute interestingness measures of concepts
+This module provides a set of functions to compute interestingness measures of elements
 
 For the definition of interestingness measures look the paper:
 
-Kuznetsov, Sergei & Makhalova, Tatiana. (2016). On interestingness measures of formal concepts.
+Kuznetsov, Sergei & Makhalova, Tatiana. (2016). On interestingness measures of formal elements.
 Information Sciences. 442. 10.1016/j.ins.2018.02.032.
 
 
@@ -28,7 +28,7 @@ def stability(c_i, lattice: ConceptLattice, context: FormalContext):
 
     Exact but exponential time to compute measure
     """
-    c = lattice.concepts[c_i]
+    c = lattice[c_i]
 
     n = 2 ** len(c.extent_i)
     if len(c.extent_i) > 0:
@@ -47,11 +47,11 @@ def stability_bounds(c_i, lattice: ConceptLattice):
 
     Approximate but polynomial time to compute measure of concept stability
     """
-    c = lattice.concepts[c_i]
-    dd_i = lattice.subconcepts_dict[c_i]
+    c = lattice[c_i]
+    dd_i = lattice.children_dict[c_i]
     inv_diff = [0]
     if len(dd_i) > 0:
-        inv_diff = [2**(-len(set(c.extent_i)-set(lattice.concepts[d_i].extent_i))) for d_i in dd_i]
+        inv_diff = [2 ** (-len(set(c.extent_i) - set(lattice[d_i].extent_i))) for d_i in dd_i]
 
     lb = 1 - sum(inv_diff)
     ub = 1 - max(inv_diff)
@@ -66,5 +66,5 @@ def target_entropy(c_i, lattice: ConceptLattice, context: FormalContext):
 
 def mean_information_gain(c_i, lattice: ConceptLattice):
     h = lattice[c_i].measures['target_entropy']
-    mean_parent_h = np.mean([lattice[parent_i].measures['target_entropy'] for parent_i in lattice.super_elements(c_i)])
+    mean_parent_h = np.mean(lattice.measures['target_entropy'][lattice.ancestors(c_i)])
     return mean_parent_h - h

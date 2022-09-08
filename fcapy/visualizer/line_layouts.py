@@ -12,10 +12,10 @@ from fcapy.poset import POSet
 
 def calc_levels(poset: POSet):
     """Return levels (y position) of nodes and dict with {`level`: `nodes`} mapping in a line diagram"""
-    dsups_dict = poset.direct_super_elements_dict
+    dsups_dict = poset.parents_dict
 
     levels = [-1] * len(poset)
-    top_els = set(poset.top_elements)
+    top_els = set(poset.tops)
     nodes_to_visit = list(top_els)
 
     while len(nodes_to_visit) > 0:
@@ -23,7 +23,7 @@ def calc_levels(poset: POSet):
 
         levels[node_id] = max([levels[dsup_id] for dsup_id in dsups_dict[node_id]])+1 if node_id not in top_els else 0
 
-        nodes_to_visit += [n_i for n_i in poset.direct_sub_elements(node_id)
+        nodes_to_visit += [n_i for n_i in poset.children(node_id)
                            if levels[n_i] == -1 and all([levels[dsup_id] >= 0 for dsup_id in dsups_dict[n_i]])]
 
     levels_dict = {i: [] for i in range(max(levels) + 1)}
@@ -69,10 +69,10 @@ def fcart_layout(poset, c=0.5, dpth=1):
             priority = []
             for elem in elems:
                 mp = 0
-                for par in poset.direct_super_elements(elem):
+                for par in poset.parents(elem):
                     if c_levels[elem] - c_levels[par] <= dpth:
                         mp += c ** (c_levels[elem] - c_levels[par] - 1) * id_on_lvl[par] / len(levels_dict[c_levels[par]])
-                priority += [mp / len(poset.direct_super_elements(elem))]
+                priority += [mp / len(poset.parents(elem))]
             elems = [x for _, x in sorted(zip(priority, elems))]
         for i, elem in enumerate(elems):
             id_on_lvl[elem] = i;

@@ -23,7 +23,7 @@ def test_init_uppersemilattice():
     l = UpperSemiLattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
-    assert l._cache_top_element == 3
+    assert l._cache_top == 3
 
     with pytest.raises(ValueError):
         UpperSemiLattice(elements[:-1], leq_func)
@@ -36,7 +36,7 @@ def test_top_bottom_element_uppersemilattice():
     leq_func = lambda x, y: x in y
 
     l = UpperSemiLattice(elements, leq_func)
-    assert l.top_element == 3
+    assert l.top == 3
 
 
 def test_add_uppersemilattice():
@@ -106,7 +106,7 @@ def test_init_lowersemilattice():
     l = LowerSemiLattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
-    assert l._cache_bottom_element == 0
+    assert l._cache_bottom == 0
 
     LowerSemiLattice(elements[:-1], leq_func)
 
@@ -119,7 +119,7 @@ def test_top_bottom_element_lowersemilattice():
     leq_func = lambda x, y: x in y
 
     l = LowerSemiLattice(elements, leq_func)
-    assert l.bottom_element == 0
+    assert l.bottom == 0
 
 
 def test_add_lowersemilattice():
@@ -189,8 +189,8 @@ def test_init_lattice():
     l = Lattice(elements, leq_func)
     assert l._use_cache
     assert l._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
-    assert l._cache_top_element == 3
-    assert l._cache_bottom_element == 0
+    assert l._cache_top == 3
+    assert l._cache_bottom == 0
 
     with pytest.raises(ValueError):
         Lattice(elements[:-1], leq_func)
@@ -204,8 +204,8 @@ def test_top_bottom_element_lattice():
     leq_func = lambda x, y: x in y
 
     l = Lattice(elements, leq_func)
-    assert l.top_element == 3
-    assert l.bottom_element == 0
+    assert l.top == 3
+    assert l.bottom == 0
 
 
 def test_add_lattice():
@@ -216,7 +216,7 @@ def test_add_lattice():
     assert all([l.elements[l.index(el)] == el for el in l.elements])
     l_added = Lattice(elements+['abc'], leq_func)
     assert l == l_added
-    assert l.top_element == l_added.top_element
+    assert l.top == l_added.top
 
     elements = ['', 'a', 'b', 'ab']
     l = Lattice(elements, leq_func)

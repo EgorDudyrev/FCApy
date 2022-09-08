@@ -11,7 +11,7 @@ def test_init():
     assert s._elements_to_index_map == {}
 
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
 
     for use_cache in [False, True]:
         s = POSet(elements, leq_func, use_cache=use_cache)
@@ -22,16 +22,16 @@ def test_init():
     s = POSet(elements, leq_func)
     assert s._use_cache
     assert s._cache_leq == {}
-    assert s._cache_subelements == {}
-    assert s._cache_superelements == {}
-    assert s._cache_direct_subelements == {}
-    assert s._cache_direct_superelements == {}
+    assert s._cache_descendants == {}
+    assert s._cache_ancestors == {}
+    assert s._cache_children == {}
+    assert s._cache_parents == {}
     assert s._elements_to_index_map == {'': 0, 'a': 1, 'b':2, 'ab': 3}
 
 
 def test_leq_elements():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     for use_cache in [False, True]:
         s = POSet(elements, leq_func, use_cache=use_cache)
         leq = s.leq_elements(1, 2)
@@ -49,7 +49,7 @@ def test_leq_elements():
 
 def test_fill_up_caches():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func, use_cache=False)
     with pytest.raises(AssertionError):
         s.fill_up_caches()
@@ -64,29 +64,29 @@ def test_fill_up_caches():
     }
     assert s._cache_leq == leq_cache_true
 
-    s.fill_up_subelements_cache()
+    s.fill_up_descendants_cache()
     subelements_cache_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}}
-    assert s._cache_subelements == subelements_cache_true
+    assert s._cache_descendants == subelements_cache_true
 
-    s.fill_up_superelements_cache()
+    s.fill_up_ancestors_cache()
     superelements_cache_true = {0: {1, 2, 3}, 1: {3}, 2: {3}, 3: set()}
-    assert s._cache_superelements == superelements_cache_true
+    assert s._cache_ancestors == superelements_cache_true
 
-    s.fill_up_direct_subelements_cache()
+    s.fill_up_children_cache()
     dsubelements_cache_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
-    assert s._cache_direct_subelements == dsubelements_cache_true
+    assert s._cache_children == dsubelements_cache_true
 
-    s.fill_up_direct_superelements_cache()
+    s.fill_up_parents_cache()
     dsupelements_cache_true = {0: {1, 2}, 1: {3}, 2: {3}, 3: set()}
-    assert s._cache_direct_superelements == dsupelements_cache_true
+    assert s._cache_parents == dsupelements_cache_true
 
 
 def test_join_elements_supremum():
     elements = ['a', 'b', 'ab', 'c']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
-    for func in [s.join_elements, s.supremum]:
+    for func in [s.join, s.supremum]:
         join = func([0, 1])
         assert join == 2
 
@@ -101,10 +101,10 @@ def test_join_elements_supremum():
 
 def test_meet_elements_infimum():
     elements = ['a', 'b', 'ab', 'ac']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
-    for func in [s.meet_elements, s.infimum]:
+    for func in [s.meet, s.infimum]:
         meet = func([2, 3])
         assert meet == 0
 
@@ -119,7 +119,7 @@ def test_meet_elements_infimum():
 
 def test_getitem():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
     assert s[0] == ''
     assert s[1] == 'a'
@@ -132,7 +132,7 @@ def test_getitem():
 
 def test_eq():
     elements = ['', 'a', 'b', 'ab']
-    leq_func = lambda x,y: set(x) & set(y) == set(x)
+    leq_func = lambda x, y: set(x) & set(y) == set(x)
     s = POSet(elements, leq_func)
 
     elements1 = ['a', 'b', 'ab', '']
@@ -180,10 +180,10 @@ def test_and():
     s_and_fact = s1 & s2
     assert s_and_fact == s_and_true
     assert s_and_fact._cache_leq == s_and_true._cache_leq
-    assert s_and_fact._cache_subelements == s_and_true._cache_subelements
-    assert s_and_fact._cache_superelements == s_and_true._cache_superelements
-    assert s_and_fact._cache_direct_subelements == s_and_true._cache_direct_subelements
-    assert s_and_fact._cache_direct_superelements == s_and_true._cache_direct_superelements
+    assert s_and_fact._cache_descendants == s_and_true._cache_descendants
+    assert s_and_fact._cache_ancestors == s_and_true._cache_ancestors
+    assert s_and_fact._cache_children == s_and_true._cache_children
+    assert s_and_fact._cache_parents == s_and_true._cache_parents
 
     # Test if cache of intersection is union of caches
     s1 = POSet(elements_1, leq_func, use_cache=True)
@@ -191,16 +191,16 @@ def test_and():
     s2 = POSet(elements_1, leq_func, use_cache=True)
     s2.leq_elements(1, 2)
     s_and_true = POSet(elements_1, leq_func)
-    s_and_true.leq_elements(0,1)
-    s_and_true.leq_elements(1,2)
+    s_and_true.leq_elements(0, 1)
+    s_and_true.leq_elements(1, 2)
 
     s_and_fact = s1 & s2
     assert s_and_fact == s_and_true
     assert s_and_fact._cache_leq == s_and_true._cache_leq
-    assert s_and_fact._cache_subelements == s_and_true._cache_subelements
-    assert s_and_fact._cache_superelements == s_and_true._cache_superelements
-    assert s_and_fact._cache_direct_subelements == s_and_true._cache_direct_subelements
-    assert s_and_fact._cache_direct_superelements == s_and_true._cache_direct_superelements
+    assert s_and_fact._cache_descendants == s_and_true._cache_descendants
+    assert s_and_fact._cache_ancestors == s_and_true._cache_ancestors
+    assert s_and_fact._cache_children == s_and_true._cache_children
+    assert s_and_fact._cache_parents == s_and_true._cache_parents
 
 
 def test_or():
@@ -225,18 +225,18 @@ def test_or():
     s_or_true = POSet(elements_or, leq_func, use_cache=True)
     s_or_true.fill_up_caches()
     del s_or_true._cache_leq[(0, 3)], s_or_true._cache_leq[(3, 0)]
-    del s_or_true._cache_subelements[0], s_or_true._cache_subelements[3]
-    del s_or_true._cache_superelements[0], s_or_true._cache_superelements[3]
-    del s_or_true._cache_direct_subelements[0], s_or_true._cache_direct_subelements[3]
-    del s_or_true._cache_direct_superelements[0], s_or_true._cache_direct_superelements[3]
+    del s_or_true._cache_descendants[0], s_or_true._cache_descendants[3]
+    del s_or_true._cache_ancestors[0], s_or_true._cache_ancestors[3]
+    del s_or_true._cache_children[0], s_or_true._cache_children[3]
+    del s_or_true._cache_parents[0], s_or_true._cache_parents[3]
 
     s_or_fact = s1 | s2
     assert s_or_fact == s_or_true
     assert s_or_fact._cache_leq == s_or_true._cache_leq
-    assert s_or_fact._cache_subelements == s_or_true._cache_subelements
-    assert s_or_fact._cache_superelements == s_or_true._cache_superelements
-    assert s_or_fact._cache_direct_subelements == s_or_true._cache_direct_subelements
-    assert s_or_fact._cache_direct_superelements == s_or_true._cache_direct_superelements
+    assert s_or_fact._cache_descendants == s_or_true._cache_descendants
+    assert s_or_fact._cache_ancestors == s_or_true._cache_ancestors
+    assert s_or_fact._cache_children == s_or_true._cache_children
+    assert s_or_fact._cache_parents == s_or_true._cache_parents
 
 
 def test_xor():
@@ -261,18 +261,18 @@ def test_xor():
     s_xor_true = POSet(elements_xor, leq_func, use_cache=True)
     s_xor_true.fill_up_caches()
     del s_xor_true._cache_leq[(0, 1)], s_xor_true._cache_leq[(1, 0)]
-    s_xor_true._cache_subelements = {}
-    s_xor_true._cache_superelements = {}
-    s_xor_true._cache_direct_subelements = {}
-    s_xor_true._cache_direct_superelements = {}
+    s_xor_true._cache_descendants = {}
+    s_xor_true._cache_ancestors = {}
+    s_xor_true._cache_children = {}
+    s_xor_true._cache_parents = {}
 
     s_xor_fact = s1 ^ s2
     assert s_xor_fact == s_xor_true
     assert s_xor_fact._cache_leq == s_xor_true._cache_leq
-    assert s_xor_fact._cache_subelements == s_xor_true._cache_subelements
-    assert s_xor_fact._cache_superelements == s_xor_true._cache_superelements
-    assert s_xor_fact._cache_direct_subelements == s_xor_fact._cache_direct_subelements
-    assert s_xor_fact._cache_direct_superelements == s_xor_fact._cache_direct_superelements
+    assert s_xor_fact._cache_descendants == s_xor_true._cache_descendants
+    assert s_xor_fact._cache_ancestors == s_xor_true._cache_ancestors
+    assert s_xor_fact._cache_children == s_xor_fact._cache_children
+    assert s_xor_fact._cache_parents == s_xor_fact._cache_parents
 
 
 def test_subtraction():
@@ -300,10 +300,10 @@ def test_subtraction():
     s_sub_fact = s1 - s2
     assert s_sub_fact == s_sub_true
     assert s_sub_fact._cache_leq == s_sub_true._cache_leq
-    assert s_sub_fact._cache_subelements == s_sub_true._cache_subelements
-    assert s_sub_fact._cache_superelements == s_sub_true._cache_superelements
-    assert s_sub_fact._cache_direct_subelements == s_sub_true._cache_direct_subelements
-    assert s_sub_fact._cache_direct_superelements == s_sub_true._cache_direct_superelements
+    assert s_sub_fact._cache_descendants == s_sub_true._cache_descendants
+    assert s_sub_fact._cache_ancestors == s_sub_true._cache_ancestors
+    assert s_sub_fact._cache_children == s_sub_true._cache_children
+    assert s_sub_fact._cache_parents == s_sub_true._cache_parents
 
 
 def test_len():
@@ -335,10 +335,10 @@ def test_delitem():
     del s[del_i]
     assert s == s_del_true
     assert s._cache_leq == s_del_true._cache_leq
-    assert s._cache_subelements == s_del_true._cache_subelements
-    assert s._cache_superelements == s_del_true._cache_superelements
-    assert s._cache_direct_subelements == s_del_true._cache_direct_subelements
-    assert s._cache_direct_superelements == s_del_true._cache_direct_superelements
+    assert s._cache_descendants == s_del_true._cache_descendants
+    assert s._cache_ancestors == s_del_true._cache_ancestors
+    assert s._cache_children == s_del_true._cache_children
+    assert s._cache_parents == s_del_true._cache_parents
 
 
 def test_add():
@@ -370,10 +370,10 @@ def test_add():
     s.add(new_element, fill_up_cache=True)
     assert s == s_add_true
     assert s._cache_leq == s_add_true._cache_leq
-    assert s._cache_subelements == s_add_true._cache_subelements
-    assert s._cache_superelements == s_add_true._cache_superelements
-    assert s._cache_direct_subelements == s_add_true._cache_direct_subelements
-    assert s._cache_direct_superelements == s_add_true._cache_direct_superelements
+    assert s._cache_descendants == s_add_true._cache_descendants
+    assert s._cache_ancestors == s_add_true._cache_ancestors
+    assert s._cache_children == s_add_true._cache_children
+    assert s._cache_parents == s_add_true._cache_parents
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
     s = POSet(['', 'ab'], leq_func)
@@ -384,10 +384,10 @@ def test_add():
     s.add('a')
     assert s == s_add_true
     assert s._cache_leq == s_add_true._cache_leq
-    assert s._cache_subelements == s_add_true._cache_subelements
-    assert s._cache_superelements == s_add_true._cache_superelements
-    assert s._cache_direct_subelements == s_add_true._cache_direct_subelements
-    assert s._cache_direct_superelements == s_add_true._cache_direct_superelements
+    assert s._cache_descendants == s_add_true._cache_descendants
+    assert s._cache_ancestors == s_add_true._cache_ancestors
+    assert s._cache_children == s_add_true._cache_children
+    assert s._cache_parents == s_add_true._cache_parents
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
 
@@ -413,10 +413,10 @@ def test_remove():
     s.remove(elements[remove_i])
     assert s == s_remove_true
     assert s._cache_leq == s_remove_true._cache_leq
-    assert s._cache_subelements == s_remove_true._cache_subelements
-    assert s._cache_superelements == s_remove_true._cache_superelements
-    assert s._cache_direct_subelements == s_remove_true._cache_direct_subelements
-    assert s._cache_direct_superelements == s_remove_true._cache_direct_superelements
+    assert s._cache_descendants == s_remove_true._cache_descendants
+    assert s._cache_ancestors == s_remove_true._cache_ancestors
+    assert s._cache_children == s_remove_true._cache_children
+    assert s._cache_parents == s_remove_true._cache_parents
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
     # Test if cache is changed correctly after removing an element (another case)
@@ -428,10 +428,10 @@ def test_remove():
     s.remove('a')
     assert s == s_remove_true
     assert s._cache_leq == s_remove_true._cache_leq
-    assert s._cache_subelements == s_remove_true._cache_subelements
-    assert s._cache_superelements == s_remove_true._cache_superelements
-    assert s._cache_direct_subelements == s_remove_true._cache_direct_subelements
-    assert s._cache_direct_superelements == s_remove_true._cache_direct_superelements
+    assert s._cache_descendants == s_remove_true._cache_descendants
+    assert s._cache_ancestors == s_remove_true._cache_ancestors
+    assert s._cache_children == s_remove_true._cache_children
+    assert s._cache_parents == s_remove_true._cache_parents
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
 
@@ -441,9 +441,9 @@ def test_super_elements():
     s = POSet(elements, leq_func)
     sups_true = {0: {1, 2, 3}, 1: {3}, 2: {3}, 3: set()}
 
-    sups_fact = {idx: s.super_elements(idx) for idx in range(len(elements))}
+    sups_fact = {idx: s.ancestors(idx) for idx in range(len(elements))}
     assert sups_fact == sups_true
-    assert s.super_elements_dict == sups_true
+    assert s.ancestors_dict == sups_true
 
 
 def test_sub_elements():
@@ -452,9 +452,9 @@ def test_sub_elements():
     s = POSet(elements, leq_func)
     subs_true = {0: set(), 1: {0}, 2: {0}, 3: {0, 1, 2}, 4: {0}}
 
-    subs_fact = {idx: s.sub_elements(idx) for idx in range(len(elements))}
+    subs_fact = {idx: s.descendants(idx) for idx in range(len(elements))}
     assert subs_fact == subs_true
-    assert s.sub_elements_dict == subs_true
+    assert s.descendants_dict == subs_true
 
 
 def test_direct_super_elements():
@@ -463,9 +463,9 @@ def test_direct_super_elements():
     s = POSet(elements, leq_func)
     dsups_true = {0: {1, 2}, 1: {3}, 2: {3}, 3: set()}
 
-    dsups_fact = {idx: s.direct_super_elements(idx) for idx in range(len(elements))}
+    dsups_fact = {idx: s.parents(idx) for idx in range(len(elements))}
     assert dsups_fact == dsups_true
-    assert s.direct_super_elements_dict == dsups_true
+    assert s.parents_dict == dsups_true
 
 
 def test_direct_sub_elements():
@@ -474,9 +474,9 @@ def test_direct_sub_elements():
     s = POSet(elements, leq_func)
     dsubs_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}, 4: {0}}
 
-    dsubs_fact = {idx: s.direct_sub_elements(idx) for idx in range(len(elements))}
+    dsubs_fact = {idx: s.children(idx) for idx in range(len(elements))}
     assert dsubs_fact == dsubs_true
-    assert s.direct_sub_elements_dict == dsubs_true
+    assert s.children_dict == dsubs_true
 
 
 def test_closed_cache_by_direct_cache():
@@ -485,11 +485,11 @@ def test_closed_cache_by_direct_cache():
     s = POSet(elements, leq_func)
     s.fill_up_caches()
 
-    closed_subelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_direct_subelements)
-    assert closed_subelements_cache == s._cache_subelements
+    closed_subelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_children)
+    assert closed_subelements_cache == s._cache_descendants
 
-    closed_superelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_direct_superelements)
-    assert closed_superelements_cache == s._cache_superelements
+    closed_superelements_cache = s._closed_relation_cache_by_direct_cache(s._cache_parents)
+    assert closed_superelements_cache == s._cache_ancestors
 
 
 def test_direct_cache_by_closed_cache():
@@ -498,11 +498,11 @@ def test_direct_cache_by_closed_cache():
     s = POSet(elements, leq_func)
     s.fill_up_caches()
 
-    direct_subelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_subelements)
-    assert direct_subelements_cache == s._cache_direct_subelements
+    direct_subelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_descendants)
+    assert direct_subelements_cache == s._cache_children
 
-    direct_superelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_superelements)
-    assert direct_superelements_cache == s._cache_direct_superelements
+    direct_superelements_cache = s._direct_relation_cache_by_closed_cache(s._cache_ancestors)
+    assert direct_superelements_cache == s._cache_parents
 
 
 def test_index():
@@ -541,8 +541,8 @@ def test_top_bottom_elements():
 
     top_elements_true = [3, 4]
     bottom_elements_true = [0]
-    assert s.top_elements == top_elements_true
-    assert s.bottom_elements == bottom_elements_true
+    assert s.tops == top_elements_true
+    assert s.bottoms == bottom_elements_true
 
 
 def test_trace_element():

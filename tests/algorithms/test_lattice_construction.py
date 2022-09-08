@@ -14,7 +14,7 @@ def test_complete_comparison():
     subconcepts_dict = lca.complete_comparison([c1, c2, c3, c4])
     subconcepts_dict_true = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}}
     assert subconcepts_dict == subconcepts_dict_true,\
-        'lattice_construction.complete_comparison failed. Wrong subconcepts_dict is constructed'
+        'lattice_construction.complete_comparison failed. Wrong children_dict is constructed'
 
     concepts_sorted = [c4, c2, c3, c1]
     subconcepts_dict_sorted = lca.complete_comparison(concepts_sorted, is_concepts_sorted=True)
@@ -31,7 +31,7 @@ def test_complete_comparison():
 def test_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')
     ltc = ConceptLattice.from_context(ctx)
-    concepts = ltc.concepts
+    concepts = list(ltc)
     np.random.seed(42)
     np.random.shuffle(concepts)
     sub_st, sup_st = lca.construct_spanning_tree(concepts)
@@ -56,7 +56,7 @@ def test_spanning_tree():
 def test_lattice_construction_from_spanning_tree_parallel():
     ctx = read_cxt('data/animal_movement.cxt')
     ltc = ConceptLattice.from_context(ctx)
-    concepts = ltc.concepts
+    concepts = list(ltc)
     np.random.seed(42)
     np.random.shuffle(concepts)
     sub_true = lca.complete_comparison(concepts)
@@ -93,7 +93,7 @@ def test_lattice_construction_from_spanning_tree_parallel():
 def test_lattice_construction_by_spanning_tree():
     ctx = read_cxt('data/animal_movement.cxt')
     ltc = ConceptLattice.from_context(ctx)
-    concepts = ltc.concepts
+    concepts = list(ltc)
     np.random.seed(42)
     np.random.shuffle(concepts)
     sub_true = lca.complete_comparison(concepts)
@@ -139,11 +139,11 @@ def test_add_concept():
                         top_concept_i=0, bottom_concept_i=1, inplace=True)
 
     assert concepts == concepts_true,\
-        'lattice_construction.add_concept failed. Concepts list dict differs when run inplace'
+        'lattice_construction.add failed. Concepts list dict differs when run inplace'
     assert subconcepts_dict == subconcepts_dict_true,\
-        'lattice_construction.add_concept failed. Subconcepts dict differs when run inplace'
+        'lattice_construction.add failed. Subconcepts dict differs when run inplace'
     assert superconcepts_dict == superconcepts_dict_true, \
-        'lattice_construction.add_concept failed. Superconcepts dict differs when run inplace'
+        'lattice_construction.add failed. Superconcepts dict differs when run inplace'
 
     concepts = concepts_true[:2]
     subconcepts_dict, superconcepts_dict = {0: {1}, 1: set()}, {0: set(), 1: {0}}
@@ -154,11 +154,11 @@ def test_add_concept():
             top_concept_i=0, bottom_concept_i=1, inplace=False)
 
     assert concepts == concepts_true, \
-        'lattice_construction.add_concept failed. Concepts list dict differs when run not inplace'
+        'lattice_construction.add failed. Concepts list dict differs when run not inplace'
     assert subconcepts_dict == subconcepts_dict_true, \
-        'lattice_construction.add_concept failed. Subconcepts dict differs when run not inplace'
+        'lattice_construction.add failed. Subconcepts dict differs when run not inplace'
     assert superconcepts_dict == superconcepts_dict_true, \
-        'lattice_construction.add_concept failed. Superconcepts dict differs when run not inplace'
+        'lattice_construction.add failed. Superconcepts dict differs when run not inplace'
 
     c_newbottom = FormalConcept((), (), (0, 1, 2, 3), ('a', 'b', 'c', 'd'))
     c1 = FormalConcept((2,), ('c',), (0, 1, 2), ('a', 'b', 'c'))
@@ -176,7 +176,7 @@ def test_add_concept():
     superconcepts_dict = ConceptLattice._transpose_hierarchy(subconcepts_dict)
     for c in [c_newbottom, c_newtop]:
         lca.add_concept(c, concepts, subconcepts_dict, superconcepts_dict, inplace=True)
-    error_msg = 'lattice_construction.add_concept failed. Error when adding new top_concept or bottom_concept'
+    error_msg = 'lattice_construction.add failed. Error when adding new top_concept or bottom_concept'
     assert set(concepts) == set(concepts_true), error_msg
     assert subconcepts_dict == subconcepts_dict_true, error_msg
     assert superconcepts_dict == superconcepts_dict_true, error_msg
@@ -217,9 +217,9 @@ def test_remove_concept():
         assert concepts_true == concepts_true1,\
             'remove_concept failed. The original concepts list has been changed during non inplace function call'
         assert subconcepts_dict_true == subconcepts_dict_true1,\
-            'remove_concept failed. The original subconcepts_dict has been changed during non inplace function call'
+            'remove_concept failed. The original children_dict has been changed during non inplace function call'
         assert superconcepts_dict_true == superconcepts_dict_true1, \
-            'remove_concept failed. The original superconcepts_dict has been changed during non inplace function call'
+            'remove_concept failed. The original parents_dict has been changed during non inplace function call'
 
         assert subconcepts_dict == subconcepts_dict_true_new,\
             'remove_concept failed. Subconcept_dict is calculated wrong'
@@ -243,9 +243,9 @@ def test_remove_concept():
         assert concepts_true != concepts_true1,\
             'remove_concept failed. The original concepts list should been changed during inplace function call'
         assert subconcepts_dict_true != subconcepts_dict_true1,\
-            'remove_concept failed. The original subconcepts_dict should been changed during inplace function call'
+            'remove_concept failed. The original children_dict should been changed during inplace function call'
         assert superconcepts_dict_true != superconcepts_dict_true1, \
-            'remove_concept failed. The original superconcepts_dict should been changed during inplace function call'
+            'remove_concept failed. The original parents_dict should been changed during inplace function call'
 
         assert subconcepts_dict == subconcepts_dict_true_new,\
             'remove_concept failed. Subconcept_dict is calculated wrong'
