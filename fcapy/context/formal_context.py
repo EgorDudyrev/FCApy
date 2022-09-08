@@ -186,12 +186,13 @@ class FormalContext:
             Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
-        extension_i = self._data.arrow_down(attribute_indexes, base_objects_i)
-        return extension_i
+        return self._data.arrow_down(attribute_indexes, base_objects_i)
 
     def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
             -> Tuple[int, ...]:
-        raise NotImplementedError
+        base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
+        extension_i = self._data[base_objects_i, attribute_indexes].any(1)
+        return extension_i
 
     def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False):
         """Return maximal set of objects which share given ``attributes``
@@ -254,7 +255,11 @@ class FormalContext:
     def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
             -> Tuple[int, ...]:
         """Return indexes of maximal set of attributes shared by any of given ``object_indexes``"""
-        raise NotImplementedError
+        base_attrs_i = slice(0, self.n_attributes) if base_attrs_i is None else base_attrs_i
+        complement_objs = list(set(range(self.n_objects))-set(object_indexes))
+        complement_attrs_flg = self._data[complement_objs, base_attrs_i].any(axis=0)
+        intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
+        return intention_i
 
     def intention(self, objects: Iterable[str], is_monotone: bool = False):
         """Return maximal set of attributes which are shared by given ``objects``

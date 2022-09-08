@@ -196,7 +196,9 @@ class BinTable:
         return hash(tuple([tuple(row) for row in self._data]))
 
     def all(self, axis=None):
-        """Check if all rows in columns (``axis`` =1), columns in rows (``axis`` =2), or both (``axis`` =0) are True"""
+        """Check if all [elements (``axis`` is None) / rows (``axis`` = 1) / columns (``axis`` = 2)] are True"""
+        # TODO: FIX AND REWRITE THE FUNCTION
+
         def check_all_true(ar):
             return ar.all() if LIB_INSTALLED['bitsets'] and isinstance(ar, bitsets.bases.BitSet) else all(ar)
 
@@ -234,7 +236,10 @@ class BinTable:
         return flag_all
 
     def any(self, axis=None):
-        """Check if any element (``axis`` =0), row in columns (``axis`` =1), column in rows (``axis`` =2) is True"""
+        """Check if any [element (``axis`` = None) / row (``axis`` = 0) / column (``axis`` =2)] is True"""
+        # TODO: FIX AND REFACTOR THE FUNCTION
+        assert axis in {None, 0, 1}, 'Axis can only be None, 0 or 1'
+
         if axis is None:
             flag_any = False
             for row in self._data:
