@@ -225,10 +225,10 @@ class ConceptLattice(Lattice):
 
             ltc._generators_dict = {map_i_isort[c_i]: {map_i_isort[supc_i]: gen for supc_i, gen in gens_dict.items()}
                                     for c_i, gens_dict in ltc._generators_dict.items()}
-            if ltc._cache_top_element is not None:
-                ltc._cache_top_element = map_i_isort[ltc._cache_top_element]
-            if ltc._cache_bottom_element is not None:
-                ltc._cache_bottom_element = map_i_isort[ltc._cache_bottom_element]
+            if ltc._cache_top is not None:
+                ltc._cache_top = map_i_isort[ltc._cache_top]
+            if ltc._cache_bottom is not None:
+                ltc._cache_bottom = map_i_isort[ltc._cache_bottom]
 
         else:
             raise ValueError(f'ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
@@ -414,7 +414,7 @@ class ConceptLattice(Lattice):
                 if concept_i not in concept_extents:
                     concept_extents[concept_i] = {}
 
-                if concept_i == self.top_element:
+                if concept_i == self.top:
                     gen = self._generators_dict[concept_i]
                     concept_extents[concept_i] = set(context.extension_i(gen))
                     extent = concept_extents[concept_i]
@@ -459,7 +459,7 @@ class ConceptLattice(Lattice):
                     extent = concept_extents[concept_i][superconcept_i]
             return extent
 
-        concepts_to_visit = [self.top_element]
+        concepts_to_visit = [self.top]
         object_bottom_concepts = {idx: set() for idx in range(context.n_objects)}
         object_traced_concepts = {idx: set() for idx in range(context.n_objects)}
         visited_concepts = set()
@@ -517,7 +517,7 @@ class ConceptLattice(Lattice):
         WARNING: No comments for now. The notion of conditional generators is under construction
         """
         condgen_dict = dict()
-        condgen_dict[self.top_element] = {}
+        condgen_dict[self.top] = {}
 
         assert algo in {'approximate', 'exact'}, f"Given algorithm '{algo}' is not supported. " \
                                                  f"Possible values are: 'approximate', 'exact'"
@@ -739,7 +739,7 @@ class ConceptLattice(Lattice):
         arcs = [{"S": s_i, "D": d_i} for s_i, d_is in self.children_dict.items() for d_i in d_is]
 
         lattice_metadata = {
-            'Top': [self.top_element], "Bottom": [self.bottom_element],
+            'Top': [self.top], "Bottom": [self.bottom],
             "NodesCount": len(self), "ArcsCount": len(arcs)
         }
         nodes_data = {"Nodes": [c.to_dict(json_ready=True) if isinstance(c, PatternConcept) else c.to_dict()

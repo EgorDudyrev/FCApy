@@ -135,7 +135,7 @@ def test_flg_drop_empty_bottom():
 
         return img
 
-    img0 = lattice_to_img(L, [c_i for c_i in range(len(L)) if c_i != L.bottom_element], False)
+    img0 = lattice_to_img(L, [c_i for c_i in range(len(L)) if c_i != L.bottom], False)
     img1 = lattice_to_img(L, None, True)
     assert (img0 == img1).all()
 

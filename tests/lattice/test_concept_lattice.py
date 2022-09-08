@@ -33,8 +33,8 @@ def test_concept_lattice_init():
     assert ltc.elements == concepts,\
         'ConceptLattice.__init__ failed. Something is wrong with accessing the elements property'
 
-    assert ltc.top_element == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
-    assert ltc.bottom_element == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
+    assert ltc.top == 2, 'ConceptLattice.__init__ failed. The top concept index is wrongly assigned'
+    assert ltc.bottom == 0, 'ConceptLattice.__init__ failed. The bottom concept index is wrongly assigned'
 
 
 def test_from_context():

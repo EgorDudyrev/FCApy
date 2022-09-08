@@ -117,16 +117,6 @@ class POSet:
     def descendants_dict(self) -> Dict[int, FrozenSet[int]]:
         """A dictionary of kind {`element_idx`: `list`[indexes of all elements smaller than `element_idx`]"""
         return {el_i: self.descendants(el_i) for el_i in range(len(self))}
-    
-    @property
-    def top_elements(self) -> List[int]:
-        """A list of the top (the biggest) elements in a POSet"""
-        return [el_i for el_i in range(len(self)) if len(self.ancestors(el_i)) == 0]
-    
-    @property
-    def bottom_elements(self) -> List[int]:
-        """A list of the bottom (the smallest) elements in a POSet"""
-        return [el_i for el_i in range(len(self)) if len(self.descendants(el_i)) == 0]
 
     def ancestors(self, element_index: int) -> FrozenSet[int]:
         """Return a set of indexes of elements of POSet bigger than element #``element_index``"""
@@ -211,6 +201,16 @@ class POSet:
             res = self._children_nocache(element_index)
             self._cache_children[element_index] = frozenset(res)
         return frozenset(res)
+
+    @property
+    def tops(self) -> List[int]:
+        """A list of the top (the biggest) elements in a POSet"""
+        return [el_i for el_i in range(len(self)) if len(self.ancestors(el_i)) == 0]
+
+    @property
+    def bottoms(self) -> List[int]:
+        """A list of the bottom (the smallest) elements in a POSet"""
+        return [el_i for el_i in range(len(self)) if len(self.descendants(el_i)) == 0]
 
     def join(self, element_indexes: Collection[int] = None) -> Optional[int]:
         """Return the smallest element from POSet bigger than all elements from ``element_indexes``"""
@@ -640,11 +640,11 @@ class POSet:
             A set of descendants (or ancestors) of ``element`` in the POSet
         """
         if direction == 'down':
-            start_elements = self.top_elements
+            start_elements = self.tops
             compare_func = self._leq_func
             next_elements_func = self.children
         elif direction == 'up':
-            start_elements = self.bottom_elements
+            start_elements = self.bottoms
             compare_func = lambda a, b: self._leq_func(b, a)
             next_elements_func = self.parents
         else:

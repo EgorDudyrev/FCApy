@@ -420,7 +420,7 @@ class DecisionLatticePredictor:
             for ps_i in ps_is:
                 sv[list(ge['ext_']), ps_i] += dy_norm
 
-        bias = self._decisions[(None, self._lattice.top_element, frozendict({}))]
+        bias = self._decisions[(None, self._lattice.top, frozendict({}))]
         return sv, bias
 
 
@@ -572,7 +572,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         concepts = [concept_from_descr_i(p, context, hash_) for p in premises]
 
         # Check if elements make a lattice. If not, add a bottom concept
-        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict).bottom_elements
+        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict).bottoms
         if len(bottom_elements) > 1:
             bottom_concept = concept_from_descr_i(context.intention_i([]), context)
             bottom_concept_i = len(concepts)
@@ -581,7 +581,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
                 direct_subelements_dict[old_bottom_i] = set(direct_subelements_dict[old_bottom_i])
                 direct_subelements_dict[old_bottom_i].add(bottom_concept_i)
             direct_subelements_dict[bottom_concept_i] = set()
-        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict, ).bottom_elements
+        bottom_elements = POSet(concepts, children_dict=direct_subelements_dict, ).bottoms
         assert len(bottom_elements) == 1
 
         L = ConceptLattice(concepts, subconcepts_dict=direct_subelements_dict)
@@ -613,7 +613,7 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         for dtree in estimators[1:]:
             dl_gb += cls.from_decision_tree(dtree, context, random_state=dtree.random_state)
         dl_gb *= gb.learning_rate
-        dl_gb._decisions[(None, dl_gb.lattice.top_element, frozendict({}))] += gb.init_.constant_[0, 0]
+        dl_gb._decisions[(None, dl_gb.lattice.top, frozendict({}))] += gb.init_.constant_[0, 0]
         return dl_gb
 
     @classmethod
@@ -625,5 +625,5 @@ class DecisionLatticeRegressor(DecisionLatticePredictor):
         dl_xgb = cls.from_decision_tree(boosters[0], context)
         for booster in boosters[1:]:
             dl_xgb += cls.from_decision_tree(booster, context)
-        dl_xgb._decisions[(None, dl_xgb.lattice.top_element, frozendict({}))] += bias
+        dl_xgb._decisions[(None, dl_xgb.lattice.top, frozendict({}))] += bias
         return dl_xgb

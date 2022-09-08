@@ -39,33 +39,33 @@ class UpperSemiLattice(POSet):
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
         super(UpperSemiLattice, self).__init__(elements, leq_func, use_cache, children_dict)
 
-        top_elements = super(UpperSemiLattice, self).top_elements
+        top_elements = super(UpperSemiLattice, self).tops
         if len(top_elements) != 1:
             raise ValueError(f"The set of ``elements`` should have a single top element")
 
         if use_cache:
-            self._cache_top_element = top_elements[0]
+            self._cache_top = top_elements[0]
 
     @property
-    def top_element(self) -> int:
+    def top(self) -> int:
         """An index of the single top (the biggest) element of the semilattice"""
         if self._use_cache:
-            if self._cache_top_element is None:
-                self._cache_top_element = super(UpperSemiLattice, self).top_elements[0]
-            top_element = self._cache_top_element
+            if self._cache_top is None:
+                self._cache_top = super(UpperSemiLattice, self).tops[0]
+            top_element = self._cache_top
         else:
-            top_element = super(UpperSemiLattice, self).top_elements[0]
+            top_element = super(UpperSemiLattice, self).tops[0]
         return top_element
 
     @property
-    def top_elements(self) -> List[int]:
+    def tops(self) -> List[int]:
         """The set of indexes of the top (the biggest) elements of the semilattice"""
-        return [self.top_element]
+        return [self.top]
 
     def add(self, element: Any, fill_up_cache: bool = True):
         """Add an ``element`` to semilattice. Automatically fill up the comparison caches if needed"""
-        is_smaller_than_top = self.leq_func(element, self._elements[self.top_element])
-        is_bigger_than_top = self.leq_func(self._elements[self.top_element], element)
+        is_smaller_than_top = self.leq_func(element, self._elements[self.top])
+        is_bigger_than_top = self.leq_func(self._elements[self.top], element)
 
         if not (is_smaller_than_top or is_bigger_than_top):
             raise ValueError(f"New element {element} is incomparable with the top element of {self.CLASS_NAME}")
@@ -73,21 +73,21 @@ class UpperSemiLattice(POSet):
 
         if self._use_cache:
             if is_bigger_than_top:
-                self._cache_top_element = self._elements_to_index_map[element]
+                self._cache_top = self._elements_to_index_map[element]
         
     def remove(self, element: Any):
         """Remove and ``element`` from the semilattice"""
-        if self._elements[self.top_element] == element:
+        if self._elements[self.top] == element:
             raise ValueError(f"Cannot remove top element {element}")
         super(UpperSemiLattice, self).remove(element)
         
     def __delitem__(self, key: int):
-        if self.top_element == key:
+        if self.top == key:
             raise KeyError(f"Cannot remove top element {key}")
         super(UpperSemiLattice, self).__delitem__(key)
 
         if self._use_cache:
-            self._cache_top_element -= int(self._cache_top_element > key)
+            self._cache_top -= int(self._cache_top > key)
 
 
 class LowerSemiLattice(POSet):
@@ -118,33 +118,33 @@ class LowerSemiLattice(POSet):
             raise ValueError(f'{self.CLASS_NAME} cannot be constructed upon zero elements')
         super(LowerSemiLattice, self).__init__(elements, leq_func, use_cache, children_dict)
 
-        bottom_elements = super(LowerSemiLattice, self).bottom_elements
+        bottom_elements = super(LowerSemiLattice, self).bottoms
         if len(bottom_elements) != 1:
             raise ValueError(f"The set of ``elements`` should have a single bottom element")
 
         if use_cache:
-            self._cache_bottom_element = bottom_elements[0]
+            self._cache_bottom = bottom_elements[0]
 
     @property
-    def bottom_element(self) -> int:
+    def bottom(self) -> int:
         """An index of the bottom (the smallest) element of a semilattice"""
         if self._use_cache:
-            if self._cache_bottom_element is None:
-                self._cache_bottom_element = super(LowerSemiLattice, self).bottom_elements[0]
-            bottom_element = self._cache_bottom_element
+            if self._cache_bottom is None:
+                self._cache_bottom = super(LowerSemiLattice, self).bottoms[0]
+            bottom_element = self._cache_bottom
         else:
-            bottom_element = super(LowerSemiLattice, self).bottom_elements[0]
+            bottom_element = super(LowerSemiLattice, self).bottoms[0]
         return bottom_element
 
     @property
-    def bottom_elements(self) -> List[int]:
+    def bottoms(self) -> List[int]:
         """A list of indexes of the bottom (the smallest) elements of a semilattice"""
-        return [self.bottom_element]
+        return [self.bottom]
 
     def add(self, element: Any, fill_up_cache: bool = True):
         """Add an ``element`` to semilattice. Automatically fill up the comparison caches if needed"""
-        is_smaller_than_bottom = self.leq_func(element, self._elements[self.bottom_element])
-        is_bigger_than_bottom = self.leq_func(self._elements[self.bottom_element], element)
+        is_smaller_than_bottom = self.leq_func(element, self._elements[self.bottom])
+        is_bigger_than_bottom = self.leq_func(self._elements[self.bottom], element)
 
         if not (is_smaller_than_bottom or is_bigger_than_bottom):
             raise ValueError(f"New element {element} is incomparable with the bottom element of {self.CLASS_NAME}")
@@ -152,21 +152,21 @@ class LowerSemiLattice(POSet):
 
         if self._use_cache:
             if is_smaller_than_bottom:
-                self._cache_bottom_element = self._elements_to_index_map[element]
+                self._cache_bottom = self._elements_to_index_map[element]
 
     def remove(self, element: Any):
         """Remove and ``element`` from the semilattice"""
-        if self._elements[self.bottom_element] == element:
+        if self._elements[self.bottom] == element:
             raise ValueError(f"Cannot remove bottom element {element}")
         super(LowerSemiLattice, self).remove(element)
 
     def __delitem__(self, key: int):
-        if self.bottom_element == key:
+        if self.bottom == key:
             raise KeyError(f"Cannot delete bottom element {key}")
         super(LowerSemiLattice, self).__delitem__(key)
 
         if self._use_cache:
-            self._cache_bottom_element -= int(self._cache_bottom_element > key)
+            self._cache_bottom -= int(self._cache_bottom > key)
 
 
 class Lattice(UpperSemiLattice, LowerSemiLattice):

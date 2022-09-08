@@ -267,7 +267,7 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
             metrics_lim = sorted(metrics)[-L_max-1]
             concepts_to_remove = [i for i in range(len(lattice)) if metrics[i] <= metrics_lim][::-1]
             concepts_to_remove = [i for i in concepts_to_remove
-                                  if i not in [lattice.top_element, lattice.bottom_element]]
+                                  if i not in [lattice.top, lattice.bottom]]
             for c_i in concepts_to_remove:
                 del lattice[c_i]
 

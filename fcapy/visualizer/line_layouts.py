@@ -15,7 +15,7 @@ def calc_levels(poset: POSet):
     dsups_dict = poset.parents_dict
 
     levels = [-1] * len(poset)
-    top_els = set(poset.top_elements)
+    top_els = set(poset.tops)
     nodes_to_visit = list(top_els)
 
     while len(nodes_to_visit) > 0:

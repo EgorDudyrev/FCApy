@@ -403,7 +403,7 @@ class ConceptLatticeVisualizer(POSetVisualizer):
         """
         nodelist = list(range(len(self._lattice))) if nodelist is None else nodelist
         if not draw_bottom_concept:
-            nodelist.remove(self._lattice.bottom_element)
+            nodelist.remove(self._lattice.bottom)
 
         if label_func is None:
             label_func = lambda c_i: self._concept_label_func(

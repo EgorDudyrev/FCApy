@@ -541,8 +541,8 @@ def test_top_bottom_elements():
 
     top_elements_true = [3, 4]
     bottom_elements_true = [0]
-    assert s.top_elements == top_elements_true
-    assert s.bottom_elements == bottom_elements_true
+    assert s.tops == top_elements_true
+    assert s.bottoms == bottom_elements_true
 
 
 def test_trace_element():
