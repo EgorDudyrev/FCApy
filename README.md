@@ -31,8 +31,7 @@ The following Figure compares the tabular, Formal Context-based data representat
 with the hierarchical, Concept Lattice-based data representation on the right. Both representations describe the same ["Live in water"](https://upriss.github.io/fca/examples.html) dataset.
 But the right subfigure also unravels the dichotomy between the ones who "can move" (i.e. animals) and the ones who "needs chlorophyll" (i.e. plants).
 
-
-![Live in water representation comparison](docs/images/live_in_water_representation_comparison.png "Live in water representation comparison")
+![Live in water representation comparison](https://github.com/EgorDudyrev/FCApy/blob/main/docs/images/live_in_water_representation_comparison.png?raw=true  "Live in water representation comparison")
 
 The right subfigure highlights 'the structure' of the data.
 Yet, it still contains exactly the same dependencies as the tabular view on the left.
@@ -86,30 +85,36 @@ These functions are also known as ''prime operations'' (denoted by `'`) or ``arr
 
 For example, 'animal_movement' context shows the connection between animals (objects) and actions (attributes) 
 ```python
-!wget -q https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
+import pandas as pd
 from fcapy.context import FormalContext
-K = FormalContext.read_csv('animal_movement.csv')
+url = 'https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv'
+K = FormalContext.from_pandas(pd.read_csv(url, index_col=0))
 
 # Print the first five objects data
 print(K[:5])
-> FormalContext (5 objects, 4 attributes, 7 connections)
+```
+> <pre>
+> FormalContext (5 objects, 4 attributes, 7 connections) 
 >      |fly|hunt|run|swim|
 > dove |  X|    |   |    |
 > hen  |   |    |   |    |
 > duck |  X|    |   |   X|
 > goose|  X|    |   |   X|
 > owl  |  X|   X|   |    |
-```
+> </pre>
+
+
 Now we can select all the animals who can both `fly` and `swim`: 
 ```python
 print(K.extension( ['fly', 'swim'] ))
-> ['duck', 'goose']
 ```
+> ['duck', 'goose']
+
 and all the actions both `dove` and `goose` can perform:
 ```python
 print(K.intention( ['dove', 'goose'] ))
-> ['fly']
 ```
+> ['fly']
 
 So we state the following:
 * the animals who can both `fly` and `swim` are only `duck` and `goose`;
@@ -117,7 +122,8 @@ So we state the following:
 At least, this is formally true in 'animal_movement' context. 
 
 
-A detailed example is given in [this notebook](https://github.com/EgorDudyrev/FCApy_tutorials/blob/main/Formal%20Context.ipynb).
+A detailed example is given in
+[this notebook](https://github.com/EgorDudyrev/FCApy_tutorials/blob/main/Formal%20Context.ipynb).
  
 
 ### Concept lattice
@@ -143,9 +149,10 @@ with the biggest (most genereal) concept and the smallest (least general) concep
 Applied to 'animal_movement' context we get this ConceptLattice:
 ```python
 # Load the formal context
-!wget -q https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv
+import pandas as pd
 from fcapy.context import FormalContext
-K = FormalContext.read_csv('animal_movement.csv')
+url = 'https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/data/animal_movement.csv'
+K = FormalContext.from_pandas(pd.read_csv(url, index_col=0))
 
 # Create the concept lattice
 from fcapy.lattice import ConceptLattice
@@ -155,15 +162,15 @@ L = ConceptLattice.from_context(K)
 The lattice contains 8 concepts:
 ```python
 print(len(L))
-> 8
 ```
+> 8
 
 with the most general and the most specific concepts indexes:
 
 ```python
 print(L.top, L.bottom)
-> 0, 7
 ```
+> 0, 7
 
 One can draw line diagram of the lattice by `visualizer` subpackage:
 ```python
@@ -177,9 +184,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-<p align="center">
-  <img width="616" src="https://raw.githubusercontent.com/EgorDudyrev/FCApy/main/docs/images/animal_context_lattice.png" />
-</p>
+![Animal Movement concept lattice](https://github.com/EgorDudyrev/FCApy/blob/main/docs/images/animal_context_lattice.png?raw=true  "Animal movement concept lattice")
 
 How to read the visualization:
 * the concept #3 contains all the animals (objects) who can `fly`.
