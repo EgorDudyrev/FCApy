@@ -212,6 +212,7 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
     children_dict = lca.complete_comparison(concepts)
     lattice = ConceptLattice(concepts, children_dict=children_dict)
 
+    is_pattern = isinstance(context, MVContext)
     # itersets - iteration sets - set of attributes or objects (depends on iterate_attributes)
     itersets = [c.intent_i if iterate_attributes else c.extent_i for c in lattice]
 
@@ -232,29 +233,51 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
         # make the concepts comparable
         ctx_projected_hash = ctx_projected.hash_fixed()
         for c in lattice:
-            c_new = copy(c)
-            c_new._context_hash = ctx_projected_hash
+            if is_pattern:
+                # iterating extents
+                ext_i_new = ctx_projected.extension_i(c.intent_i)
+                ext_new = [ctx_projected.object_names[g_i] for g_i in ext_i_new]
+                c_new = PatternConcept(
+                    ext_i_new, ext_new, c.intent_i, c.intent,
+                    ctx_projected.pattern_types, context.attribute_names,
+                    context_hash=ctx_projected_hash
+                )
+            else:  # formal concepts
+                if iterate_attributes:
+                    # update intents
+                    int_i_new = ctx_projected.intention_i(c.extent_i)
+                    int_new = [ctx_projected.attribute_names[m_i] for m_i in int_i_new]
+                    ext_i_new = c.extent_i
+                    ext_new = c.extent
+                else:  # iterate objects
+                    ext_i_new = ctx_projected.extension_i(c.intent_i)
+                    ext_new = [ctx_projected.object_names[g_i] for g_i in ext_i_new]
+                    int_i_new = c.intent_i
+                    int_new = c.intent
+                c_new = FormalConcept(ext_i_new, ext_new, int_i_new, int_new, context_hash=ctx_projected_hash)
+
             lattice._update_element(c, c_new)
 
         # concepts that were changed during projection iteration
         concepts_delta = set(new_concepts) - set(lattice)
         # find concepts which were just 'expanded' to the new projection:
         # their "iterset" is changed but "sideset" is the same (see the notation described in close_by_one)
-        old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
-                        for c_i, c in enumerate(lattice)}
-        concepts_delta_same_sidesets = {
-            c for c in concepts_delta
-            if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
-        for c in concepts_delta_same_sidesets:
-            sideset = c.extent_i if iterate_attributes else c.intent_i
-            c_i = old_sidesets[sideset]
-            lattice._update_element(lattice[c_i], c)
+#        old_sidesets = {c.extent_i if iterate_attributes else c.intent_i: c_i
+#                        for c_i, c in enumerate(lattice)}
+#        concepts_delta_same_sidesets = {
+#            c for c in concepts_delta
+#            if (c.extent_i if iterate_attributes else c.intent_i) in old_sidesets}
+#        for c in concepts_delta_same_sidesets:
+#            sideset = c.extent_i if iterate_attributes else c.intent_i
+#            c_i = old_sidesets[sideset]
+#            lattice._update_element(lattice[c_i], c)
 
         top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(lattice.elements)
 
         # find completely new concepts created while projection iteration
         # sort concepts to ensure there will be no moment with multiple top or bottom concepts
-        concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+        #concepts_to_add = lattice.sort_concepts(concepts_delta - concepts_delta_same_sidesets)
+        concepts_to_add = lattice.sort_concepts(concepts_delta)
         if len(concepts_to_add) >= 2 and concepts_to_add[-1] < lattice[bottom_concept_i]:
             concepts_to_add = [concepts_to_add[-1]] + concepts_to_add[:-1]
         for c_i, c in enumerate(concepts_to_add):
