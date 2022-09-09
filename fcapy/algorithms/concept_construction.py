@@ -10,7 +10,7 @@ from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.utils import utils
 import random
-from copy import deepcopy
+from copy import deepcopy, copy
 import math
 
 
@@ -232,7 +232,9 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
         # make the concepts comparable
         ctx_projected_hash = ctx_projected.hash_fixed()
         for c in lattice:
-            c._context_hash = ctx_projected_hash
+            c_new = copy(c)
+            c_new._context_hash = ctx_projected_hash
+            lattice._update_element(c, c_new)
 
         # concepts that were changed during projection iteration
         concepts_delta = set(new_concepts) - set(lattice)
