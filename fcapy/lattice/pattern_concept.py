@@ -137,7 +137,8 @@ class PatternConcept:
         return self <= other
 
     def __hash__(self):
-        return hash((tuple(sorted(self._extent_i)), frozendict(self._intent_i)))
+        #return hash((tuple(sorted(self._extent_i)), frozendict(self._intent_i)))
+        return hash((tuple(sorted(self._extent_i)), self._context_hash))
 
     def __le__(self, other):
         """A concept is smaller than the ``other`` concept if its extent is a subset of extent of ``other`` concept"""
