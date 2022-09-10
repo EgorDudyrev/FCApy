@@ -23,7 +23,11 @@ class AbstractBinTable:
 
     @data.setter
     def data(self, value):
-        self._data = value
+        data = self._transform_data(value)
+        if self._validate_data(data):
+            self._data = value
+        else:
+            raise ValueError('Given data do not suit the requirements')
 
     @property
     def height(self) -> Optional[int]:
@@ -50,7 +54,7 @@ class AbstractBinTable:
         return [list(row) for row in self.data]
 
     def to_tuples(self) -> Tuple[Tuple[bool, ...], ...]:
-        return tuple([tuple(row) for row in self.to_lists()])
+        return tuple([tuple(row) for row in self.to_lists()])   
 
     def __eq__(self, other):
         """Compare is this BinTable is equal to the ``other`` """
@@ -59,6 +63,11 @@ class AbstractBinTable:
     def __hash__(self):
         return hash(self.to_tuples())
 
+    def _validate_data(self, data) -> bool:
+        raise NotImplementedError
+
+    def _transform_data(self, data) -> Collection:
+        raise NotImplementedError
 
 class BinTableLists(AbstractBinTable):
     pass
