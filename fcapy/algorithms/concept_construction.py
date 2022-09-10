@@ -247,13 +247,11 @@ def sofia_binary(context: FormalContext, L_max=100, iterate_attributes=True, mea
                     # update intents
                     int_i_new = ctx_projected.intention_i(c.extent_i)
                     int_new = [ctx_projected.attribute_names[m_i] for m_i in int_i_new]
-                    ext_i_new = c.extent_i
-                    ext_new = c.extent
+                    ext_i_new, ext_new = c.extent_i, c.extent
                 else:  # iterate objects
                     ext_i_new = ctx_projected.extension_i(c.intent_i)
                     ext_new = [ctx_projected.object_names[g_i] for g_i in ext_i_new]
-                    int_i_new = c.intent_i
-                    int_new = c.intent
+                    int_i_new, int_new = c.intent_i, c.intent
                 c_new = FormalConcept(ext_i_new, ext_new, int_i_new, int_new, context_hash=ctx_projected_hash)
 
             lattice._update_element(c, c_new)
