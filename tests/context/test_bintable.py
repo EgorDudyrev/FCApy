@@ -101,7 +101,7 @@ def test_all_any():
         with pytest.raises(ValueError):
             bt.all(2)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(AssertionError):
             bt.any(2)
 
         # weird thing for numpy compatibility

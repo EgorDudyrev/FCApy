@@ -18,6 +18,7 @@ PACKAGE_DESCRIPTION = {
     'tqdm': "The package helps to track the progress of looped functions and estimate their time to complete",
     'numpy': "The package Uses C++ and vectorized matrix multiplication to speed up IntervalPS execution",
     'bitsets': "The package greatly optimizes BinTables execution",
+    'bitarray': "The package greatly optimizes BinTables execution",
     'networkx': "The package to convert POSets to Graphs and to visualize them as graphs",
 }
 LIB_INSTALLED = check_installed_packages(PACKAGE_DESCRIPTION)
