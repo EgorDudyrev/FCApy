@@ -13,6 +13,7 @@ if LIB_INSTALLED['bitarray']:
     import bitarray
 if LIB_INSTALLED['numpy']:
     import numpy as np
+    import numpy.typing as npt
 
 
 @dataclass
@@ -29,25 +30,25 @@ class UnmatchedTypeError(ValueError):
 
 @dataclass
 class UnmatchedLengthError(ValueError):
-    row_idx: int
+    row_idx: int = None
 
     def __str__(self):
         msg = '\n'.join([
-            f'All rows should of the given `data` should be of the same length. '
-            f'The problem is with the row #{self.row_idx}'
-        ])
+            f'All rows should of the given `data` should be of the same length. ',
+            f'The problem is with the row #{self.row_idx}' if self.row_idx else ''
+        ]).strip()
         return msg
 
 
 @dataclass
 class NotBooleanValueError(ValueError):
-    row_idx: int
+    row_idx: int = None
 
     def __str__(self):
         msg = '\n'.join([
-            f"All values in each row should be of type bool. "
-            f"The problem is with the row #{self.row_idx}"
-        ])
+            f"All values in each row should be of type bool.",
+            f"The problem is with the row #{self.row_idx}" if self.row_idx else ''
+        ]).strip()
         return msg
 
 
@@ -57,10 +58,10 @@ class UnknownDataTypeError(TypeError):
 
     def __str__(self):
         msg = '\n'.join([
-            "Dont know how to process the given `data`. "
-            "Acceptable types of data: List[List[bool]]. "
+            "Dont know how to process the given `data`. ",
+            "Acceptable types of data: List[List[bool]]. ",
             f"The given type: {self.unknown_type}"
-        ])
+        ]).strip()
         return msg
 
 
@@ -70,9 +71,9 @@ class UnknownAxisError(TypeError):
 
     def __str__(self):
         msg = '\n'.join([
-            f"Unknown `axis` value passed: {self.unknown_axis}. "
+            f"Unknown `axis` value passed: {self.unknown_axis}. ",
             "Supported values are: ``None``, ``0``, or ``1``"
-        ])
+        ]).strip()
         return msg
 
 
@@ -88,7 +89,7 @@ class AbstractBinTable(metaclass=ABCMeta):
     def data(self, value):
         data, h, w = self._transform_data(value)
         self._validate_data(data)
-        self._data, self._height, self._width = value, h, w
+        self._data, self._height, self._width = data, h, w
 
     @property
     def height(self) -> Optional[int]:
@@ -141,12 +142,11 @@ class AbstractBinTable(metaclass=ABCMeta):
     def to_tuples(self) -> Tuple[Tuple[bool, ...], ...]:
         return tuple([tuple(row) for row in self.to_lists()])
 
-    def __eq__(self, other):
-        """Compare is this BinTable is equal to the ``other`` """
-        return self._data == other.data
-
     def __hash__(self):
         return hash(self.to_tuples())
+
+    def __eq__(self, other) -> bool:
+        return self.data == other.data
 
     @abstractmethod
     def _validate_data(self, data) -> bool:
@@ -215,11 +215,12 @@ class BinTableLists(AbstractBinTable):
 
         return True
 
-    def _transform_data(self, data: Collection) -> Tuple[Collection, int, Optional[int]]:
+    def _transform_data(self, data: Collection) \
+            -> Tuple[List[List[bool]], int, Optional[int]]:
         if data is None:
             return [], 0, None
 
-        if isinstance(data, list):
+        if isinstance(data, list) and isinstance(data[0], list):
             h = len(data)
             w = len(data[0]) if h > 0 else None
             return data, h, w
@@ -261,8 +262,68 @@ class BinTableLists(AbstractBinTable):
 
 
 class BinTableNumpy(AbstractBinTable):
-    pass
+    data: npt.NDArray[bool]  # Updating type hint
+
+    def _validate_data(self, data: npt.NDArray[bool]) -> bool:
+        if len(data) == 0:
+            return True
+
+        if data.dtype != 'bool':
+            raise NotBooleanValueError()
+
+        if len(data.shape) != 2:
+            raise UnmatchedLengthError()
+
+        return True
+
+    def _transform_data(self, data: Collection) \
+            -> Tuple[npt.NDArray[bool], int, Optional[int]]:
+        if data is None:
+            return np.array([]), 0, None
+
+        if isinstance(data, list) and isinstance(data[0], list):
+            data = np.array(BinTableLists(data).data)
+            h, w = data.shape
+            return data, h, w
+
+        raise UnknownDataTypeError(type(data))
+
+    def _all(self) -> bool:
+        return self.data.all()
+
+    def _all_per_row(self) -> List[bool]:
+        return list(self.data.all(1))
+
+    def _all_per_column(self) -> List[bool]:
+        return list(self.data.all(0))
+
+    def _any(self) -> bool:
+        return self.data.any()
+
+    def _any_per_row(self) -> List[bool]:
+        return list(self.data.any(1))
+
+    def _any_per_column(self) -> List[bool]:
+        return list(self.data.any(0))
+
+    def _sum(self) -> int:
+        return self.data.sum()
+
+    def _sum_per_row(self) -> List[int]:
+        return list(self.data.sum(1))
+
+    def _sum_per_column(self) -> List[int]:
+        return list(self.data.sum(0))
+
+    def __eq__(self, other):
+        return (self.data == other.data).all()
+
+    def __hash__(self):
+        return hash(self.to_tuples())
 
 
 class BinTableBitsets(AbstractBinTable):
     pass
+
+
+BINTABLE_CLASSES = {'BinTableLists': BinTableLists, 'BinTableNumpy': BinTableNumpy}
