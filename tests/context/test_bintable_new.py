@@ -56,13 +56,6 @@ def test_hash():
         bt1 = BTClass(data)
         bt2 = BTClass(data[:-1])
         bt3 = BTClass(data)
-        {bt1}
-        {bt2}
-        {bt3}
-        {bt1, bt2}
-        {bt1, bt3}
-        {bt2, bt3}
-        {bt1, bt2, bt3}
         set_big = {bt1, bt2, bt3}
         set_small = {bt1, bt2}
         assert set_big == set_small, 'BinTable.__hash__ failed'
@@ -77,7 +70,21 @@ def test_all():
 
         assert bt.all() == data_np.all()
         for ax in [0, 1]:
-            assert bt.all(ax) == list(data_np.all(ax))
+            assert list(bt.all(ax)) == list(data_np.all(ax))
+
+        with pytest.raises(btables.UnknownAxisError):
+            bt.all(42)
+
+
+def test_all_i():
+    data = [[False, False], [False, True], [True, True]]
+    data_np = np.array(data)
+
+    for BTClass in btables.BINTABLE_CLASSES.values():
+        bt = BTClass(data)
+
+        for ax in [0, 1]:
+            assert list(bt.all_i(ax)) == list(data_np.all(ax).nonzero()[0])
 
         with pytest.raises(btables.UnknownAxisError):
             bt.all(42)
@@ -91,7 +98,20 @@ def test_any():
         bt = BTClass(data)
         assert bt.any() == data_np.any()
         for ax in [0, 1]:
-            assert bt.any(ax) == list(data_np.any(ax))
+            assert list(bt.any(ax)) == list(data_np.any(ax))
+
+        with pytest.raises(btables.UnknownAxisError):
+            bt.any(42)
+
+
+def test_any_i():
+    data = [[False, False], [False, True], [True, True]]
+    data_np = np.array(data)
+
+    for BTClass in btables.BINTABLE_CLASSES.values():
+        bt = BTClass(data)
+        for ax in [0, 1]:
+            assert list(bt.any_i(ax)) == list(data_np.any(ax).nonzero()[0])
 
         with pytest.raises(btables.UnknownAxisError):
             bt.any(42)
@@ -105,7 +125,7 @@ def test_sum():
         bt = BTClass(data)
         assert bt.sum() == data_np.sum()
         for ax in [0, 1]:
-            assert bt.sum(ax) == list(data_np.sum(ax))
+            assert list(bt.sum(ax)) == list(data_np.sum(ax))
 
         with pytest.raises(btables.UnknownAxisError):
             bt.sum(42)

@@ -68,11 +68,12 @@ class UnknownDataTypeError(TypeError):
 @dataclass
 class UnknownAxisError(TypeError):
     unknown_axis: Any
+    known_axes: set = frozenset({None, 0, 1})
 
     def __str__(self):
         msg = '\n'.join([
             f"Unknown `axis` value passed: {self.unknown_axis}. ",
-            "Supported values are: ``None``, ``0``, or ``1``"
+            f"Supported values are: {self.known_axes}"
         ]).strip()
         return msg
 
@@ -103,7 +104,7 @@ class AbstractBinTable(metaclass=ABCMeta):
     def shape(self) -> Optional[Tuple[int, Optional[int]]]:
         return self.height, self.width
 
-    def all(self, axis: int = None) -> bool or List[bool]:
+    def all(self, axis: int = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
@@ -114,7 +115,10 @@ class AbstractBinTable(metaclass=ABCMeta):
         if axis == 1:
             return self._all_per_row()
 
-    def any(self, axis: int = None) -> bool or List[bool]:
+    def all_i(self, axis: int) -> Collection[int]:
+        return [i for i, flg in enumerate(self.all(axis)) if flg]
+
+    def any(self, axis: int = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
@@ -125,7 +129,10 @@ class AbstractBinTable(metaclass=ABCMeta):
         if axis == 1:
             return self._any_per_row()
 
-    def sum(self, axis: int = None) -> int or List[int]:
+    def any_i(self, axis: int) -> Collection[int]:
+        return [i for i, flg in enumerate(self.any(axis)) if flg]
+
+    def sum(self, axis: int = None) -> int or Collection[int]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
@@ -145,7 +152,11 @@ class AbstractBinTable(metaclass=ABCMeta):
     def __hash__(self):
         return hash(self.to_tuples())
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: 'AbstractBinTable') -> bool:
+        if self.height != other.height:
+            return False
+        if self.width != other.width:
+            return False
         return self.data == other.data
 
     @abstractmethod
@@ -276,8 +287,7 @@ class BinTableNumpy(AbstractBinTable):
 
         return True
 
-    def _transform_data(self, data: Collection) \
-            -> Tuple[npt.NDArray[bool], int, Optional[int]]:
+    def _transform_data(self, data: Collection) -> Tuple[npt.NDArray[bool], int, Optional[int]]:
         if data is None:
             return np.array([]), 0, None
 
@@ -291,31 +301,35 @@ class BinTableNumpy(AbstractBinTable):
     def _all(self) -> bool:
         return self.data.all()
 
-    def _all_per_row(self) -> List[bool]:
-        return list(self.data.all(1))
+    def _all_per_row(self) -> npt.NDArray[bool]:
+        return self.data.all(1)
 
-    def _all_per_column(self) -> List[bool]:
-        return list(self.data.all(0))
+    def _all_per_column(self) -> npt.NDArray[bool]:
+        return self.data.all(0)
 
     def _any(self) -> bool:
         return self.data.any()
 
-    def _any_per_row(self) -> List[bool]:
-        return list(self.data.any(1))
+    def _any_per_row(self) -> npt.NDArray[bool]:
+        return self.data.any(1)
 
-    def _any_per_column(self) -> List[bool]:
-        return list(self.data.any(0))
+    def _any_per_column(self) -> npt.NDArray[bool]:
+        return self.data.any(0)
 
     def _sum(self) -> int:
         return self.data.sum()
 
-    def _sum_per_row(self) -> List[int]:
-        return list(self.data.sum(1))
+    def _sum_per_row(self) -> npt.NDArray[int]:
+        return self.data.sum(1)
 
-    def _sum_per_column(self) -> List[int]:
-        return list(self.data.sum(0))
+    def _sum_per_column(self) -> npt.NDArray[int]:
+        return self.data.sum(0)
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'BinTableNumpy'):
+        if self.height != other.height:
+            return False
+        if self.width != other.width:
+            return False
         return (self.data == other.data).all()
 
     def __hash__(self):
