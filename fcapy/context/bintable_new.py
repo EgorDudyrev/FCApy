@@ -4,13 +4,16 @@ This module offers a class BinTable to work with binary table efficiently.
 """
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Collection, Any
+from typing import List, Tuple, Optional, Collection, Any, Type
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['bitsets']:
     import bitsets
+
 if LIB_INSTALLED['bitarray']:
-    import bitarray
+    from bitarray import frozenbitarray as fbitarray
+    from bitarray import bitarray
+
 if LIB_INSTALLED['numpy']:
     import numpy as np
     import numpy.typing as npt
@@ -59,7 +62,7 @@ class UnknownDataTypeError(TypeError):
     def __str__(self):
         msg = '\n'.join([
             "Dont know how to process the given `data`. ",
-            "Acceptable types of data: List[List[bool]]. ",
+            "Acceptable types of data: List[List[bool]], npt.NDArray[bool], List[fbitarray]. ",
             f"The given type: {self.unknown_type}"
         ]).strip()
         return msg
@@ -144,7 +147,7 @@ class AbstractBinTable(metaclass=ABCMeta):
             return self._sum_per_row()
 
     def to_lists(self) -> List[List[bool]]:
-        return [list(row) for row in self.data]
+        return [[bool(v) for v in row] for row in self.data]
 
     def to_tuples(self) -> Tuple[Tuple[bool, ...], ...]:
         return tuple([tuple(row) for row in self.to_lists()])
@@ -163,8 +166,23 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _validate_data(self, data) -> bool:
         ...
 
+    def _transform_data(self, data) -> Tuple[Collection, int, Optional[int]]:
+        if data is None:
+            return [], 0, None
+
+        dclass = self.decide_dataclass(data)
+        if dclass == self.__class__.__name__:
+            return self._transform_data_inherent(data)
+
+        bt = BINTABLE_CLASSES[dclass](data)
+        return self._transform_data_fromlists(bt.to_lists()), bt.height, bt.width
+
+    @staticmethod
+    def _transform_data_inherent(data) -> Tuple[Collection, int, int]:
+        return data, len(data), len(data[0])
+
     @abstractmethod
-    def _transform_data(self, data) -> Tuple[Collection, int, int]:
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> Collection:
         ...
 
     @abstractmethod
@@ -203,6 +221,18 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _sum_per_column(self) -> List[int]:
         ...
 
+    @staticmethod
+    def decide_dataclass(data: Collection) -> str:  # Type['AbstractBinTable']:
+        assert len(data) > 0, "Too small data to decide what class does it belong to"
+        if isinstance(data, list) and isinstance(data[0], list):
+            return 'BinTableLists'
+        if isinstance(data, list) and isinstance(data[0], fbitarray):
+            return 'BinTableBitarray'
+        if isinstance(data, np.ndarray):
+            return 'BinTableNumpy'
+
+        raise UnknownDataTypeError(type(data))
+
 
 class BinTableLists(AbstractBinTable):
     data: List[List[bool]]  # Updating type hint
@@ -226,17 +256,8 @@ class BinTableLists(AbstractBinTable):
 
         return True
 
-    def _transform_data(self, data: Collection) \
-            -> Tuple[List[List[bool]], int, Optional[int]]:
-        if data is None:
-            return [], 0, None
-
-        if isinstance(data, list) and isinstance(data[0], list):
-            h = len(data)
-            w = len(data[0]) if h > 0 else None
-            return data, h, w
-
-        raise UnknownDataTypeError(type(data))
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[List[bool]]:
+        return data
 
     def _all(self) -> bool:
         for row in self.data:
@@ -275,6 +296,9 @@ class BinTableLists(AbstractBinTable):
 class BinTableNumpy(AbstractBinTable):
     data: npt.NDArray[bool]  # Updating type hint
 
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> npt.NDArray[bool]:
+        return np.array(data)
+
     def _validate_data(self, data: npt.NDArray[bool]) -> bool:
         if len(data) == 0:
             return True
@@ -286,17 +310,6 @@ class BinTableNumpy(AbstractBinTable):
             raise UnmatchedLengthError()
 
         return True
-
-    def _transform_data(self, data: Collection) -> Tuple[npt.NDArray[bool], int, Optional[int]]:
-        if data is None:
-            return np.array([]), 0, None
-
-        if isinstance(data, list) and isinstance(data[0], list):
-            data = np.array(BinTableLists(data).data)
-            h, w = data.shape
-            return data, h, w
-
-        raise UnknownDataTypeError(type(data))
 
     def _all(self) -> bool:
         return self.data.all()
@@ -336,8 +349,79 @@ class BinTableNumpy(AbstractBinTable):
         return hash(self.to_tuples())
 
 
-class BinTableBitsets(AbstractBinTable):
-    pass
+class BinTableBitarray(AbstractBinTable):
+    data: List[fbitarray]  # Updating type hint
+
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[fbitarray]:
+        return [fbitarray(row) for row in data]
+
+    def _validate_data(self, data: List[fbitarray]) -> bool:
+        if len(data) == 0:
+            return True
+
+        l_ = len(data[0])
+        for i, row in enumerate(data):
+            if len(row) != l_:
+                raise UnmatchedLengthError(i)
+
+        return True
+
+    def _all(self) -> bool:
+        for row in self.data:
+            if not row.all():
+                return False
+        return True
+
+    def _all_per_row(self) -> fbitarray:
+        return fbitarray([row.all() for row in self.data])
+
+    def _all_per_column(self) -> fbitarray:
+        vals = bitarray(self.data[0])
+        for row in self.data[1:]:
+            vals &= row
+            if not vals.any():  # If all values are False
+                return vals
+        return vals
+
+    def _any(self) -> bool:
+        for row in self.data:
+            if row.any():
+                return True
+        return False
+
+    def _any_per_row(self) -> fbitarray:
+        return fbitarray([row.any() for row in self.data])
+
+    def _any_per_column(self) -> fbitarray:
+        vals = bitarray(self.data[0])
+        for row in self.data[1:]:
+            vals |= row
+            if vals.all():
+                return vals
+        return vals
+
+    def _sum(self) -> int:
+        return sum(self._sum_per_row())
+
+    def _sum_per_row(self) -> List[int]:
+        return [row.count() for row in self.data]
+
+    def _sum_per_column(self) -> List[int]:
+        vals = [0] * self.width
+        for row in self.data:
+            for v in row.search(1):
+                vals[v] += 1
+        return vals
+
+    def __eq__(self, other: 'BinTableBitarray'):
+        if self.height != other.height:
+            return False
+        if self.width != other.width:
+            return False
+        return self.data == other.data
+
+    def __hash__(self):
+        return hash(tuple(self.data))
 
 
-BINTABLE_CLASSES = {'BinTableLists': BinTableLists, 'BinTableNumpy': BinTableNumpy}
+BINTABLE_CLASSES = {cl.__name__: cl for cl in [BinTableLists, BinTableNumpy, BinTableBitarray]}

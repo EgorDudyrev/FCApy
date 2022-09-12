@@ -129,3 +129,13 @@ def test_sum():
 
         with pytest.raises(btables.UnknownAxisError):
             bt.sum(42)
+
+
+def test_interchangeability():
+    data = [[False, False], [False, True], [True, True]]
+
+    for BTClass_A in btables.BINTABLE_CLASSES.values():
+        for BTClass_B in btables.BINTABLE_CLASSES.values():
+            bt_a = BTClass_A(data)
+            bt_b = BTClass_B(bt_a.data)
+            assert bt_a.to_lists() == bt_b.to_lists()
