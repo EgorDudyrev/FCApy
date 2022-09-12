@@ -221,6 +221,40 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _sum_per_column(self) -> List[int]:
         ...
 
+    def __len__(self):
+        return self.height
+
+    def __getitem__(self, item):
+        print(item, type(item))
+        if isinstance(item, int):
+            return self.data[item]
+
+        if isinstance(item, (slice, list)):
+            return self.__class__(self.data[item])
+
+        if isinstance(item, tuple):
+            row_slicer, column_slicer = item
+
+            row_single_slice, column_single_slice = [isinstance(x, int) for x in [row_slicer, column_slicer]]
+            if row_single_slice and column_single_slice:
+                return self.data[row_slicer][column_slicer]
+            if row_single_slice and not column_single_slice:
+                return self._slice_row(self.data[row_slicer], column_slicer)
+            if not row_single_slice and column_single_slice:
+                return self._slice_column(self.data[row_slicer], column_slicer)
+            if not row_single_slice and not column_single_slice:
+                return self.__class__(self.data[row_slicer, column_slicer])
+
+        raise NotImplementedError("Unknown `item` to slice the BinTable")
+
+    @staticmethod
+    def _slice_row(row: Collection, slicer: int or List[int] or slice) -> Collection:
+        return row[slicer]
+
+    @staticmethod
+    def _slice_column(data: Collection, slicer: int or List[int] or slice) -> Collection:
+        return [row[slicer] for row in data]
+
     @staticmethod
     def decide_dataclass(data: Collection) -> str:  # Type['AbstractBinTable']:
         assert len(data) > 0, "Too small data to decide what class does it belong to"
