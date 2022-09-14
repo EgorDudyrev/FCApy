@@ -7,9 +7,6 @@ from dataclasses import dataclass
 from typing import List, Tuple, Optional, Collection, Any, Type
 
 from fcapy import LIB_INSTALLED
-if LIB_INSTALLED['bitsets']:
-    import bitsets
-
 if LIB_INSTALLED['bitarray']:
     from bitarray import frozenbitarray as fbitarray
     from bitarray import bitarray
@@ -107,44 +104,48 @@ class AbstractBinTable(metaclass=ABCMeta):
     def shape(self) -> Optional[Tuple[int, Optional[int]]]:
         return self.height, self.width
 
-    def all(self, axis: int = None) -> bool or Collection[bool]:
+    def all(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
         if axis is None:
             return self._all()
         if axis == 0:
-            return self._all_per_column()
+            return self._all_per_column(element_indexes)
         if axis == 1:
-            return self._all_per_row()
+            return self._all_per_row(element_indexes)
 
-    def all_i(self, axis: int) -> Collection[int]:
-        return [i for i, flg in enumerate(self.all(axis)) if flg]
+    def all_i(self, axis: int, element_indexes: Collection[int] = None) -> Collection[int]:
+        flg_all = self.all(axis, element_indexes)
+        iterator = enumerate(flg_all) if element_indexes is None else zip(element_indexes, flg_all)
+        return [i for i, flg in iterator if flg]
 
-    def any(self, axis: int = None) -> bool or Collection[bool]:
+    def any(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
         if axis is None:
             return self._any()
         if axis == 0:
-            return self._any_per_column()
+            return self._any_per_column(element_indexes)
         if axis == 1:
-            return self._any_per_row()
+            return self._any_per_row(element_indexes)
 
-    def any_i(self, axis: int) -> Collection[int]:
-        return [i for i, flg in enumerate(self.any(axis)) if flg]
+    def any_i(self, axis: int, element_indexes: Collection[int] = None) -> Collection[int]:
+        flg_any = self.any(axis, element_indexes)
+        iterator = enumerate(flg_any) if element_indexes is None else zip(element_indexes, flg_any)
+        return [i for i, flg in iterator if flg]
 
-    def sum(self, axis: int = None) -> int or Collection[int]:
+    def sum(self, axis: int = None, element_indexes: Collection[int] = None) -> int or Collection[int]:
         if axis not in {None, 0, 1}:
             raise UnknownAxisError(axis)
 
         if axis is None:
             return self._sum()
         if axis == 0:
-            return self._sum_per_column()
+            return self._sum_per_column(element_indexes)
         if axis == 1:
-            return self._sum_per_row()
+            return self._sum_per_row(element_indexes)
 
     def to_lists(self) -> List[List[bool]]:
         return [[bool(v) for v in row] for row in self.data]
@@ -190,11 +191,11 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _all_per_row(self) -> List[bool]:
+    def _all_per_row(self, row_indexes: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _all_per_column(self) -> List[bool]:
+    def _all_per_column(self, column_indexes: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
@@ -202,11 +203,11 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _any_per_row(self) -> List[bool]:
+    def _any_per_row(self, row_indexes: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _any_per_column(self) -> List[bool]:
+    def _any_per_column(self, column_indexes: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
@@ -214,11 +215,11 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _sum_per_row(self) -> List[int]:
+    def _sum_per_row(self, row_indexes: Collection[int] = None) -> List[int]:
         ...
 
     @abstractmethod
-    def _sum_per_column(self) -> List[int]:
+    def _sum_per_column(self, column_indexes: Collection[int] = None) -> List[int]:
         ...
 
     def __len__(self):
@@ -256,7 +257,7 @@ class AbstractBinTable(metaclass=ABCMeta):
         return [row[slicer] for row in data]
 
     @staticmethod
-    def decide_dataclass(data: Collection) -> str:  # Type['AbstractBinTable']:
+    def decide_dataclass(data: Collection) -> str:
         assert len(data) > 0, "Too small data to decide what class does it belong to"
         if isinstance(data, list) and isinstance(data[0], list):
             return 'BinTableLists'
@@ -299,11 +300,21 @@ class BinTableLists(AbstractBinTable):
                 return False
         return True
 
-    def _all_per_row(self) -> List[bool]:
-        return [all(row) for row in self.data]
+    def _all_per_row(self, row_indexes: List[int] = None) -> List[bool]:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return [all(self.data[i]) for i in row_indexes]
 
-    def _all_per_column(self) -> List[bool]:
-        return [all(col) for col in zip(*self.data)]
+    def _all_per_column(self, column_indexes: List[int] = None) -> List[bool]:
+        if column_indexes is None:
+            vals, column_indexes = [True] * self.width, range(self.width)
+        else:
+            vals = [True] * len(column_indexes)
+
+        for row in self.data:
+            vals = [v & row[col_i] for v, col_i in zip(vals, column_indexes)]
+            if not any(vals):  # All values are False
+                break
+        return vals
 
     def _any(self) -> bool:
         for row in self.data:
@@ -311,20 +322,38 @@ class BinTableLists(AbstractBinTable):
                 return True
         return False
 
-    def _any_per_row(self) -> List[bool]:
-        return [any(row) for row in self.data]
+    def _any_per_row(self, row_indexes: List[int] = None) -> List[bool]:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return [any(self.data[i]) for i in row_indexes]
 
-    def _any_per_column(self) -> List[bool]:
-        return [any(col) for col in zip(*self.data)]
+    def _any_per_column(self, column_indexes: List[int] = None) -> List[bool]:
+        if column_indexes is None:
+            vals, column_indexes = range(self.width), [False] * self.width
+        else:
+            vals = [False] * len(column_indexes)
+
+        for row in self.data:
+            vals = [v | row[col_i] for v, col_i in zip(vals, column_indexes)]
+            if all(vals):  # All values are True
+                break
+        return vals
 
     def _sum(self) -> int:
         return sum(self._sum_per_row())
 
-    def _sum_per_row(self) -> List[int]:
-        return [sum(row) for row in self.data]
+    def _sum_per_row(self, row_indexes: List[int] = None) -> List[int]:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return [sum(self.data[i]) for i in row_indexes]
 
-    def _sum_per_column(self) -> List[int]:
-        return [sum(col) for col in zip(*self.data)]
+    def _sum_per_column(self, column_indexes: List[int] = None) -> List[int]:
+        if column_indexes is None:
+            vals, column_indexes = range(self.width), [0] * self.width
+        else:
+            vals = [0] * len(column_indexes)
+
+        for row in self.data:
+            vals = [v + int(row[col_i]) for v, col_i in zip(vals, column_indexes)]
+        return vals
 
 
 class BinTableNumpy(AbstractBinTable):
@@ -348,29 +377,47 @@ class BinTableNumpy(AbstractBinTable):
     def _all(self) -> bool:
         return self.data.all()
 
-    def _all_per_row(self) -> npt.NDArray[bool]:
-        return self.data.all(1)
+    def _all_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        flg = self.data.all(1)
+        if row_indexes is None:
+            return flg
+        return flg[row_indexes]
 
-    def _all_per_column(self) -> npt.NDArray[bool]:
-        return self.data.all(0)
+    def _all_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        flg = self.data.all(0)
+        if column_indexes is None:
+            return flg
+        return flg[column_indexes]
 
     def _any(self) -> bool:
         return self.data.any()
 
-    def _any_per_row(self) -> npt.NDArray[bool]:
-        return self.data.any(1)
+    def _any_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        flg = self.data.any(1)
+        if row_indexes is None:
+            return flg
+        return flg[row_indexes]
 
-    def _any_per_column(self) -> npt.NDArray[bool]:
-        return self.data.any(0)
+    def _any_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        flg = self.data.any(0)
+        if column_indexes is None:
+            return flg
+        return flg[column_indexes]
 
     def _sum(self) -> int:
         return self.data.sum()
 
-    def _sum_per_row(self) -> npt.NDArray[int]:
-        return self.data.sum(1)
+    def _sum_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        flg = self.data.sum(1)
+        if row_indexes is None:
+            return flg
+        return flg[row_indexes]
 
-    def _sum_per_column(self) -> npt.NDArray[int]:
-        return self.data.sum(0)
+    def _sum_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        flg = self.data.sum(0)
+        if column_indexes is None:
+            return flg
+        return flg[column_indexes]
 
     def __eq__(self, other: 'BinTableNumpy'):
         if self.height != other.height:
@@ -406,15 +453,18 @@ class BinTableBitarray(AbstractBinTable):
                 return False
         return True
 
-    def _all_per_row(self) -> fbitarray:
-        return fbitarray([row.all() for row in self.data])
+    def _all_per_row(self, row_indexes: List[int] = None) -> fbitarray:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return fbitarray([self.data[i].all() for i in row_indexes])
 
-    def _all_per_column(self) -> fbitarray:
+    def _all_per_column(self, column_indexes: List[int] = None) -> fbitarray:
         vals = bitarray(self.data[0])
         for row in self.data[1:]:
             vals &= row
             if not vals.any():  # If all values are False
-                return vals
+                break
+        if column_indexes is not None:
+            vals = fbitarray([vals[i] for i in column_indexes])
         return vals
 
     def _any(self) -> bool:
@@ -423,28 +473,35 @@ class BinTableBitarray(AbstractBinTable):
                 return True
         return False
 
-    def _any_per_row(self) -> fbitarray:
-        return fbitarray([row.any() for row in self.data])
+    def _any_per_row(self, row_indexes: List[int] = None) -> fbitarray:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return fbitarray([self.data[i].any() for i in row_indexes])
 
-    def _any_per_column(self) -> fbitarray:
+    def _any_per_column(self, column_indexes: List[int] = None) -> fbitarray:
         vals = bitarray(self.data[0])
         for row in self.data[1:]:
             vals |= row
             if vals.all():
-                return vals
+                break
+        if column_indexes is not None:
+            vals = fbitarray([vals[i] for i in column_indexes])
         return vals
 
     def _sum(self) -> int:
         return sum(self._sum_per_row())
 
-    def _sum_per_row(self) -> List[int]:
-        return [row.count() for row in self.data]
+    def _sum_per_row(self, row_indexes: List[int] = None) -> List[int]:
+        row_indexes = range(self.height) if row_indexes is None else row_indexes
+        return [self.data[i].count() for i in row_indexes]
 
-    def _sum_per_column(self) -> List[int]:
-        vals = [0] * self.width
+    def _sum_per_column(self, column_indexes: List[int] = None) -> List[int]:
+        if column_indexes is None:
+            vals, column_indexes = [0] * self.width, range(self.width)
+        else:
+            vals = [0] * len(column_indexes)
+
         for row in self.data:
-            for v in row.search(1):
-                vals[v] += 1
+            vals = [v + int(row[i]) for v, i in zip(vals, column_indexes)]
         return vals
 
     def __eq__(self, other: 'BinTableBitarray'):
