@@ -3,9 +3,9 @@ This module offers a class BinTable to work with binary table efficiently.
 
 """
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
-from typing import List, Tuple, Optional, Collection, Any, Type
+from typing import List, Tuple, Optional, Collection
 
+from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['bitarray']:
     from bitarray import frozenbitarray as fbitarray
@@ -14,68 +14,6 @@ if LIB_INSTALLED['bitarray']:
 if LIB_INSTALLED['numpy']:
     import numpy as np
     import numpy.typing as npt
-
-
-@dataclass
-class UnmatchedTypeError(ValueError):
-    row_idx: int
-
-    def __str__(self):
-        msg = '\n'.join([
-            f'All rows should of the given `data` should be of the same type. '
-            f'The problem is with the row #{self.row_idx}'
-        ])
-        return msg
-
-
-@dataclass
-class UnmatchedLengthError(ValueError):
-    row_idx: int = None
-
-    def __str__(self):
-        msg = '\n'.join([
-            f'All rows should of the given `data` should be of the same length. ',
-            f'The problem is with the row #{self.row_idx}' if self.row_idx else ''
-        ]).strip()
-        return msg
-
-
-@dataclass
-class NotBooleanValueError(ValueError):
-    row_idx: int = None
-
-    def __str__(self):
-        msg = '\n'.join([
-            f"All values in each row should be of type bool.",
-            f"The problem is with the row #{self.row_idx}" if self.row_idx else ''
-        ]).strip()
-        return msg
-
-
-@dataclass
-class UnknownDataTypeError(TypeError):
-    unknown_type: type
-
-    def __str__(self):
-        msg = '\n'.join([
-            "Dont know how to process the given `data`. ",
-            "Acceptable types of data: List[List[bool]], npt.NDArray[bool], List[fbitarray]. ",
-            f"The given type: {self.unknown_type}"
-        ]).strip()
-        return msg
-
-
-@dataclass
-class UnknownAxisError(TypeError):
-    unknown_axis: Any
-    known_axes: set = frozenset({None, 0, 1})
-
-    def __str__(self):
-        msg = '\n'.join([
-            f"Unknown `axis` value passed: {self.unknown_axis}. ",
-            f"Supported values are: {self.known_axes}"
-        ]).strip()
-        return msg
 
 
 class AbstractBinTable(metaclass=ABCMeta):
@@ -106,7 +44,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 
     def all(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
-            raise UnknownAxisError(axis)
+            raise berrors.UnknownAxisError(axis)
 
         if axis is None:
             return self._all()
@@ -122,7 +60,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 
     def any(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
-            raise UnknownAxisError(axis)
+            raise berrors.UnknownAxisError(axis)
 
         if axis is None:
             return self._any()
@@ -138,7 +76,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 
     def sum(self, axis: int = None, element_indexes: Collection[int] = None) -> int or Collection[int]:
         if axis not in {None, 0, 1}:
-            raise UnknownAxisError(axis)
+            raise berrors.UnknownAxisError(axis)
 
         if axis is None:
             return self._sum()
@@ -266,7 +204,7 @@ class AbstractBinTable(metaclass=ABCMeta):
         if isinstance(data, np.ndarray):
             return 'BinTableNumpy'
 
-        raise UnknownDataTypeError(type(data))
+        raise berrors.UnknownDataTypeError(type(data))
 
 
 class BinTableLists(AbstractBinTable):
@@ -282,12 +220,12 @@ class BinTableLists(AbstractBinTable):
         t_, l_ = type(data[0]), len(data[0])
         for i, row in enumerate(data):
             if type(row) != t_:
-                raise UnmatchedTypeError(i)
+                raise berrors.UnmatchedTypeError(i)
             if len(row) != l_:
-                raise UnmatchedLengthError(i)
+                raise berrors.UnmatchedLengthError(i)
             for v in row:
                 if not isinstance(v, bool):
-                    raise NotBooleanValueError(i)
+                    raise berrors.NotBooleanValueError(i)
 
         return True
 
@@ -367,10 +305,10 @@ class BinTableNumpy(AbstractBinTable):
             return True
 
         if data.dtype != 'bool':
-            raise NotBooleanValueError()
+            raise berrors.NotBooleanValueError()
 
         if len(data.shape) != 2:
-            raise UnmatchedLengthError()
+            raise berrors.UnmatchedLengthError()
 
         return True
 
@@ -443,7 +381,7 @@ class BinTableBitarray(AbstractBinTable):
         l_ = len(data[0])
         for i, row in enumerate(data):
             if len(row) != l_:
-                raise UnmatchedLengthError(i)
+                raise berrors.UnmatchedLengthError(i)
 
         return True
 

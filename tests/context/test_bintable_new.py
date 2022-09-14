@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from fcapy.context import bintable_new as btables
+from fcapy.context import bintable_errors as berrors
 from .data_to_test import animal_movement_data
-from fcapy import LIB_INSTALLED
 
 
 def test_abstract_class():
@@ -25,11 +25,11 @@ def test_init(animal_movement_data):
         assert bt.width == len(data[0]), 'BinTable.width failed'
         assert bt.shape == (len(data), len(data[0])), 'BinTable.shape failed'
 
-        with pytest.raises(btables.NotBooleanValueError):
+        with pytest.raises(berrors.NotBooleanValueError):
             BTClass([[1, False], [True, True]])
-        with pytest.raises(btables.UnknownDataTypeError):
+        with pytest.raises(berrors.UnknownDataTypeError):
             BTClass({9, 1, 2, 3})
-        with pytest.raises(btables.UnmatchedLengthError):
+        with pytest.raises(berrors.UnmatchedLengthError):
             BTClass([[True, True], [False, ]])
 
 
@@ -72,7 +72,7 @@ def test_all():
         for ax in [0, 1]:
             assert list(bt.all(ax)) == list(data_np.all(ax))
 
-        with pytest.raises(btables.UnknownAxisError):
+        with pytest.raises(berrors.UnknownAxisError):
             bt.all(42)
 
 
@@ -86,7 +86,7 @@ def test_all_i():
         for ax in [0, 1]:
             assert list(bt.all_i(ax)) == list(data_np.all(ax).nonzero()[0])
 
-        with pytest.raises(btables.UnknownAxisError):
+        with pytest.raises(berrors.UnknownAxisError):
             bt.all(42)
 
 
@@ -100,7 +100,7 @@ def test_any():
         for ax in [0, 1]:
             assert list(bt.any(ax)) == list(data_np.any(ax))
 
-        with pytest.raises(btables.UnknownAxisError):
+        with pytest.raises(berrors.UnknownAxisError):
             bt.any(42)
 
 
@@ -113,7 +113,7 @@ def test_any_i():
         for ax in [0, 1]:
             assert list(bt.any_i(ax)) == list(data_np.any(ax).nonzero()[0])
 
-        with pytest.raises(btables.UnknownAxisError):
+        with pytest.raises(berrors.UnknownAxisError):
             bt.any(42)
 
 
@@ -127,7 +127,7 @@ def test_sum():
         for ax in [0, 1]:
             assert list(bt.sum(ax)) == list(data_np.sum(ax))
 
-        with pytest.raises(btables.UnknownAxisError):
+        with pytest.raises(berrors.UnknownAxisError):
             bt.sum(42)
 
 
