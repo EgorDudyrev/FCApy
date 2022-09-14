@@ -164,27 +164,34 @@ class AbstractBinTable(metaclass=ABCMeta):
         return self.height
 
     def __getitem__(self, item):
-        print(item, type(item))
         if isinstance(item, int):
-            return self.data[item]
-
+            return self._get_row(item)
         if isinstance(item, (slice, list)):
-            return self.__class__(self.data[item])
-
+            return self._get_subtable(item, None)
         if isinstance(item, tuple):
-            row_slicer, column_slicer = item
-
-            row_single_slice, column_single_slice = [isinstance(x, int) for x in [row_slicer, column_slicer]]
-            if row_single_slice and column_single_slice:
-                return self.data[row_slicer][column_slicer]
-            if row_single_slice and not column_single_slice:
-                return self._slice_row(self.data[row_slicer], column_slicer)
-            if not row_single_slice and column_single_slice:
-                return self._slice_column(self.data[row_slicer], column_slicer)
-            if not row_single_slice and not column_single_slice:
-                return self.__class__(self.data[row_slicer, column_slicer])
+            single_slices = tuple([isinstance(x, int) for x in item])
+            func_dict = {
+                (True, True): self._get_item, (True, False): self._get_row,
+                (False, True): self._get_column, (False, False): self._get_subtable
+            }
+            return func_dict[single_slices](*item)
 
         raise NotImplementedError("Unknown `item` to slice the BinTable")
+
+    def _get_item(self, row_idx: int, column_idx: int) -> bool:
+        return bool(self.data[row_idx][column_idx])
+
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice) -> Collection:
+        return self._slice_row(self.data[row_idx], column_slicer)
+
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Collection:
+        return [row[column_idx] for row in self.data[row_slicer]]
+
+    def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None)\
+            -> "AbstractBinTable":
+        if column_slicer is None:
+            return self.__class__(self.data[row_slicer])
+        return self.__class__(self.data[row_slicer, column_slicer])
 
     @staticmethod
     def _slice_row(row: Collection, slicer: int or List[int] or slice) -> Collection:
