@@ -66,6 +66,7 @@ class ConceptLattice(Lattice):
 
     """
     CLASS_NAME = 'ConceptLattice'
+    elements: List[FormalConcept or PatternConcept]
 
     def __init__(self, concepts: List[FormalConcept or PatternConcept], **kwargs):
         """Construct a ConceptLattice based on a set of ``concepts`` and ``**kwargs`` values
@@ -93,6 +94,16 @@ class ConceptLattice(Lattice):
         )
 
         self._generators_dict = {}
+
+    @property
+    def T(self):
+        assert isinstance(self[0], FormalConcept),\
+            'ConceptLattice.T error. Can only transpose lattices of formal concepts'
+
+        concepts_t = [FormalConcept(c.intent_i, c.intent, c.extent_i, c.extent,
+                                    context_hash=-c.context_hash if c.context_hash else None)
+                      for c in self.elements]
+        return ConceptLattice(concepts_t, children_dict=self.parents_dict)
 
     @property
     def measures(self) -> Dict[str, NDArray]:
