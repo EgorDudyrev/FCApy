@@ -228,6 +228,12 @@ def test_len():
     assert len(ctx) == 3
 
 
+def test_transpose():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+    K = FormalContext(data)
+    assert K.T.T == K
+
+
 def test_getitem():
     data = [[False, True, True], [False, False, True], [False, False, True]]
     ctx = FormalContext(data)
