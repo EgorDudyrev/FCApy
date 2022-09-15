@@ -139,3 +139,28 @@ def test_interchangeability():
             bt_a = BTClass_A(data)
             bt_b = BTClass_B(bt_a.data)
             assert bt_a.to_lists() == bt_b.to_lists()
+
+
+def test_getitem():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+
+    for BTClass in btables.BINTABLE_CLASSES.values():
+        bt = BTClass(data)
+
+        assert bt[0, 0] is False, f"{BTClass}.__getitem__ failed."
+
+        bt_small = BTClass([row[:2] for row in data[:2]])
+        assert bt[:2, :2] == bt_small, f"{BTClass}.__getitem__ failed"
+
+        bt_onerow = BTClass(data[:1])
+        assert bt[:1] == bt_onerow, f"{BTClass}.__getitem__ failed"
+        assert bt[[0]] == bt_onerow, f"{BTClass}.__getitem__ failed"
+
+        bt_onecolumn = BTClass([row[:1] for row in data])
+        assert bt[:, :1] == bt_onecolumn, f"{BTClass}.__getitem__ failed"
+        assert bt[:, [0]] == bt_onecolumn, f"{BTClass}.__getitem__ failed"
+
+        output = bt[0]
+        assert output == data[0], f"{BTClass}.__getitem__ failed"
+        output = bt[:, 0]
+        assert output == [row[0] for row in data], f"{BTClass}.__getitem__ failed"
