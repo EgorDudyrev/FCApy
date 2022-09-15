@@ -420,7 +420,7 @@ def test_remove():
     assert all([s.elements[s.index(el)] == el for el in s.elements])
 
     # Test if cache is changed correctly after removing an element (another case)
-    s = POSet(['', 'a', 'ab',], leq_func, use_cache=True)
+    s = POSet(['', 'a', 'ab'], leq_func, use_cache=True)
     s_remove_true = POSet(['', 'ab'], leq_func, use_cache=True)
     s.fill_up_caches()
     s_remove_true.fill_up_caches()

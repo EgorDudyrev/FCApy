@@ -4,8 +4,7 @@ This module provides a POSet class. It may be considered as the main module (and
 POSet (Partially Ordered Set) is a set in which some elements are bigger then other,
 some are smaller and some are incomparable
 """
-from typing import List, Dict, Tuple, Callable, Any, FrozenSet, Optional, Collection
-
+from typing import List, Dict, Tuple, Callable, Any, FrozenSet, Optional, Collection, Set
 
 from fcapy.utils.utils import slice_list
 from fcapy import LIB_INSTALLED
@@ -75,7 +74,7 @@ class POSet:
             self._cache_leq = leq_dict
             self._cache_descendants = descendants_dict
             self._cache_ancestors = ancestors_dict
-            self._cache_children = children_dict
+            self._cache_children = {k: frozenset(children) for k, children in children_dict.items()}
             self._cache_parents = parents_dict
 
             self.leq_elements = self._leq_elements_cache
@@ -441,21 +440,42 @@ class POSet:
         self._elements_to_index_map = {el: decr_idx(idx, key) for el, idx in self._elements_to_index_map.items()}
 
         if self._use_cache:
-            dsups = self._cache_parents.get(key)
-            dsubs = self._cache_children.get(key)
+            def reconnect_relatives(item):
+                relatives = []
+                for i, rels in enumerate(['ancestors', 'descendants', 'parents', 'children']):
+                    dct = self.__dict__['_cache_'+rels]
+                    if item in dct:
+                        relatives.append(dct[item])
+                        del dct[item]
+                    else:
+                        relatives.append(set())
+                ancestors, descendants, parents, children = relatives
 
-            if dsubs is not None and dsups is not None:
-                for el_i_dsup in dsups:
-                    new_subs = (self._cache_children[el_i_dsup] - {key}) | dsubs
-                    for el_i_new_sub in copy(new_subs):
-                        new_subs -= self._cache_descendants[el_i_new_sub]
-                    self._cache_children[el_i_dsup] = frozenset(new_subs)
+                for parent in parents:
+                    if parent not in self._cache_children:
+                        continue
+                    new_children = (self._cache_children[parent] | children) - {item}
+                    for new_child in list(new_children):
+                        new_children -= self._cache_descendants[new_child]
+                    self._cache_children[parent] = frozenset(new_children)
 
-                for el_i_dsub in dsubs:
-                    new_sups = (self._cache_parents[el_i_dsub] - {key}) | dsups
-                    for el_i_new_sup in copy(new_sups):
-                        new_sups -= self._cache_ancestors[el_i_new_sup]
-                    self._cache_parents[el_i_dsub] = frozenset(new_sups)
+                for child in children:
+                    if child not in self._cache_parents:
+                        continue
+                    new_parents = (self._cache_parents[child] | parents) - {item}
+                    for new_parent in list(new_parents):
+                        new_parents -= self._cache_ancestors[new_parent]
+                    self._cache_parents[child] = frozenset(new_parents)
+
+                for ancestor in ancestors:
+                    if ancestor not in self._cache_descendants:
+                        continue
+                    self._cache_descendants[ancestor] = self._cache_descendants[ancestor] - {item}
+
+                for descendant in descendants:
+                    if descendant not in self._cache_ancestors:
+                        continue
+                    self._cache_ancestors[descendant] = self._cache_ancestors[descendant] - {item}
 
             def decrement_dict(dct, threshold):
                 if len(dct) == 0:
@@ -490,11 +510,9 @@ class POSet:
                     dct_decr[k_decr] = v_decr
                 return dct_decr
 
-            self._cache_leq = decrement_dict(self._cache_leq, key)
-            self._cache_descendants = decrement_dict(self._cache_descendants, key)
-            self._cache_ancestors = decrement_dict(self._cache_ancestors, key)
-            self._cache_children = decrement_dict(self._cache_children, key)
-            self._cache_parents = decrement_dict(self._cache_parents, key)
+            reconnect_relatives(key)
+            for dict_name in ['leq', 'descendants', 'ancestors', 'children', 'parents']:
+                self.__dict__["_cache_"+dict_name] = decrement_dict(self.__dict__["_cache_"+dict_name], key)
 
     def add(self, element: Any, fill_up_cache: bool = True):
         """Add an ``element`` to POSet. Automatically fill up the comparison caches if needed"""
@@ -504,35 +522,36 @@ class POSet:
         el_i_new = len(self._elements)
         if self._use_cache:
             if fill_up_cache:
-                final_down_elements, traced_down_elements = self.trace_element(element, 'down')
-                final_up_elements, traced_up_elements = self.trace_element(element, 'up')
-
-                self._cache_descendants[el_i_new] = frozenset(traced_up_elements)
-                self._cache_ancestors[el_i_new] = frozenset(traced_down_elements)
-                self._cache_children[el_i_new] = frozenset(final_up_elements)
-                self._cache_parents[el_i_new] = frozenset(final_down_elements)
                 self._cache_leq[(el_i_new, el_i_new)] = True
 
-                for el_i in range(len(self._elements)):
-                    if el_i in traced_up_elements: # then el_i is subelement of el_i_new
-                        self._cache_ancestors[el_i] = frozenset(self._cache_ancestors[el_i] | {el_i_new})
+                self._cache_children[el_i_new], self._cache_descendants[el_i_new] = self.trace_element(element, 'up')
+                self._cache_parents[el_i_new], self._cache_ancestors[el_i_new] = self.trace_element(element, 'down')
+
+                for el_i in range(el_i_new):  # iterate through all old elements:
+                    if el_i in self._cache_descendants[el_i_new]:  # elements, that are smaller than the new element
+                        self._cache_ancestors[el_i] = self._cache_ancestors[el_i] | {el_i_new}
                         self._cache_leq[(el_i, el_i_new)] = True
                         self._cache_leq[(el_i_new, el_i)] = False
-                    elif el_i in traced_down_elements: # then el_i is superelement of el_i_new
-                        self._cache_descendants[el_i] = frozenset(self._cache_descendants[el_i] | {el_i_new})
+
+                        if el_i in self._cache_children[el_i_new]:
+                            self._cache_parents[el_i] = \
+                                {el_i_new} | (self._cache_parents[el_i] - self._cache_ancestors[el_i_new])
+
+                        continue
+
+                    if el_i in self._cache_ancestors[el_i_new]:  # elements, that are bigger than the new element
+                        self._cache_descendants[el_i] = self._cache_descendants[el_i] | {el_i_new}
                         self._cache_leq[(el_i, el_i_new)] = False
                         self._cache_leq[(el_i_new, el_i)] = True
-                    else: # then el_i and el_i_new are incomparable
-                        self._cache_leq[(el_i, el_i_new)] = False
-                        self._cache_leq[(el_i_new, el_i)] = False
 
-                for el_i in final_up_elements:
-                    self._cache_parents[el_i] =\
-                        frozenset((self._cache_parents[el_i] | {el_i_new}) - traced_down_elements)
+                        if el_i in self._cache_parents[el_i_new]:
+                            self._cache_children[el_i] = \
+                                {el_i_new} | (self._cache_children[el_i] - self._cache_descendants[el_i_new])
+                        continue
 
-                for el_i in final_down_elements:
-                    self._cache_children[el_i] =\
-                        frozenset((self._cache_children[el_i] | {el_i_new}) - traced_up_elements)
+                    # el_i and el_i_new are incomparable
+                    self._cache_leq[(el_i, el_i_new)] = False
+                    self._cache_leq[(el_i_new, el_i)] = False
 
             else:
                 self._cache_descendants = {}
@@ -621,7 +640,7 @@ class POSet:
         self.fill_up_children_cache()
         self.fill_up_parents_cache()
 
-    def trace_element(self, element: Any, direction: str):
+    def trace_element(self, element: Any, direction: str) -> Tuple[Set[int], Set[int]]:
         """Get the sets of descendants and children (or ancestors and parents) of an ``element`` in the POSet
 
         Parameters
@@ -652,7 +671,8 @@ class POSet:
 
         return self._trace_elements_both_directions(element, start_elements, compare_func, next_elements_func)
 
-    def _trace_elements_both_directions(self, element, start_elements, compare_func, next_elements_func):
+    def _trace_elements_both_directions(self, element, start_elements, compare_func, next_elements_func) \
+            -> Tuple[Set[int], Set[int]]:
         """Get the sets of all the final and traced elements compared with ``element`` by ``compare_func``"""
         traced_elements, final_elements = set(), set()
 

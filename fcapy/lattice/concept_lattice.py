@@ -221,8 +221,6 @@ class ConceptLattice(Lattice):
             concepts_sorted = cls.sort_concepts(list(ltc))
             map_concept_i_sort = {c: c_sort_i for c_sort_i, c in enumerate(concepts_sorted)}
             map_i_isort = [map_concept_i_sort[ltc[c_i]] for c_i in range(len(ltc))]
-            map_concept_i = {c: c_i for c_i, c in enumerate(ltc)}
-            map_isort_i = [map_concept_i[concepts_sorted[c_i_sort]] for c_i_sort in range(len(ltc))]
 
             ltc._elements = concepts_sorted
             ltc._elements_to_index_map = {el: idx for idx, el in enumerate(concepts_sorted)}
@@ -230,8 +228,8 @@ class ConceptLattice(Lattice):
             for cache_name in ['children', 'descendants', 'parents', 'ancestors']:
                 cache_name = f"_cache_{cache_name}"
                 ltc.__dict__[cache_name] = {
-                    map_i_isort[c_i]: {map_i_isort[c1_i] for c1_i in ltc.__dict__[cache_name][c_i]}
-                    for c_i in map_isort_i
+                    map_i_isort[i]: {map_i_isort[rel] for rel in relatives}
+                    for i, relatives in ltc.__dict__[cache_name].items()
                 }
 
             ltc._generators_dict = {map_i_isort[c_i]: {map_i_isort[supc_i]: gen for supc_i, gen in gens_dict.items()}
