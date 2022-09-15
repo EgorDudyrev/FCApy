@@ -584,6 +584,9 @@ class FormalContext:
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names), hash(self._data)))
 
+    def __len__(self):
+        return len(self.object_names)
+
     def hash_fixed(self):
         """Hash value of FormalContext which do not differ between sessions"""
         str_ = str(self._object_names)

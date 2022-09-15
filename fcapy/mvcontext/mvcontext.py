@@ -504,6 +504,9 @@ class MVContext:
                         f'({self.n_objects} objects, {self.n_attributes} attributes)'
         return data_to_print
 
+    def __len__(self):
+        return len(self.object_names)
+
     def __eq__(self, other):
         """Wrapper for the comparison method __eq__"""
         if not self.object_names == other.object_names:
