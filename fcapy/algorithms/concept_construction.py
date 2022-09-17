@@ -164,7 +164,9 @@ def sofia_objectwise(
 
     proj_iterator = range(proj_start + 1, max_proj + 1)
     if use_tqdm:
-        proj_iterator = utils.safe_tqdm(proj_iterator, desc='SOFIA: Iterate objects')
+        proj_iterator = utils.safe_tqdm(
+            proj_iterator, desc='SOFIA: Iterate objects', initial=proj_start, total=max_proj
+        )
 
     #################
     # The Algorithm #
