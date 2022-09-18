@@ -157,6 +157,17 @@ def test_hash():
     assert len({mvctx, mvctx1}) == 1, "MVContext.__has__ failed"
 
 
+def test_len():
+    data = load_breast_cancer(as_frame=True)
+    X = data['data'].values[:20]
+    Y = data['target'].values[:20]
+    feature_names = [str(f) for f in data['feature_names']]
+
+    pattern_types = {f: PS.IntervalPS for f in feature_names}
+    mvctx = mvcontext.MVContext(data=X, target=Y, pattern_types=pattern_types, attribute_names=feature_names)
+    assert len(mvctx) == len(X)
+
+
 def test_getitem():
     data = [[1, 10], [2, 22], [3, 100], [4, 60]]
     pattern_types = {'0': PS.IntervalPS, '1': PS.IntervalPS}

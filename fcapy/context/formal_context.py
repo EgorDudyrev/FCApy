@@ -333,6 +333,13 @@ class FormalContext:
 
         self._description = value
 
+    @property
+    def T(self):
+        """Transpose the context"""
+        data = self.data.to_list() if isinstance(self.data, BinTable) else self.data
+        data_t = [list(row) for row in zip(*data)]
+        return self.__class__(data_t, self.attribute_names, self.object_names)
+
     def write_cxt(self, path=None):
         """Convert the FormalContext into cxt file format (save if ``path`` is given)
 
@@ -613,11 +620,14 @@ class FormalContext:
     def __hash__(self):
         return hash((tuple(self._object_names), tuple(self._attribute_names), hash(self._data)))
 
+    def __len__(self):
+        return len(self.object_names)
+
     def hash_fixed(self):
         """Hash value of FormalContext which do not differ between sessions"""
         str_ = str(self._object_names)
         str_ += str(self._attribute_names)
-        str_ += str( self._data.to_list() if isinstance(self._data, BinTable) else self._data )
+        str_ += str(self._data.to_list() if isinstance(self._data, BinTable) else self._data )
 
         code = zlib.adler32(str_.encode())
         return code

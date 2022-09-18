@@ -152,6 +152,16 @@ def test__eq__():
         "ConceptLattice.__eq__ failed. The lattices should not be equal if their parents_dicts are different"
 
 
+def test_transpose():
+    c1 = FormalConcept((), (), (0, 1), ('a', 'b'))
+    c2 = FormalConcept((0,), ('a',), (0,), ('a',))
+    c3 = FormalConcept((1,), ('b',), (1,), ('b',))
+    c4 = FormalConcept((0, 1), ('a', 'b'), (), ())
+
+    L = ConceptLattice([c1, c2, c3, c4])
+    assert L.T.T == L
+
+
 def test_concept_new_intent_extent():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx)

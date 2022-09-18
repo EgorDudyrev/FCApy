@@ -222,6 +222,18 @@ def test_eq_neq(animal_movement_data):
         'FormalContext.__ne__ failed. The same FormalContext objects are classified as different'
 
 
+def test_len():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+    ctx = FormalContext(data)
+    assert len(ctx) == 3
+
+
+def test_transpose():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+    K = FormalContext(data)
+    assert K.T.T == K
+
+
 def test_getitem():
     data = [[False, True, True], [False, False, True], [False, False, True]]
     ctx = FormalContext(data)
