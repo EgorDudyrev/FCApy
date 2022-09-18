@@ -200,9 +200,11 @@ class FormalContext:
 
     def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
             -> List[int]:
-        base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
-        extension_i = self.data.any(1, list(base_objects_i), list(attribute_indexes))
-        return extension_i
+        raise NotImplementedError
+
+        # base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
+        # extension_i = self.data.any(1, list(base_objects_i), list(attribute_indexes))
+        # return extension_i
 
     def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False)\
             -> List[str]:
@@ -269,11 +271,13 @@ class FormalContext:
     def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
             -> Tuple[int, ...]:
         """Return indexes of maximal set of attributes shared by any of given ``object_indexes``"""
-        base_attrs_i = slice(0, self.n_attributes) if base_attrs_i is None else base_attrs_i
-        complement_objs = list(set(range(self.n_objects))-set(object_indexes))
-        complement_attrs_flg = self.data.any(0, complement_objs, base_attrs_i)
-        intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
-        return intention_i
+        raise NotImplementedError
+
+        # base_attrs_i = slice(0, self.n_attributes) if base_attrs_i is None else base_attrs_i
+        # complement_objs = list(set(range(self.n_objects))-set(object_indexes))
+        # complement_attrs_flg = self.data.any(0, complement_objs, base_attrs_i)
+        # intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
+        # return intention_i
 
     def intention(self, objects: Iterable[str], is_monotone: bool = False) -> List[str]:
         """Return maximal set of attributes which are shared by given ``objects``
