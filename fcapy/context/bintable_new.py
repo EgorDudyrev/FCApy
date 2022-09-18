@@ -3,7 +3,7 @@ This module offers a class BinTable to work with binary table efficiently.
 
 """
 from abc import ABCMeta, abstractmethod
-from typing import List, Tuple, Optional, Collection
+from typing import List, Tuple, Optional, Collection, Sequence
 
 from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
@@ -181,25 +181,19 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _get_item(self, row_idx: int, column_idx: int) -> bool:
         return bool(self.data[row_idx][column_idx])
 
-    def _get_row(self, row_idx: int, column_slicer: List[int] or slice) -> Collection:
-        return self._slice_row(self.data[row_idx], column_slicer)
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> Collection:
+        if column_slicer is None:
+            return self.data[row_idx]
+        return self.data[row_idx][column_slicer]
 
     def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Collection:
-        return [row[column_idx] for row in self.data[row_slicer]]
+        return self.data[row_slicer][:, column_idx]
 
     def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None)\
             -> "AbstractBinTable":
         if column_slicer is None:
             return self.__class__(self.data[row_slicer])
         return self.__class__(self.data[row_slicer, column_slicer])
-
-    @staticmethod
-    def _slice_row(row: Collection, slicer: int or List[int] or slice) -> Collection:
-        return row[slicer]
-
-    @staticmethod
-    def _slice_column(data: Collection, slicer: int or List[int] or slice) -> Collection:
-        return [row[slicer] for row in data]
 
     @staticmethod
     def decide_dataclass(data: Collection) -> str:
@@ -299,6 +293,34 @@ class BinTableLists(AbstractBinTable):
         for row in self.data:
             vals = [v + int(row[col_i]) for v, col_i in zip(vals, column_indexes)]
         return vals
+
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> List[bool]:
+        row = self.data[row_idx]
+        if column_slicer:
+            if isinstance(column_slicer, slice):
+                column_slicer = range(*column_slicer.indices(self.width))
+            return [row[col] for col in column_slicer]
+        return row
+
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> List[bool]:
+        if isinstance(row_slicer, slice):
+            row_slicer = range(*row_slicer.indices(self.height))
+        column = [self.data[row_i][column_idx] for row_i in row_slicer]
+        return column
+
+    def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None) \
+            -> 'BinTableLists':
+        if isinstance(row_slicer, slice):
+            row_slicer = range(*row_slicer.indices(self.height))
+
+        if column_slicer is None:
+            subtable = [self.data[row_i] for row_i in row_slicer]
+        else:
+            if isinstance(column_slicer, slice):
+                column_slicer = range(*column_slicer.indices(self.width))
+            subtable = [[self.data[row_i][col_i] for col_i in column_slicer] for row_i in row_slicer]
+
+        return self.__class__(subtable)
 
 
 class BinTableNumpy(AbstractBinTable):
@@ -448,6 +470,33 @@ class BinTableBitarray(AbstractBinTable):
         for row in self.data:
             vals = [v + int(row[i]) for v, i in zip(vals, column_indexes)]
         return vals
+
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> fbitarray:
+        row = self.data[row_idx]
+        if column_slicer:
+            if isinstance(column_slicer, list):
+                return fbitarray([row[col_i] for col_i in column_slicer])
+            return row[column_slicer]
+        return row
+
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> fbitarray:
+        if isinstance(row_slicer, slice):
+            row_slicer = range(*row_slicer.indices(self.height))
+        return fbitarray([self._data[row_i][column_idx] for row_i in row_slicer])
+
+    def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None) \
+            -> 'BinTableBitarray':
+        if isinstance(row_slicer, slice):
+            row_slicer = range(*row_slicer.indices(self.height))
+
+        if column_slicer is None:
+            subtable = [self.data[row_i] for row_i in row_slicer]
+        elif isinstance(column_slicer, list):
+            subtable = [fbitarray([self.data[row_i][col_i] for col_i in column_slicer]) for row_i in row_slicer]
+        else:
+            subtable = [self.data[row_i][column_slicer] for row_i in row_slicer]
+
+        return self.__class__(subtable)
 
     def __eq__(self, other: 'BinTableBitarray'):
         if self.height != other.height:

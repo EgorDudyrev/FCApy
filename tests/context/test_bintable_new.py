@@ -161,6 +161,6 @@ def test_getitem():
         assert bt[:, [0]] == bt_onecolumn, f"{BTClass}.__getitem__ failed"
 
         output = bt[0]
-        assert output == data[0], f"{BTClass}.__getitem__ failed"
+        assert tuple(output) == tuple(data[0]), f"{BTClass}.__getitem__ failed"
         output = bt[:, 0]
-        assert output == [row[0] for row in data], f"{BTClass}.__getitem__ failed"
+        assert tuple(output) == tuple([row[0] for row in data]), f"{BTClass}.__getitem__ failed"
