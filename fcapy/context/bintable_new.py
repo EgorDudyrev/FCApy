@@ -89,14 +89,14 @@ class AbstractBinTable(metaclass=ABCMeta):
         if axis == 1:
             return self._sum_per_row(element_indexes)
 
-    def to_lists(self) -> List[List[bool]]:
+    def to_list(self) -> List[List[bool]]:
         return [[bool(v) for v in row] for row in self.data]
 
-    def to_tuples(self) -> Tuple[Tuple[bool, ...], ...]:
-        return tuple([tuple(row) for row in self.to_lists()])
+    def to_tuple(self) -> Tuple[Tuple[bool, ...], ...]:
+        return tuple([tuple(row) for row in self.to_list()])
 
     def __hash__(self):
-        return hash(self.to_tuples())
+        return hash(self.to_tuple())
 
     def __eq__(self, other: 'AbstractBinTable') -> bool:
         if self.height != other.height:
@@ -118,15 +118,15 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     def _transform_data(self, data) -> Tuple[Collection, int, Optional[int]]:
-        if data is None:
-            return [], 0, None
+        if data is None or len(data) == 0:
+            return [], 0, 0
 
         dclass = self.decide_dataclass(data)
         if dclass == self.__class__.__name__:
             return self._transform_data_inherent(data)
 
         bt = BINTABLE_CLASSES[dclass](data)
-        return self._transform_data_fromlists(bt.to_lists()), bt.height, bt.width
+        return self._transform_data_fromlists(bt.to_list()), bt.height, bt.width
 
     @staticmethod
     def _transform_data_inherent(data) -> Tuple[Collection, int, int]:
@@ -223,7 +223,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 class BinTableLists(AbstractBinTable):
     data: List[List[bool]]  # Updating type hint
 
-    def to_lists(self) -> List[List[bool]]:
+    def to_list(self) -> List[List[bool]]:
         return self.data
 
     @property
@@ -421,7 +421,7 @@ class BinTableNumpy(AbstractBinTable):
         return (self.data == other.data).all()
 
     def __hash__(self):
-        return hash(self.to_tuples())
+        return hash(self.to_tuple())
 
 
 class BinTableBitarray(AbstractBinTable):
@@ -505,9 +505,9 @@ class BinTableBitarray(AbstractBinTable):
     def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> fbitarray:
         row = self.data[row_idx]
         if column_slicer:
-            if isinstance(column_slicer, list):
-                return fbitarray([row[col_i] for col_i in column_slicer])
-            return row[column_slicer]
+            if isinstance(column_slicer, slice):
+                return row[column_slicer]
+            return fbitarray([row[col_i] for col_i in column_slicer])
         return row
 
     def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> fbitarray:
@@ -522,10 +522,10 @@ class BinTableBitarray(AbstractBinTable):
 
         if column_slicer is None:
             subtable = [self.data[row_i] for row_i in row_slicer]
-        elif isinstance(column_slicer, list):
-            subtable = [fbitarray([self.data[row_i][col_i] for col_i in column_slicer]) for row_i in row_slicer]
-        else:
+        elif isinstance(column_slicer, slice):
             subtable = [self.data[row_i][column_slicer] for row_i in row_slicer]
+        else:
+            subtable = [fbitarray([self.data[row_i][col_i] for col_i in column_slicer]) for row_i in row_slicer]
 
         return self.__class__(subtable)
 

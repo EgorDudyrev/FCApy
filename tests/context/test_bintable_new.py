@@ -20,7 +20,7 @@ def test_init(animal_movement_data):
         bt = BTClass(data)
 
         # test properties
-        assert bt.to_lists() == data, 'BinTable.data failed. Data values were changed while initialization'
+        assert bt.to_list() == data, 'BinTable.data failed. Data values were changed while initialization'
         assert bt.height == len(data), 'BinTable.height failed'
         assert bt.width == len(data[0]), 'BinTable.width failed'
         assert bt.shape == (len(data), len(data[0])), 'BinTable.shape failed'
@@ -38,7 +38,7 @@ def test_to_lists():
 
     for BTClass in btables.BINTABLE_CLASSES.values():
         bt = BTClass(data)
-        assert bt.to_lists() == data
+        assert bt.to_list() == data
 
 
 def test_to_tuples():
@@ -46,7 +46,7 @@ def test_to_tuples():
 
     for BTClass in btables.BINTABLE_CLASSES.values():
         bt = BTClass(data)
-        assert bt.to_tuples() == tuple([tuple(row) for row in data])
+        assert bt.to_tuple() == tuple([tuple(row) for row in data])
 
 
 def test_hash():
@@ -138,7 +138,7 @@ def test_interchangeability():
         for BTClass_B in btables.BINTABLE_CLASSES.values():
             bt_a = BTClass_A(data)
             bt_b = BTClass_B(bt_a.data)
-            assert bt_a.to_lists() == bt_b.to_lists()
+            assert bt_a.to_list() == bt_b.to_list()
 
 
 def test_getitem():

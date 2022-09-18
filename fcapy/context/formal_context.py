@@ -5,12 +5,12 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from itertools import combinations
 from numbers import Integral
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, List, Collection
 
 from frozendict import frozendict
 import zlib
 
-from fcapy.context.bintable import BinTable
+from fcapy.context.bintable_new import init_bintable, BINTABLE_CLASSES, AbstractBinTable
 from fcapy.utils.utils import slice_list
 
 
@@ -43,10 +43,14 @@ class FormalContext:
     Formal Context K = (G, M, I) - is a triplet of:
     1. set of objects G (the property ``object_names`` in this class)
     2. set of attributes M (the property ``attribute_names`` in this class)
-    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has attribute m") (the property ``data`` in this class)
+    3. binary relation I between G and M (i.e. "gIm holds True" means "object g has an attribute m")
+     (the property ``data`` in this class)
 
     """
-    def __init__(self, data=None, object_names=None, attribute_names=None, **kwargs):
+    def __init__(
+            self, data: Collection[bool] or AbstractBinTable = None, object_names=None, attribute_names=None,
+            description: str = None, target=None, backend: BINTABLE_CLASSES = 'auto'
+    ):
         """
         Parameters
         ----------
@@ -57,19 +61,20 @@ class FormalContext:
             Names of objects (rows) of the FormalContext
         attribute_names : `list` of `str`, optional
             Names of attributes (columns) of the FormalContext
-        **kwargs:
-            ``description``:
-                `str` with human readable description of the FormalContext (stored only in json file format)
+        description: `str`, optional
+            Human readable description of the FormalContext (stored only in json file format)
+        backend: `str`, optional
+            Name of BinTable class to work with data
 
         """
-        self._data = BinTable(data) if not isinstance(data, BinTable) else data
+        self._data = init_bintable(data, backend) if not isinstance(data, AbstractBinTable) else data
         self.object_names = object_names
         self.attribute_names = attribute_names
-        self.description = kwargs.get('description')
-        self._target = kwargs.get('target')
+        self.description = description
+        self._target = target
 
     @property
-    def data(self):
+    def data(self) -> AbstractBinTable:
         """Get or set the data with relations between objects and attributes (`list` of `list`)
 
         Parameters
@@ -89,7 +94,7 @@ class FormalContext:
         return self._data
 
     @property
-    def object_names(self):
+    def object_names(self) -> List[str]:
         """Get or set the names of the objects in the context
 
         Parameters
@@ -127,7 +132,7 @@ class FormalContext:
         self._object_names_i_map = frozendict({name: idx for idx, name in enumerate(self._object_names)})
 
     @property
-    def attribute_names(self):
+    def attribute_names(self) -> List[str]:
         """Get or set the names of the attributes in the context
 
         Parameters
@@ -171,7 +176,7 @@ class FormalContext:
         """A set of target values for supervised ML tasks"""
         return self._target
 
-    def extension_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None):
+    def extension_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None) -> List[int]:
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
         Parameters
@@ -182,19 +187,25 @@ class FormalContext:
             Indexes of set of objects on which to look for extension_i
         Returns
         -------
-        extension_indexes : `list` of `int`
+        extension_indexes : `tuple` of `int`
             Indexes of maximal set of objects which share ``attribute_indexes``
 
         """
-        return self._data.arrow_down(attribute_indexes, base_objects_i)
+        if len(attribute_indexes) == 0:
+            return list(range(self.n_objects)) if base_objects_i is None else list(base_objects_i)
+
+        if base_objects_i:
+            return self.data[base_objects_i, attribute_indexes].all_i(1)
+        return self.data[:, attribute_indexes].all_i(1)
 
     def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
-            -> Tuple[int, ...]:
+            -> List[int]:
         base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
         extension_i = self._data[base_objects_i, attribute_indexes].any(1)
         return extension_i
 
-    def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False):
+    def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False)\
+            -> List[str]:
         """Return maximal set of objects which share given ``attributes``
 
         Parameters
@@ -207,7 +218,7 @@ class FormalContext:
             A flag whether to use antimonotone extension (as default) or the monotone one
         Returns
         -------
-        extension : `list` of `str`
+        extension : `tuple` of `str`
             Names of the maximal set of objects which share given ``attributes``
 
         """
@@ -233,7 +244,7 @@ class FormalContext:
         extension = [self._object_names[g_idx] for g_idx in extension_i]
         return extension
 
-    def intention_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None):
+    def intention_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None) -> List[int]:
         """Return indexes of maximal set of attributes which are shared by given ``object_indexes``
 
         Parameters
@@ -245,12 +256,16 @@ class FormalContext:
 
         Returns
         -------
-        intention_i : `list` of `int`
+        intention_i : `tuple` of `int`
             Indexes of maximal set of attributes which are shared by ``objects_indexes``
 
         """
-        intention_i = self._data.arrow_up(object_indexes, base_attrs_i)
-        return intention_i
+        if len(object_indexes) == 0:
+            return list(range(self.n_attributes)) if base_attrs_i is None else list(base_attrs_i)
+
+        if base_attrs_i:
+            return list(self.data[object_indexes, base_attrs_i].all_i(0))
+        return list(self.data[object_indexes].all_i(0))
 
     def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
             -> Tuple[int, ...]:
@@ -261,7 +276,7 @@ class FormalContext:
         intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
         return intention_i
 
-    def intention(self, objects: Iterable[str], is_monotone: bool = False):
+    def intention(self, objects: Iterable[str], is_monotone: bool = False) -> List[str]:
         """Return maximal set of attributes which are shared by given ``objects``
 
         Parameters
@@ -297,17 +312,17 @@ class FormalContext:
         return intention
 
     @property
-    def n_objects(self):
+    def n_objects(self) -> int:
         """Get the number of objects in the context (i.e. len(`data`))"""
-        return self._data.height
+        return self.data.height
 
     @property
-    def n_attributes(self):
+    def n_attributes(self) -> int:
         """Get the number of attributes in the context (i.e. len(`data[0]`)"""
-        return self._data.width
+        return self.data.width
 
     @property
-    def description(self):
+    def description(self) -> str:
         """Get or set the human readable description of the context
 
         JSON is the only file format to store this information.
@@ -334,11 +349,9 @@ class FormalContext:
         self._description = value
 
     @property
-    def T(self):
+    def T(self) -> 'FormalContext':
         """Transpose the context"""
-        data = self.data.to_list() if isinstance(self.data, BinTable) else self.data
-        data_t = [list(row) for row in zip(*data)]
-        return self.__class__(data_t, self.attribute_names, self.object_names)
+        return self.__class__(self.data.T.data, self.attribute_names, self.object_names)
 
     def write_cxt(self, path=None):
         """Convert the FormalContext into cxt file format (save if ``path`` is given)
@@ -627,7 +640,7 @@ class FormalContext:
         """Hash value of FormalContext which do not differ between sessions"""
         str_ = str(self._object_names)
         str_ += str(self._attribute_names)
-        str_ += str(self._data.to_list() if isinstance(self._data, BinTable) else self._data )
+        str_ += str(self._data.to_list())
 
         code = zlib.adler32(str_.encode())
         return code
@@ -639,7 +652,7 @@ class FormalContext:
         else:
             row_slice, column_slice = item
 
-        data = self._data[row_slice, column_slice]
+        data = self.data[row_slice, column_slice]
 
         if not (isinstance(row_slice, Integral) and isinstance(column_slice, Integral)):
             object_names = slice_list(self._object_names, row_slice)
