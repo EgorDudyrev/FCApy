@@ -46,48 +46,59 @@ class AbstractBinTable(metaclass=ABCMeta):
     def T(self) -> 'AbstractBinTable':
         return self.__class__(self.data.T)
 
-    def all(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
+    def all(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
+            -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise berrors.UnknownAxisError(axis)
 
         if axis is None:
-            return self._all()
+            return self._all(rows, columns)
         if axis == 0:
-            return self._all_per_column(element_indexes)
+            return self._all_per_column(rows, columns)
         if axis == 1:
-            return self._all_per_row(element_indexes)
+            return self._all_per_row(rows, columns)
 
-    def all_i(self, axis: int, element_indexes: Collection[int] = None) -> Collection[int]:
-        flg_all = self.all(axis, element_indexes)
-        iterator = enumerate(flg_all) if element_indexes is None else zip(element_indexes, flg_all)
+    def all_i(self, axis: int, rows: Collection[int] = None, columns: Collection[int] = None) -> Collection[int]:
+        flg_all = self.all(axis, rows, columns)
+        if axis == 0:
+            iterator = zip(columns, flg_all) if columns is not None else enumerate(flg_all)
+        else:  # axis == 1
+            iterator = zip(rows, flg_all) if rows is not None else enumerate(flg_all)
         return [i for i, flg in iterator if flg]
 
-    def any(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
+    def any(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
+            -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise berrors.UnknownAxisError(axis)
 
         if axis is None:
-            return self._any()
+            return self._any(rows, columns)
         if axis == 0:
-            return self._any_per_column(element_indexes)
+            return self._any_per_column(rows, columns)
         if axis == 1:
-            return self._any_per_row(element_indexes)
+            return self._any_per_row(rows, columns)
 
-    def any_i(self, axis: int, element_indexes: Collection[int] = None) -> Collection[int]:
-        flg_any = self.any(axis, element_indexes)
-        iterator = enumerate(flg_any) if element_indexes is None else zip(element_indexes, flg_any)
+    def any_i(self, axis: int, rows: Collection[int] = None, columns: Collection[int] = None) -> Collection[int]:
+        flg_any = self.any(axis, rows, columns)
+
+        if axis == 0:
+            iterator = zip(columns, flg_any) if columns is not None else enumerate(flg_any)
+        else:  # axis == 1
+            iterator = zip(rows, flg_any) if rows is not None else enumerate(flg_any)
+
         return [i for i, flg in iterator if flg]
 
-    def sum(self, axis: int = None, element_indexes: Collection[int] = None) -> int or Collection[int]:
+    def sum(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
+            -> int or Collection[int]:
         if axis not in {None, 0, 1}:
             raise berrors.UnknownAxisError(axis)
 
         if axis is None:
-            return self._sum()
+            return self._sum(rows, columns)
         if axis == 0:
-            return self._sum_per_column(element_indexes)
+            return self._sum_per_column(rows, columns)
         if axis == 1:
-            return self._sum_per_row(element_indexes)
+            return self._sum_per_row(rows, columns)
 
     def to_list(self) -> List[List[bool]]:
         return [[bool(v) for v in row] for row in self.data]
@@ -137,39 +148,39 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _all(self) -> bool:
+    def _all(self, rows: Collection[int] = None, columns: Collection[int] = None) -> bool:
         ...
 
     @abstractmethod
-    def _all_per_row(self, row_indexes: Collection[int] = None) -> List[bool]:
+    def _all_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _all_per_column(self, column_indexes: Collection[int] = None) -> List[bool]:
+    def _all_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _any(self) -> bool:
+    def _any(self, rows: Collection[int] = None, columns: Collection[int] = None) -> bool:
         ...
 
     @abstractmethod
-    def _any_per_row(self, row_indexes: Collection[int] = None) -> List[bool]:
+    def _any_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _any_per_column(self, column_indexes: Collection[int] = None) -> List[bool]:
+    def _any_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
         ...
 
     @abstractmethod
-    def _sum(self) -> int:
+    def _sum(self, rows: Collection[int] = None, columns: Collection[int] = None) -> int:
         ...
 
     @abstractmethod
-    def _sum_per_row(self, row_indexes: Collection[int] = None) -> List[int]:
+    def _sum_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[int]:
         ...
 
     @abstractmethod
-    def _sum_per_column(self, column_indexes: Collection[int] = None) -> List[int]:
+    def _sum_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[int]:
         ...
 
     def __len__(self):
@@ -249,65 +260,95 @@ class BinTableLists(AbstractBinTable):
     def _transform_data_fromlists(self, data: List[List[bool]]) -> List[List[bool]]:
         return data
 
-    def _all(self) -> bool:
-        for row in self.data:
-            if not all(row):
-                return False
+    def _all(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        rows = range(self.height) if rows is None else rows
+        # A bit faster version in case all columns are selected
+        if columns is None:
+            for i in rows:
+                if not all(self.data[i]):
+                    return False
+        else:
+            for i in rows:
+                row = self.data[i]
+                for j in columns:
+                    if not row[j]:
+                        return False
+
         return True
 
-    def _all_per_row(self, row_indexes: List[int] = None) -> List[bool]:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return [all(self.data[i]) for i in row_indexes]
+    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return [all(self.data[i]) for i in rows]
+        return [all([self.data[i][j] for j in columns]) for i in rows]
 
-    def _all_per_column(self, column_indexes: List[int] = None) -> List[bool]:
-        if column_indexes is None:
-            vals, column_indexes = [True] * self.width, range(self.width)
+    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            vals, columns = [True] * self.width, range(self.width)
         else:
-            vals = [True] * len(column_indexes)
+            vals = [True] * len(columns)
 
-        for row in self.data:
-            vals = [v & row[col_i] for v, col_i in zip(vals, column_indexes)]
+        for i in rows:
+            row = self.data[i]
+            vals = [v & row[col_i] for v, col_i in zip(vals, columns)]
             if not any(vals):  # All values are False
                 break
         return vals
 
-    def _any(self) -> bool:
-        for row in self.data:
-            if any(row):
-                return True
+    def _any(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            for i in rows:
+                if any(self.data[i]):
+                    return True
+        else:
+            for i in rows:
+                row = self.data[i]
+                for j in columns:
+                    if row[j]:
+                        return True
         return False
 
-    def _any_per_row(self, row_indexes: List[int] = None) -> List[bool]:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return [any(self.data[i]) for i in row_indexes]
+    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return [any(self.data[i]) for i in rows]
+        return [any([self.data[i][j] for j in columns] for i in rows)]
 
-    def _any_per_column(self, column_indexes: List[int] = None) -> List[bool]:
-        if column_indexes is None:
-            vals, column_indexes = range(self.width), [False] * self.width
+    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            vals, columns = range(self.width), [False] * self.width
         else:
-            vals = [False] * len(column_indexes)
+            vals = [False] * len(columns)
 
-        for row in self.data:
-            vals = [v | row[col_i] for v, col_i in zip(vals, column_indexes)]
+        for i in rows:
+            row = self.data[i]
+            vals = [v | row[col_i] for v, col_i in zip(vals, columns)]
             if all(vals):  # All values are True
                 break
         return vals
 
-    def _sum(self) -> int:
-        return sum(self._sum_per_row())
+    def _sum(self, rows: List[int] = None, columns: List[int] = None) -> int:
+        return sum(self._sum_per_row(rows, columns))
 
-    def _sum_per_row(self, row_indexes: List[int] = None) -> List[int]:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return [sum(self.data[i]) for i in row_indexes]
+    def _sum_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return [sum(self.data[i]) for i in rows]
+        return [sum([self.data[i][j] for j in columns]) for i in rows]
 
-    def _sum_per_column(self, column_indexes: List[int] = None) -> List[int]:
-        if column_indexes is None:
-            vals, column_indexes = range(self.width), [0] * self.width
+    def _sum_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            vals, columns = range(self.width), [0] * self.width
         else:
-            vals = [0] * len(column_indexes)
+            vals = [0] * len(columns)
 
-        for row in self.data:
-            vals = [v + int(row[col_i]) for v, col_i in zip(vals, column_indexes)]
+        for i in rows:
+            row = self.data[i]
+            vals = [v + int(row[col_i]) for v, col_i in zip(vals, columns)]
         return vals
 
     def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> List[bool]:
@@ -368,50 +409,50 @@ class BinTableNumpy(AbstractBinTable):
 
         return True
 
-    def _all(self) -> bool:
-        return self.data.all()
+    def _all(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> bool:
+        if rows is None and columns is None:
+            return self.data.all()
+        return self.data[rows, columns].all()
 
-    def _all_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
-        flg = self.data.all(1)
-        if row_indexes is None:
-            return flg
-        return flg[row_indexes]
+    def _all_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        if rows is None and columns is None:
+            return self.data.all(1)
+        return self.data[rows, columns].all(1)
 
-    def _all_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
-        flg = self.data.all(0)
-        if column_indexes is None:
-            return flg
-        return flg[column_indexes]
+    def _all_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        if rows is None and columns is None:
+            return self.data.all(0)
+        return self.data[rows, columns].all(0)
 
-    def _any(self) -> bool:
-        return self.data.any()
+    def _any(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> bool:
+        if rows is None and columns is None:
+            return self.data.any()
+        return self.data[rows, columns].any()
 
-    def _any_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
-        flg = self.data.any(1)
-        if row_indexes is None:
-            return flg
-        return flg[row_indexes]
+    def _any_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        if rows is None and columns is None:
+            return self.data.any(1)
+        return self.data[rows, columns].any(1)
 
-    def _any_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[bool]:
-        flg = self.data.any(0)
-        if column_indexes is None:
-            return flg
-        return flg[column_indexes]
+    def _any_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+        if rows is None and columns is None:
+            return self.data.any(0)
+        return self.data[rows, columns].any(0)
 
-    def _sum(self) -> int:
-        return self.data.sum()
+    def _sum(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> int:
+        if rows is None and columns is None:
+            return self.data.sum()
+        return self.data[rows, columns].sum()
 
-    def _sum_per_row(self, row_indexes: npt.NDArray[int] = None) -> npt.NDArray[int]:
-        flg = self.data.sum(1)
-        if row_indexes is None:
-            return flg
-        return flg[row_indexes]
+    def _sum_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        if rows is None and columns is None:
+            return self.data.sum(1)
+        return self.data[rows, columns].sum(1)
 
-    def _sum_per_column(self, column_indexes: npt.NDArray[int] = None) -> npt.NDArray[int]:
-        flg = self.data.sum(0)
-        if column_indexes is None:
-            return flg
-        return flg[column_indexes]
+    def _sum_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        if rows is None and columns is None:
+            return self.data.sum(0)
+        return self.data[rows, columns].sum(0)
 
     def __eq__(self, other: 'BinTableNumpy'):
         if self.height != other.height:
@@ -445,61 +486,90 @@ class BinTableBitarray(AbstractBinTable):
 
         return True
 
-    def _all(self) -> bool:
-        for row in self.data:
-            if not row.all():
-                return False
+    def _all(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            for i in rows:
+                row = self.data[i]
+                if not row.all():
+                    return False
+        else:
+            for i in rows:
+                row = self.data[i]
+                for j in columns:
+                    if not row[j]:
+                        return False
         return True
 
-    def _all_per_row(self, row_indexes: List[int] = None) -> fbitarray:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return fbitarray([self.data[i].all() for i in row_indexes])
+    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return fbitarray([self.data[i].all() for i in rows])
+        return fbitarray([all([self.data[i][j] for j in columns]) for i in rows])
 
-    def _all_per_column(self, column_indexes: List[int] = None) -> fbitarray:
-        vals = bitarray(self.data[0])
-        for row in self.data[1:]:
-            vals &= row
+    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+        rows = range(self.height) if rows is None else rows
+        vals = bitarray(self.data[0] | (~self.data[0]))  # Bitarray of Trues
+        for i in rows:
+            vals &= self.data[i]
             if not vals.any():  # If all values are False
                 break
-        if column_indexes is not None:
-            vals = fbitarray([vals[i] for i in column_indexes])
+        if columns is not None:
+            vals = fbitarray([vals[i] for i in columns])
         return vals
 
-    def _any(self) -> bool:
-        for row in self.data:
-            if row.any():
-                return True
+    def _any(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            for i in rows:
+                if self.data[i].any():
+                    return True
+        else:
+            for i in rows:
+                row = self.data[i]
+                for j in columns:
+                    if row[j]:
+                        return True
+
         return False
 
-    def _any_per_row(self, row_indexes: List[int] = None) -> fbitarray:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return fbitarray([self.data[i].any() for i in row_indexes])
+    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return fbitarray([self.data[i].any() for i in rows])
+        return fbitarray([any([self.data[i][j] for j in columns]) for i in rows])
 
-    def _any_per_column(self, column_indexes: List[int] = None) -> fbitarray:
-        vals = bitarray(self.data[0])
-        for row in self.data[1:]:
-            vals |= row
+    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+        rows = range(self.height) if rows is None else rows
+
+        vals = bitarray(self.data[0] & (~self.data[0]))  # Bitarray of all False
+        for i in rows:
+            vals |= self.data[i]
             if vals.all():
                 break
-        if column_indexes is not None:
-            vals = fbitarray([vals[i] for i in column_indexes])
+        if columns is not None:
+            vals = fbitarray([vals[i] for i in columns])
         return vals
 
-    def _sum(self) -> int:
-        return sum(self._sum_per_row())
+    def _sum(self, rows: List[int] = None, columns: List[int] = None) -> int:
+        return sum(self._sum_per_row(rows, columns))
 
-    def _sum_per_row(self, row_indexes: List[int] = None) -> List[int]:
-        row_indexes = range(self.height) if row_indexes is None else row_indexes
-        return [self.data[i].count() for i in row_indexes]
+    def _sum_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            return [self.data[i].count() for i in rows]
+        return [sum([self.data[i][j] for j in columns]) for i in rows]
 
-    def _sum_per_column(self, column_indexes: List[int] = None) -> List[int]:
-        if column_indexes is None:
-            vals, column_indexes = [0] * self.width, range(self.width)
+    def _sum_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        rows = range(self.height) if rows is None else rows
+        if columns is None:
+            vals, columns = [0] * self.width, range(self.width)
         else:
-            vals = [0] * len(column_indexes)
+            vals = [0] * len(columns)
 
-        for row in self.data:
-            vals = [v + int(row[i]) for v, i in zip(vals, column_indexes)]
+        for i in rows:
+            row = self.data[i]
+            vals = [v + int(row[j]) for v, j in zip(vals, columns)]
         return vals
 
     def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> fbitarray:
