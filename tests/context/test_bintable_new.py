@@ -190,3 +190,11 @@ def test_or():
         bt_or = BTClass(data_or)
 
         assert bt1 | bt2 == bt_or, f"{class_name}.__or__ failed"
+
+
+def test_transpose():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+
+    for class_name, BTClass in btables.BINTABLE_CLASSES.items():
+        bt = BTClass(data)
+        assert bt.T.T == bt, f"{class_name}.T failed"

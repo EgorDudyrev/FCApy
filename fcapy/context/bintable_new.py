@@ -42,6 +42,10 @@ class AbstractBinTable(metaclass=ABCMeta):
     def shape(self) -> Optional[Tuple[int, Optional[int]]]:
         return self.height, self.width
 
+    @property
+    def T(self) -> 'AbstractBinTable':
+        return self.__class__(self.data.T)
+
     def all(self, axis: int = None, element_indexes: Collection[int] = None) -> bool or Collection[bool]:
         if axis not in {None, 0, 1}:
             raise berrors.UnknownAxisError(axis)
@@ -222,6 +226,10 @@ class BinTableLists(AbstractBinTable):
     def to_lists(self) -> List[List[bool]]:
         return self.data
 
+    @property
+    def T(self) -> 'BinTableLists':
+        return self.__class__([list(row) for row in zip(*self.data)])
+
     def _validate_data(self, data: List[List[bool]]) -> bool:
         if len(data) == 0:
             return True
@@ -343,6 +351,7 @@ class BinTableLists(AbstractBinTable):
 
 class BinTableNumpy(AbstractBinTable):
     data: npt.NDArray[bool]  # Updating type hint
+    T: npt.NDArray[bool]
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> npt.NDArray[bool]:
         return np.array(data)
@@ -417,6 +426,10 @@ class BinTableNumpy(AbstractBinTable):
 
 class BinTableBitarray(AbstractBinTable):
     data: List[fbitarray]  # Updating type hint
+
+    @property
+    def T(self) -> 'BinTableBitarray':
+        return self.__class__([fbitarray(row) for row in zip(*self.data)])
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> List[fbitarray]:
         return [fbitarray(row) for row in data]
