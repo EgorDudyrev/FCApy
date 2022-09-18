@@ -501,27 +501,42 @@ class BinTableBitarray(AbstractBinTable):
                 if not row.all():
                     return False
         else:
+            columns = set(columns)
+            mask = fbitarray([j not in columns for j in range(self.width)])
+
             for i in rows:
                 row = self.data[i]
-                for j in columns:
-                    if not row[j]:
-                        return False
+                if not (row | mask).all():
+                    return False
+
         return True
 
     def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return fbitarray([self.data[i].all() for i in rows])
-        return fbitarray([all([self.data[i][j] for j in columns]) for i in rows])
+
+        columns = set(columns)
+        mask = fbitarray([j not in columns for j in range(self.width)])
+
+        return fbitarray([(self.data[i] | mask).all() for i in rows])
 
     def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
         rows = range(self.height) if rows is None else rows
         vals = bitarray(self.data[0] | (~self.data[0]))  # Bitarray of Trues
-        for i in rows:
-            vals &= self.data[i]
-            if not vals.any():  # If all values are False
-                break
-        if columns is not None:
+        if columns is None:
+            for i in rows:
+                vals &= self.data[i]
+                if not vals.any():  # If all values are False
+                    break
+        else:
+            columns_set = set(columns)
+            mask = fbitarray([j in columns_set for j in range(self.width)])
+            for i in rows:
+                vals &= self.data[i]
+                if not (vals & mask).any():  # If all values are False
+                    break
+
             vals = fbitarray([vals[i] for i in columns])
         return vals
 
@@ -532,11 +547,12 @@ class BinTableBitarray(AbstractBinTable):
                 if self.data[i].any():
                     return True
         else:
+            columns = set(columns)
+            mask = fbitarray([j in columns for j in range(self.width)])
+
             for i in rows:
-                row = self.data[i]
-                for j in columns:
-                    if row[j]:
-                        return True
+                if (self.data[i] & mask).any():
+                    return True
 
         return False
 
@@ -544,17 +560,29 @@ class BinTableBitarray(AbstractBinTable):
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return fbitarray([self.data[i].any() for i in rows])
-        return fbitarray([any([self.data[i][j] for j in columns]) for i in rows])
+
+        columns = set(columns)
+        mask = fbitarray([j in columns for j in range(self.width)])
+        return fbitarray([(self.data[i] & mask).any() for i in rows])
 
     def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
         rows = range(self.height) if rows is None else rows
 
         vals = bitarray(self.data[0] & (~self.data[0]))  # Bitarray of all False
-        for i in rows:
-            vals |= self.data[i]
-            if vals.all():
-                break
-        if columns is not None:
+        if columns is None:
+            for i in rows:
+                vals |= self.data[i]
+                if vals.all():
+                    break
+        else:
+            columns_set = set(columns)
+            mask = fbitarray([j not in columns_set for j in range(self.width)])
+
+            for i in rows:
+                vals |= self.data[i]
+                if (vals | mask).all():
+                    break
+
             vals = fbitarray([vals[i] for i in columns])
         return vals
 
@@ -565,18 +593,27 @@ class BinTableBitarray(AbstractBinTable):
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return [self.data[i].count() for i in rows]
-        return [sum([self.data[i][j] for j in columns]) for i in rows]
+
+        columns = set(columns)
+        mask = fbitarray([j in columns for j in range(self.width)])
+        return [(self.data[i] & mask).count() for i in rows]
 
     def _sum_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         rows = range(self.height) if rows is None else rows
         if columns is None:
-            vals, columns = [0] * self.width, range(self.width)
+            vals = [0] * self.width
+            for i in rows:
+                for j in self.data[i].search(1):
+                    vals[j] += 1
         else:
             vals = [0] * len(columns)
 
-        for i in rows:
-            row = self.data[i]
-            vals = [v + int(row[j]) for v, j in zip(vals, columns)]
+            columns_set = set(columns)
+            mask = fbitarray([j in columns_set for j in range(self.width)])
+            for i in rows:
+                for j in (self.data[i] & mask).search(1):
+                    vals[j] += 1
+
         return vals
 
     def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> fbitarray:
