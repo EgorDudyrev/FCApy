@@ -3,21 +3,20 @@ import os
 from operator import itemgetter
 import filecmp
 
-from fcapy.context import FormalContext, BinTable, read_cxt, read_json, read_csv, from_pandas
+from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
 from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
 
 
 def test_data_property(animal_movement_data):
-    ctx = FormalContext()
-    assert ctx.data == BinTable([]), 'FormalContext.data failed'
+    K = FormalContext()
+    assert K.data.to_list() == [], 'FormalContext.data failed'
 
     data = animal_movement_data['data']
-    ctx = FormalContext(data=data)
-    data_ = ctx.data
-    assert BinTable(data) == data_, 'FormalContext.data has changed the initial data'
+    K = FormalContext(data)
+    assert K.data.to_list() == data, 'FormalContext.data has changed the initial data'
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         FormalContext(data=[[0], [1, 2]])
 
 
@@ -53,6 +52,9 @@ def test_intent_extent_i(animal_movement_data):
 
     assert ctx.intention_i(ctx.extension_i(int_)) == int_,\
         'Basic FCA theorem failed. Check FormalContext.extension_i, intention_i'
+
+    assert ctx.extension_i([]) == list(range(ctx.n_objects))
+    assert ctx.intention_i([]) == list(range(ctx.n_attributes))
 
 
 def test_intent_extent(animal_movement_data):
@@ -264,3 +266,8 @@ def test_get_minimal_generators():
     ltc = ConceptLattice.from_context(ctx)
     for c in ltc:
         ctx.get_minimal_generators(c.intent)
+
+
+def test_invert():
+    ctx = read_csv('data/mango_bin.csv')
+    assert ~~ctx == ctx, 'FormalContext.__invert__ failed'
