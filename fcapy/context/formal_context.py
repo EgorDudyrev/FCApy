@@ -5,7 +5,7 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from itertools import combinations
 from numbers import Integral
-from typing import Tuple, Iterable, List, Collection
+from typing import Tuple, Iterable, List, Collection, Set
 
 from frozendict import frozendict
 import zlib
@@ -194,14 +194,14 @@ class FormalContext:
         if len(attribute_indexes) == 0:
             return list(range(self.n_objects)) if base_objects_i is None else list(base_objects_i)
 
-        if base_objects_i:
-            return self.data[base_objects_i, attribute_indexes].all_i(1)
-        return self.data[:, attribute_indexes].all_i(1)
+        attribute_indexes = list(attribute_indexes)
+
+        return list(self.data.all_i(1, base_objects_i, attribute_indexes))
 
     def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
             -> List[int]:
         base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
-        extension_i = self._data[base_objects_i, attribute_indexes].any(1)
+        extension_i = self.data.any(1, list(base_objects_i), list(attribute_indexes))
         return extension_i
 
     def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False)\
@@ -263,16 +263,15 @@ class FormalContext:
         if len(object_indexes) == 0:
             return list(range(self.n_attributes)) if base_attrs_i is None else list(base_attrs_i)
 
-        if base_attrs_i:
-            return list(self.data[object_indexes, base_attrs_i].all_i(0))
-        return list(self.data[object_indexes].all_i(0))
+        object_indexes = list(object_indexes)
+        return list(self.data.all_i(0, object_indexes, base_attrs_i))
 
     def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
             -> Tuple[int, ...]:
         """Return indexes of maximal set of attributes shared by any of given ``object_indexes``"""
         base_attrs_i = slice(0, self.n_attributes) if base_attrs_i is None else base_attrs_i
         complement_objs = list(set(range(self.n_objects))-set(object_indexes))
-        complement_attrs_flg = self._data[complement_objs, base_attrs_i].any(axis=0)
+        complement_attrs_flg = self.data.any(0, complement_objs, base_attrs_i)
         intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
         return intention_i
 
@@ -576,19 +575,31 @@ class FormalContext:
         D'' = B, \\nexists E \\subset B, | E | < | D |
 
         """
+        if use_indexes:
+            return self.get_minimal_generators_i(intent, base_generator, base_objects)
+
         intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
-        intent_i = set(intent_i)
 
         base_generator = list(base_generator) if base_generator is not None else []
-        if not use_indexes:
-            base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
+        base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
 
         if base_objects is None:
             base_objects_i = list(range(self.n_objects))
         else:
-            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if
-                              g in base_objects] if not use_indexes else base_objects
+            base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]
         base_objects_i = frozenset(base_objects_i)
+
+        min_gens = self.get_minimal_generators_i(intent_i, base_generator, base_objects_i)
+
+        min_gens = [tuple([self.attribute_names[m_i] for m_i in mg]) for mg in min_gens]
+        return min_gens
+
+    def get_minimal_generators_i(
+            self, intent: List[int], base_generator: List[int] = None, base_objects: List[int] = None
+    ) -> Set[Tuple[int, ...]]:
+        intent_i = set(intent)
+        base_generator = list(base_generator) if base_generator is not None else []
+        base_objects_i = frozenset(base_objects)
 
         attrs_to_iterate = [m_i for m_i in range(self.n_attributes) if m_i not in base_generator]
         min_gens = set()
@@ -603,9 +614,6 @@ class FormalContext:
             if len(min_gens) > 0:
                 break
 
-        if not use_indexes:
-            min_gens = [[self.attribute_names[m_i] for m_i in mg] for mg in min_gens]
-        min_gens = [tuple(mg) for mg in min_gens]
         return min_gens
 
     def __eq__(self, other):
