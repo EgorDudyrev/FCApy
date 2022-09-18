@@ -19,6 +19,5 @@ Modules
 """
 
 from .formal_context import FormalContext
-from .bintable import BinTable
-from .bintable_new import BINTABLE_CLASSES, init_bintable
+from .bintable import BINTABLE_CLASSES, init_bintable
 from .converters import read_cxt, read_json, read_csv, from_pandas

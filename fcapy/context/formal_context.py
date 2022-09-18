@@ -10,7 +10,7 @@ from typing import Tuple, Iterable, List, Collection, Set
 from frozendict import frozendict
 import zlib
 
-from fcapy.context.bintable_new import init_bintable, BINTABLE_CLASSES, AbstractBinTable
+from fcapy.context.bintable import init_bintable, BINTABLE_CLASSES, AbstractBinTable
 from fcapy.utils.utils import slice_list
 
 
