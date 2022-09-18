@@ -670,6 +670,12 @@ class FormalContext:
 
         return data
 
+    def __invert__(self):
+        data_inv = ~self.data
+        obj_inv = [g[4:] if g.startswith('not ') else 'not ' + g for g in self.object_names]
+        attrs_inv = [m[4:] if m.startswith('not ') else 'not ' + m for m in self.attribute_names]
+        return self.__class__(data_inv, obj_inv, attrs_inv, self.description, self.target)
+
     def to_numeric(self):
         """A method to extract the data of the context in a numerical form (and the names of numerical attributes)
 

@@ -124,6 +124,9 @@ class AbstractBinTable(metaclass=ABCMeta):
         assert self.shape == other.shape
         return self.__class__(self.data | other.data)
 
+    def __invert__(self) -> 'AbstractBinTable':
+        return self.__class__(~self.data)
+
     @abstractmethod
     def _validate_data(self, data) -> bool:
         ...
@@ -389,6 +392,10 @@ class BinTableLists(AbstractBinTable):
         intersection = [[a or b for a, b in zip(row_a, row_b)] for row_a, row_b in zip(self.data, other.data)]
         return self.__class__(intersection)
 
+    def __invert__(self) -> 'BinTableLists':
+        data_neg = [[not v for v in row] for row in self.data]
+        return self.__class__(data_neg)
+
 
 class BinTableNumpy(AbstractBinTable):
     data: npt.NDArray[bool]  # Updating type hint
@@ -618,6 +625,10 @@ class BinTableBitarray(AbstractBinTable):
         assert self.shape == other.shape
         intersection = [row_a | row_b for row_a, row_b in zip(self.data, other.data)]
         return self.__class__(intersection)
+
+    def __invert__(self) -> 'BinTableBitarray':
+        data_neg = [~row for row in self.data]
+        return self.__class__(data_neg)
 
 
 BINTABLE_CLASSES = {cl.__name__: cl for cl in [BinTableLists, BinTableNumpy, BinTableBitarray]}

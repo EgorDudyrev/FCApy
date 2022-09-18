@@ -266,3 +266,8 @@ def test_get_minimal_generators():
     ltc = ConceptLattice.from_context(ctx)
     for c in ltc:
         ctx.get_minimal_generators(c.intent)
+
+
+def test_invert():
+    ctx = read_csv('data/mango_bin.csv')
+    assert ~~ctx == ctx, 'FormalContext.__invert__ failed'
