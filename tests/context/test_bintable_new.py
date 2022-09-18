@@ -198,3 +198,12 @@ def test_transpose():
     for class_name, BTClass in btables.BINTABLE_CLASSES.items():
         bt = BTClass(data)
         assert bt.T.T == bt, f"{class_name}.T failed"
+
+
+def test_init_bintable():
+    data = [[False, True, True], [False, False, True], [False, False, True]]
+
+    for class_name, BTClass in btables.BINTABLE_CLASSES.items():
+        assert BTClass(data) == btables.init_bintable(data, class_name)
+
+    assert type(btables.init_bintable(data)) == btables.BINTABLE_CLASSES['BinTableBitarray']

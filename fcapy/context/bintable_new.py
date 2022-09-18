@@ -551,3 +551,13 @@ class BinTableBitarray(AbstractBinTable):
 
 
 BINTABLE_CLASSES = {cl.__name__: cl for cl in [BinTableLists, BinTableNumpy, BinTableBitarray]}
+BINTABLE_DEPENDENCY_DICT = {'BinTableBitarray': {'bitarray'}, 'BinTableNumpy': {'numpy'}, 'BinTableLists': set()}
+
+
+def init_bintable(data: Collection, class_name: str = 'auto') -> 'AbstractBinTable':
+    if class_name != 'auto':
+        return BINTABLE_CLASSES[class_name](data)
+
+    for class_name, deps in BINTABLE_DEPENDENCY_DICT.items():
+        if all([LIB_INSTALLED[lib_name] for lib_name in deps]):
+            return BINTABLE_CLASSES[class_name](data)
