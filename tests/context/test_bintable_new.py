@@ -164,3 +164,29 @@ def test_getitem():
         assert tuple(output) == tuple(data[0]), f"{BTClass}.__getitem__ failed"
         output = bt[:, 0]
         assert tuple(output) == tuple([row[0] for row in data]), f"{BTClass}.__getitem__ failed"
+
+
+def test_and():
+    data1 = [[False, True, True], [False, False, True], [False, False, True]]
+    data2 = [[True, False, True], [False, False, False], [True, False, True]]
+    data_and = [[False, False, True], [False, False, False], [False, False, True]]
+
+    for class_name, BTClass in btables.BINTABLE_CLASSES.items():
+        bt1 = BTClass(data1)
+        bt2 = BTClass(data2)
+        bt_and = BTClass(data_and)
+
+        assert bt1 & bt2 == bt_and, f"{class_name}.__and__ failed"
+
+
+def test_or():
+    data1 = [[False, True, True], [False, False, True], [False, False, True]]
+    data2 = [[True, False, True], [False, False, False], [True, False, True]]
+    data_or = [[True, True, True], [False, False, True], [True, False, True]]
+
+    for class_name, BTClass in btables.BINTABLE_CLASSES.items():
+        bt1 = BTClass(data1)
+        bt2 = BTClass(data2)
+        bt_or = BTClass(data_or)
+
+        assert bt1 | bt2 == bt_or, f"{class_name}.__or__ failed"

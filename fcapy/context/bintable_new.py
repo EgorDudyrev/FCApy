@@ -101,6 +101,14 @@ class AbstractBinTable(metaclass=ABCMeta):
             return False
         return self.data == other.data
 
+    def __and__(self, other: 'AbstractBinTable') -> 'AbstractBinTable':
+        assert self.shape == other.shape
+        return self.__class__(self.data & other.data)
+
+    def __or__(self, other: 'AbstractBinTable') -> 'AbstractBinTable':
+        assert self.shape == other.shape
+        return self.__class__(self.data | other.data)
+
     @abstractmethod
     def _validate_data(self, data) -> bool:
         ...
@@ -322,6 +330,16 @@ class BinTableLists(AbstractBinTable):
 
         return self.__class__(subtable)
 
+    def __and__(self, other: 'BinTableLists') -> 'BinTableLists':
+        assert self.shape == other.shape
+        intersection = [[a and b for a, b in zip(row_a, row_b)] for row_a, row_b in zip(self.data, other.data)]
+        return self.__class__(intersection)
+
+    def __or__(self, other: 'BinTableLists') -> 'BinTableLists':
+        assert self.shape == other.shape
+        intersection = [[a or b for a, b in zip(row_a, row_b)] for row_a, row_b in zip(self.data, other.data)]
+        return self.__class__(intersection)
+
 
 class BinTableNumpy(AbstractBinTable):
     data: npt.NDArray[bool]  # Updating type hint
@@ -507,6 +525,16 @@ class BinTableBitarray(AbstractBinTable):
 
     def __hash__(self):
         return hash(tuple(self.data))
+
+    def __and__(self, other: 'BinTableBitarray') -> 'BinTableBitarray':
+        assert self.shape == other.shape
+        intersection = [row_a & row_b for row_a, row_b in zip(self.data, other.data)]
+        return self.__class__(intersection)
+
+    def __or__(self, other: 'BinTableBitarray') -> 'BinTableBitarray':
+        assert self.shape == other.shape
+        intersection = [row_a | row_b for row_a, row_b in zip(self.data, other.data)]
+        return self.__class__(intersection)
 
 
 BINTABLE_CLASSES = {cl.__name__: cl for cl in [BinTableLists, BinTableNumpy, BinTableBitarray]}
