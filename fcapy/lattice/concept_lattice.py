@@ -79,6 +79,8 @@ class ConceptLattice(Lattice):
                 A dictionary with children relation (preceding concepts) on ``concepts``
             parents_dict: `dict`{`int`, `list`[`int`]}
                 A dictionary with parents relation (succeeding concepts)  on ``concepts``
+            is_monotone: bool
+                A flag whether lattice contains antimonotone (default) or monotone concepts
         """
         assert not (kwargs.get('children_dict') is not None and kwargs.get('parents_dict') is not None),\
             'Specify either "children_dict" or "parents_dict", not both at the same time'
@@ -92,8 +94,8 @@ class ConceptLattice(Lattice):
             concepts, self.concepts_leq_func,
             use_cache=True, children_dict=children_dict
         )
-
         self._generators_dict = {}
+        self._is_monotone = kwargs.get('is_monotone', False)
 
     @property
     def T(self):
@@ -118,6 +120,10 @@ class ConceptLattice(Lattice):
         meas_dict = {k: np.array(vs) for k, vs in meas_dict.items()}
         assert len(set([len(vs) for vs in meas_dict.values()])) == 1
         return meas_dict
+
+    @property
+    def is_monotone(self):
+        return self._is_monotone
 
     @staticmethod
     def get_top_bottom_concepts_i(
@@ -175,7 +181,9 @@ class ConceptLattice(Lattice):
     def from_context(
             cls,
             context: FormalContext or MVContext,
-            algo: Optional[str] = None, **kwargs
+            algo: Optional[str] = None,
+            is_monotone: bool = False,
+            **kwargs
     ):
         """Return a `ConceptLattice` constructed on the ``context`` by algorithm ``algo``
 
@@ -183,6 +191,8 @@ class ConceptLattice(Lattice):
         ----------
         context: 'FormalContext` or 'MVContext`
         algo: `str` in {'CbO', 'Sofia', 'RandomForest'}
+        is_monotone: bool
+            Whether to build antimonotone lattice (if False, default) or monotone concept lattice
         kwargs:
             Parameters used in CbO, Sofia and RandomForest algorithms from `fcapy.algorithms.concept_construction` module
 
@@ -192,6 +202,9 @@ class ConceptLattice(Lattice):
             A concept lattice constructed on the ``context`` by algorithm ``algo``
 
         """
+        if is_monotone:
+            return cls._from_context_monotone(context, algo, **kwargs)
+
         if algo is None:
             algo = 'CbO' if type(context) == MVContext else 'Lindig'
 
@@ -243,6 +256,25 @@ class ConceptLattice(Lattice):
             raise ValueError(f'ConceptLattice.from_context error. Algorithm {algo} is not supported.\n'
                              f'Possible values are: "CbO" (stands for CloseByOne), "Sofia", "RandomForest", "Lindig"')
         return ltc
+
+    @classmethod
+    def _from_context_monotone(cls, context: FormalContext, algo: str, **kwargs):
+        if not isinstance(context, FormalContext):
+            raise NotImplementedError('Monotone concept lattice can only be constructed on Formal Contexts (for now)')
+
+        L = ConceptLattice.from_context(~context, algo=algo, is_monotone=False, **kwargs)
+        attrs_indices_dict = {m: m_i for m_i, m in enumerate(context.attribute_names)}
+        obj_names = context.object_names
+        for c in L:
+            c._intent = tuple([m[4:] if m.startswith('not ') else f"not {m}" for m in c.intent])
+            c._intent_i = tuple([attrs_indices_dict[m] for m in c.intent])
+
+            ext_i_neg = set(c.extent_i)
+            c._extent_i = tuple([g_i for g_i in range(len(obj_names)) if g_i not in ext_i_neg])
+            c._extent = tuple([obj_names[g_i] for g_i in c.extent_i])
+            c._is_monotone = True
+        L._is_monotone = True
+        return L
 
     @staticmethod
     def sort_concepts(
@@ -410,6 +442,9 @@ class ConceptLattice(Lattice):
             A list of dictionaries containing information about generators ran while tracing.
 
         """
+        if self.is_monotone:
+            raise NotImplementedError('Tracing lattice of monotone concepts is not yet supported')
+
         concept_extents = {}
         if return_generators_extents:
             generators_extents = []

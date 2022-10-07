@@ -2,9 +2,11 @@
 This module provides a class FormalConcept which represents the Formal Concept object from FCA theory
 
 """
+from abc import ABCMeta
 from collections.abc import Iterable
 import json
 import numbers
+from typing import Type, List, Dict
 
 
 class FormalConcept:
@@ -21,46 +23,56 @@ class FormalConcept:
     """
     JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
 
-    def __init__(self, extent_i, extent, intent_i, intent, measures=None, context_hash=None):
+    def __init__(
+            self,
+            extent_i: List[int], extent: List[str], intent_i: List[int], intent: List[str],
+            measures: Dict[str, float] = None, context_hash: int = None, is_monotone: bool = False,
+    ):
         """Initialize the FormalConcept object
 
         Parameters
         ----------
-        extent_i: `list` of `int`
+        extent_i: List[int]
             A list of indexes of objects described by intent
-        extent: `list` of `str`
+        extent: List[int]
             A list of names of objects described by intent
-        intent_i: `list` of `int`
+        intent_i: List[int]
             A list of indexes of attributes which describe extent
-        intent: `list` of `str`
+        intent: List[int]
             A list of names of attributes which describe extent
-        measures: `dict` of type {`str`: `int`}
+        measures: Dict[str, float]
             Dict with values of interestingness measures of the concept
-        context_hash: `int`
+        context_hash: int
             Hash value of a FormalContext the FormalConcept is based on.
             Only the concepts from the same FormalContext can be compared
+        is_monotone: bool
+            A flag whether the concept is describes monotone extent and intent obtained with
+            FormalContext(...).extension(..., is_monotone=True) and FormalContext(...).intention(..., is_monotone=True)
 
         """
-        def unify_iterable_type(value, name="", value_type=str):
+        def assert_iterable_type(value, value_name: str = "", value_type: Type = str):
             assert isinstance(value, Iterable) and type(value) != str, \
-                f"FormalConcept.__init__. Given {name} value should be an iterable but not a string"
+                f"FormalConcept.__init__. Given {value_name} value should be an iterable but not a string"
             assert all([isinstance(v, value_type) for v in value]),\
-                f"FormalConcept.__init__. Given {name} values should be of type {value_type}"
-            return tuple(value)
+                f"FormalConcept.__init__. Given {value_name} values should be of type {value_type}"
 
-        self._extent_i = unify_iterable_type(extent_i, "extent_i", value_type=numbers.Integral)
-        self._extent = unify_iterable_type(extent, "extent", value_type=str)
-        self._intent_i = unify_iterable_type(intent_i, "intent", value_type=numbers.Integral)
-        self._intent = unify_iterable_type(intent, "intent", value_type=str)
+        for name in ['extent_i', 'extent', 'intent', 'intent_i']:
+            assert_iterable_type(locals()[name], name, numbers.Integral if name.endswith('_i') else str)
 
-        assert len(self._extent_i) == len(self._extent),\
+        assert len(extent_i) == len(extent), \
             "FormalConcept.__init__ error. extent and extent_i are of different sizes"
-        assert len(self._intent_i) == len(self._intent), \
+        assert len(intent_i) == len(intent), \
             "FormalConcept.__init__ error. intent and intent_i are of different sizes"
+
+        self._extent_i = tuple(extent_i)
+        self._extent = tuple(extent)
+        self._intent_i = tuple(intent_i)
+        self._intent = tuple(intent)
 
         self._support = len(self._extent_i)
         self.measures = measures if measures is not None else {}
         self._context_hash = context_hash
+        self._is_monotone = is_monotone
 
     @property
     def extent_i(self):
@@ -96,17 +108,24 @@ class FormalConcept:
         """
         return self._context_hash
 
+    @property
+    def is_monotone(self):
+        return self._is_monotone
+
     def __eq__(self, other):
-        if self._context_hash != other.context_hash:
+        if self.context_hash != other.context_hash:
             raise NotImplementedError('FormalConcept error. Cannot compare concepts from different contexts')
 
-        if self._support != other.support:
+        if self.is_monotone != other.is_monotone:
+            raise ValueError('FormalConcept error. Cannot compare monotone and antimonotone concepts')
+
+        if self.support != other.support:
             return False
 
         return self <= other
 
     def __hash__(self):
-        return hash((tuple(sorted(self._extent_i)), tuple(sorted(self._intent_i))))
+        return hash((tuple(sorted(self._extent_i)), tuple(sorted(self._intent_i)), self.is_monotone))
 
     def __le__(self, other):
         """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
