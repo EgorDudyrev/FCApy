@@ -4,7 +4,7 @@ This module provides a ConceptLattice class. It may be considered as the main mo
 """
 import json
 
-from typing import Tuple, Union, Optional, List, Dict, FrozenSet, Set, Collection
+from typing import Tuple, Union, Optional, List, Dict, Set, Collection
 
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
@@ -184,7 +184,7 @@ class ConceptLattice(Lattice):
             algo: Optional[str] = None,
             is_monotone: bool = False,
             **kwargs
-    ):
+    ) -> 'ConceptLattice':
         """Return a `ConceptLattice` constructed on the ``context`` by algorithm ``algo``
 
         Parameters
@@ -258,28 +258,32 @@ class ConceptLattice(Lattice):
         return ltc
 
     @classmethod
-    def _from_context_monotone(cls, context: FormalContext, algo: str, **kwargs):
+    def _from_context_monotone(cls, context: FormalContext, algo: str, **kwargs) -> 'ConceptLattice':
         if not isinstance(context, FormalContext):
             raise NotImplementedError('Monotone concept lattice can only be constructed on Formal Contexts (for now)')
 
         L = ConceptLattice.from_context(~context, algo=algo, is_monotone=False, **kwargs)
-        attrs_indices_dict = {m: m_i for m_i, m in enumerate(context.attribute_names)}
-        obj_names = context.object_names
-        for c in L:
-            c._intent = tuple([m[4:] if m.startswith('not ') else f"not {m}" for m in c.intent])
-            c._intent_i = tuple([attrs_indices_dict[m] for m in c.intent])
+        obj_idxs = set(range(context.n_objects))
+        obj_names = set(context.object_names)
+        ctx_hash = context.hash_fixed()
 
-            ext_i_neg = set(c.extent_i)
-            c._extent_i = tuple([g_i for g_i in range(len(obj_names)) if g_i not in ext_i_neg])
-            c._extent = tuple([obj_names[g_i] for g_i in c.extent_i])
-            c._is_monotone = True
+        for i, c in enumerate(L):
+            c_new = FormalConcept(
+                extent_i=obj_idxs - c.extent_i,
+                extent=obj_names - c.extent,
+                intent_i=c.intent_i,
+                intent={m[4:] if m.startswith('not ') else f'not {m}' for m in c.intent},
+                context_hash=ctx_hash,
+                is_monotone=True
+            )
+            L._update_element(c, c_new)
         L._is_monotone = True
         return L
 
     @staticmethod
     def sort_concepts(
             concepts: List[FormalConcept or PatternConcept]
-    ) -> List[Union[FormalConcept or PatternConcept]]:
+    ) -> Optional[List[FormalConcept or PatternConcept]]:
         """Return the topologically sorted set of concepts
 
         (ordered by descending of support, lexicographical order of extent indexes)
