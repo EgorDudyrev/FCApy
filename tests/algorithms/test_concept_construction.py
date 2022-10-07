@@ -3,7 +3,7 @@ import pytest
 from fcapy.context import read_json, read_csv, read_cxt, from_pandas
 from fcapy.algorithms import concept_construction as cca
 from fcapy.algorithms import lattice_construction as lca
-from fcapy.lattice.formal_concept import FormalConcept
+from fcapy.lattice.formal_concept import FormalConcept, JSON_BOTTOM_PLACEHOLDER
 from fcapy.context.formal_context import FormalContext
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.lattice import ConceptLattice
@@ -20,12 +20,22 @@ def test_close_by_one():
     with open('data/animal_movement_concepts.json', 'r') as f:
         file_data = json.load(f)
     context = read_json("data/animal_movement.json")
-    concepts_loaded = [FormalConcept.from_dict(c_json) for c_json in file_data]
-    for c in concepts_loaded:
-        c._context_hash = context.hash_fixed()
-        if c.intent == FormalConcept.JSON_BOTTOM_PLACEHOLDER['Names']:
-            c._intent_i = tuple(context.intention_i(c.extent_i))
-            c._intent = tuple(context.intention(c.extent))
+
+    concepts_loaded = []
+    for c_json in file_data:
+        c_json['Context_Hash'] = context.hash_fixed()
+    #    if c_json['Int'] == JSON_BOTTOM_PLACEHOLDER['Names']:
+    #        c_json['intent_i'] = context.intention_i(c_json['extent_i'])
+    #        c_json['intent'] = context.intention(c_json['extent'])
+        concepts_loaded.append(FormalConcept.from_dict(c_json))
+
+
+    #concepts_loaded = [FormalConcept.from_dict(c_json) for c_json in file_data]
+    #for c in concepts_loaded:
+    #    c._context_hash = context.hash_fixed()
+    #    if c.intent == JSON_BOTTOM_PLACEHOLDER['Names']:
+    #        c._intent_i = tuple(context.intention_i(c.extent_i))
+    #        c._intent = tuple(context.intention(c.extent))
 
     concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
     assert set(concepts_constructed) == set(concepts_loaded),\

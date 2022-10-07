@@ -5,7 +5,8 @@ This module provides a class FormalConcept which represents the Formal Concept o
 from abc import ABCMeta, abstractmethod
 import json
 from pydantic.dataclasses import dataclass
-from typing import Dict, Container, FrozenSet, Any, List
+from dataclasses import FrozenInstanceError
+from typing import Dict, Container, FrozenSet, Any, List, Tuple
 from frozendict import frozendict
 
 JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
@@ -21,15 +22,21 @@ class UnmatchedMonotonicityError(ValueError):
         return f"Cannot compare monotone and antimonotone concepts"
 
 
-@dataclass(frozen=True)
+@dataclass(eq=False)
 class AbstractConcept(metaclass=ABCMeta):
-    extent_i: FrozenSet[int]  # Set of indexes of objects described by intent of the concept
-    extent: FrozenSet[str]  # Tuple of names of objects described by intent of the concept
-    intent_i: FrozenSet[int]  # Description of object indices from extent of the concept
-    intent: FrozenSet[str]  # Description of object names from extent of the concept
+    extent_i: Tuple[int, ...]  # Set of indexes of objects described by intent of the concept
+    extent: Tuple[str, ...]  # Tuple of names of objects described by intent of the concept
+    intent_i: Tuple[int, ...]  # Description of object indices from extent of the concept
+    intent: Tuple[str, ...]  # Description of object names from extent of the concept
     measures: Dict[str, float] = frozendict({})  # Dict with values of interestingness measures of the concept
     context_hash: int = None  # Hash value of a FormalContext the FormalConcept is based on
     is_monotone: bool = False  # "Bigger extent->bigger concept" if False else "smaller extent->bigger concept"
+
+    def __setattr__(self, key, value):
+        if key in self.__dict__ and key in {'extent_i', 'extent', 'intent_i', 'intent', 'context_hash', 'is_monotone'}:
+            raise FrozenInstanceError(f'Value of {key} cannot be updated')
+
+        super(AbstractConcept, self).__setattr__(key, value)
 
     @property
     def support(self):
@@ -109,7 +116,7 @@ class AbstractConcept(metaclass=ABCMeta):
         return c
 
 
-@dataclass(frozen=True)
+@dataclass(eq=False)
 class FormalConcept(AbstractConcept):
     """A class used to represent Formal Concept object from FCA theory
 
