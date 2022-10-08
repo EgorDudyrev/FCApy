@@ -65,15 +65,16 @@ class AbstractConcept(metaclass=ABCMeta):
         if self.is_monotone != other.is_monotone:
             raise UnmatchedMonotonicityError
 
-        if not self.is_monotone:
-            lesser_ext, greater_ext = self, other
-        else:
-            lesser_ext, greater_ext = other, self
+        lesser, greater = (self, other) if not self.is_monotone else (other, self)
 
-        if lesser_ext.support > greater_ext.support:
+        if lesser.support > greater.support:
             return False
 
-        return (lesser_ext.extent_i & greater_ext.extent_i) == lesser_ext.extent_i
+        greater_ext_i = set(greater.extent_i)
+        for g_i in lesser.extent_i:
+            if g_i not in greater_ext_i:
+                return False
+        return True
 
     def __lt__(self, other: 'AbstractConcept'):
         """A concept is smaller than the `other concept if its extent is a subset of extent of `other concept"""
@@ -91,9 +92,9 @@ class AbstractConcept(metaclass=ABCMeta):
     def from_dict(cls, data: Dict[str, Any]) -> 'AbstractConcept':
         ...
 
-    def write_json(self, path: str = None):
+    def write_json(self, objs_order: List[str], attrs_order: List[str], path: str = None):
         """Save FormalConcept to .json file of return the .json encoded data if ``path`` is None"""
-        concept_info = self.to_dict()
+        concept_info = self.to_dict(objs_order, attrs_order)
 
         file_data = json.dumps(concept_info)
         if path is None:
@@ -130,8 +131,8 @@ class FormalConcept(AbstractConcept):
 
         """
 
-    intent_i: FrozenSet[int]  # Description of object indices from extent of the concept
-    intent: FrozenSet[str]  # Description of object names from extent of the concept
+    intent_i: Tuple[int, ...]  # Description of object indices from extent of the concept
+    intent: Tuple[str, ...]  # Description of object names from extent of the concept
 
     def to_dict(self, objs_order: List[str], attrs_order: List[str]) -> Dict[str, Any]:
         """Convert FormalConcept into a dictionary"""

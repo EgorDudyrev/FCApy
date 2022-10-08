@@ -61,7 +61,6 @@ def test_from_context():
     for L in [ltc_sofia, ltc_lindig]:
         assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
 
-
     data = [[1, 10],
             [2, 22],
             [3, 100],
@@ -108,14 +107,15 @@ def test_get_top_bottom_concepts_i():
 
 
 def test_to_from_json():
-    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
+    G, M = ['a', 'b'], ['a', 'b']
+    ctx = FormalContext([[True, False], [False, True]], G, M)
     ltc = ConceptLattice.from_context(ctx)
-    ltc_json = ltc.read_json(json_data=ltc.write_json())
+    ltc_json = ltc.read_json(json_data=ltc.write_json(G, M))
     assert ltc == ltc_json,\
         'ConceptLattice.to/read_json failed. The lattice changed after 2 conversions.'
 
     path = 'test.json'
-    ltc.write_json(path)
+    ltc.write_json(G, M, path)
     ltc_new = ltc.read_json(path)
     assert ltc == ltc_new,\
         'ConceptLattice.to/read_json failed. The lattice changed after 2 conversions and saving to file.'
@@ -125,7 +125,7 @@ def test_to_from_json():
     pattern_types = {'f1': PS.IntervalPS}
     mvK = MVContext([{0: (1, 2)}, {0: (0, 4)}, {0: (2, 3)}], pattern_types, attribute_names=['f1'])
     L = ConceptLattice.from_context(mvK)
-    L_new = ConceptLattice.read_json(json_data=L.write_json())
+    L_new = ConceptLattice.read_json(json_data=L.write_json(mvK.object_names, mvK.attribute_names))
     assert L == L_new, 'ConceptLattice.to/read_json failed. The pattern lattice changed after two conversions'
 
 

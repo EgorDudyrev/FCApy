@@ -24,18 +24,7 @@ def test_close_by_one():
     concepts_loaded = []
     for c_json in file_data:
         c_json['Context_Hash'] = context.hash_fixed()
-    #    if c_json['Int'] == JSON_BOTTOM_PLACEHOLDER['Names']:
-    #        c_json['intent_i'] = context.intention_i(c_json['extent_i'])
-    #        c_json['intent'] = context.intention(c_json['extent'])
         concepts_loaded.append(FormalConcept.from_dict(c_json))
-
-
-    #concepts_loaded = [FormalConcept.from_dict(c_json) for c_json in file_data]
-    #for c in concepts_loaded:
-    #    c._context_hash = context.hash_fixed()
-    #    if c.intent == JSON_BOTTOM_PLACEHOLDER['Names']:
-    #        c._intent_i = tuple(context.intention_i(c.extent_i))
-    #        c._intent = tuple(context.intention(c.extent))
 
     concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
     assert set(concepts_constructed) == set(concepts_loaded),\

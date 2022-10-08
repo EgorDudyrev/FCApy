@@ -118,7 +118,7 @@ class ConceptLattice(Lattice):
 
                 meas_dict[k].append(v)
         meas_dict = {k: np.array(vs) for k, vs in meas_dict.items()}
-        assert len(set([len(vs) for vs in meas_dict.values()])) == 1
+        assert len(set([len(vs) for vs in meas_dict.values()])) == 1 or len(meas_dict) == 0
         return meas_dict
 
     @property
@@ -180,7 +180,7 @@ class ConceptLattice(Lattice):
     @classmethod
     def from_context(
             cls,
-            context: FormalContext or MVContext,
+            context: Union[FormalContext, MVContext],
             algo: Optional[str] = None,
             is_monotone: bool = False,
             **kwargs
@@ -765,12 +765,16 @@ class ConceptLattice(Lattice):
         )
         return ltc
 
-    def write_json(self, path: str = None) -> Optional[str]:
+    def write_json(self, objs_order: List[str], attrs_order: List[str], path: str = None) -> Optional[str]:
         """Convert (and possible save) a ConceptLattice in .json format
 
         Parameters
         ----------
-        path: `str`
+        objs_order: List[str]
+            Names of objects put into list (so that name of object i is objs_order[i])
+        attrs_order: List[str]
+            Names of attributes put into list (so that name of attribute i is attrs_order[i])
+        path: str
             A path to .json file
 
         Returns
@@ -790,8 +794,11 @@ class ConceptLattice(Lattice):
             'Top': [self.top], "Bottom": [self.bottom],
             "NodesCount": len(self), "ArcsCount": len(arcs)
         }
-        nodes_data = {"Nodes": [c.to_dict(json_ready=True) if isinstance(c, PatternConcept) else c.to_dict()
-                                for c in self]}
+        if isinstance(self[0], PatternConcept):
+            to_dict_kwargs = dict(json_ready=True)
+        else:  # if FormalConcept
+            to_dict_kwargs = dict(objs_order=objs_order, attrs_order=attrs_order)
+        nodes_data = {"Nodes": [c.to_dict(**to_dict_kwargs) for c in self]}
         arcs_data = {"Arcs": arcs}
         file_data = [lattice_metadata, nodes_data, arcs_data]
         json_data = json.dumps(file_data)
