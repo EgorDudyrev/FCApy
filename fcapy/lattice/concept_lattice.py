@@ -264,20 +264,24 @@ class ConceptLattice(Lattice):
 
         L = ConceptLattice.from_context(~context, algo=algo, is_monotone=False, **kwargs)
         obj_idxs = set(range(context.n_objects))
-        obj_names = set(context.object_names)
         ctx_hash = context.hash_fixed()
+        obj_names = context.object_names
 
+        new_concepts = []
         for i, c in enumerate(L):
+            new_ext_i = sorted(obj_idxs - set(c.extent_i))
+
             c_new = FormalConcept(
-                extent_i=obj_idxs - c.extent_i,
-                extent=obj_names - c.extent,
+                extent_i=new_ext_i,
+                extent=[obj_names[g_i] for g_i in new_ext_i],
                 intent_i=c.intent_i,
-                intent={m[4:] if m.startswith('not ') else f'not {m}' for m in c.intent},
+                intent=[m[4:] if m.startswith('not ') else f'not {m}' for m in c.intent],
                 context_hash=ctx_hash,
-                is_monotone=True
+                is_monotone=True,
             )
-            L._update_element(c, c_new)
-        L._is_monotone = True
+            new_concepts.append(c_new)
+
+        L = ConceptLattice(new_concepts, children_dict=L.children_dict, is_monotone=True)
         return L
 
     @staticmethod

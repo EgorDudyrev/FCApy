@@ -69,8 +69,7 @@ def test_from_context():
     attribute_names = ['M1', 'M2']
     pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    ltc_cbo, ltc_sofia = [ConceptLattice.from_context(mvctx, algo=alg_name)
-                                      for alg_name in ['CbO', 'Sofia']]
+    ltc_cbo, ltc_sofia = [ConceptLattice.from_context(mvctx, algo=alg_name) for alg_name in ['CbO', 'Sofia']]
     for L in [ltc_cbo, ltc_sofia]:
         assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
             "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
@@ -82,6 +81,23 @@ def test_from_context():
 
     with pytest.raises(ValueError):
         ConceptLattice.from_context(mvctx, algo='OtHeR MeThOd')
+
+
+def test_from_context_monotone():
+    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
+    ltc = ConceptLattice.from_context(ctx, is_monotone=True)
+
+    context_hash = ctx.hash_fixed()
+    c_kwargs = dict(context_hash=ctx.hash_fixed(), is_monotone=True)
+
+    c1 = FormalConcept((), (), (), (), **c_kwargs)
+    c2 = FormalConcept((0,), ('a',), (0,), ('a',), **c_kwargs)
+    c3 = FormalConcept((0, 1), ('a', 'b'), (0, 1), ('a', 'b'), **c_kwargs)
+    c4 = FormalConcept((1,), ('b',), (1,), ('b',), **c_kwargs)
+    concepts = [c1, c2, c3, c4]
+
+    assert set(ltc) == set(concepts), \
+        'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
 
 def test_get_top_bottom_concepts_i():
