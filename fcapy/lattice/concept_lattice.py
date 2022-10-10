@@ -91,7 +91,7 @@ class ConceptLattice(Lattice):
         children_dict = {k: frozenset(vs) for k, vs in children_dict.items()} if children_dict is not None else None
 
         super(ConceptLattice, self).__init__(
-            concepts, self.concepts_leq_func,
+            concepts,
             use_cache=True, children_dict=children_dict
         )
         self._generators_dict = {}
@@ -825,8 +825,3 @@ class ConceptLattice(Lattice):
         `nx.DiGraph`
         """
         return self._to_networkx(direction, 'concept')
-
-    @staticmethod
-    def concepts_leq_func(a: FormalConcept or PatternConcept, b: FormalConcept or PatternConcept):
-        """A function to compare two formal (or pattern) concepts"""
-        return a <= b

@@ -29,7 +29,9 @@ class POSet:
 
     """
     def __init__(
-            self, elements: Collection[Any] = None, leq_func: Callable[[Any, Any], bool] = None,
+            self,
+            elements: Collection[Any] = None,
+            leq_func: Callable[[Any, Any], bool] = lambda a, b: a <= b,
             use_cache: bool = True, children_dict: Dict[int, Tuple[int, ...]] = None
     ):
         """Construct a POSet based on a set of ``elements`` and ``leq_func`` defined on this set

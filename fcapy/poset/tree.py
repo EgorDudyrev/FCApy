@@ -9,7 +9,8 @@ from fcapy.poset.lattice import UpperSemiLattice
 
 class BinaryTree(UpperSemiLattice):
     def __init__(
-            self, elements: Collection[Any], leq_func: Callable[[Any, Any], bool],
+            self, elements: Collection[Any],
+            leq_func: Callable[[Any, Any], bool] = lambda a, b: a <= b,
             use_cache: bool = True, children_dict: Dict[int, Tuple[int, ...]] = None
     ):
         """Construct a BinaryTree based on a set of ``elements`` and ``leq_func`` defined on this set
