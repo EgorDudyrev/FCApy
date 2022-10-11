@@ -84,6 +84,7 @@ class AbstractLineViz:
     edge_color: str = 'lightgray'
     edge_radius: float = 0
     edge_width: float = 1
+    edge_cmap: str = None
 
     # Colormap fields
     cmap: str = 'Blues'
@@ -285,6 +286,8 @@ class LineVizNx(AbstractLineViz):
         defaults to  ``0``
     edge_width: float
         defaults to ``1``
+    edge_cmap: str
+        defaults to ``None``
     cmap: str
         defaults to ``'Blues'``
     cmap_min: float
@@ -325,7 +328,7 @@ class LineVizNx(AbstractLineViz):
         pos = self._retrieve_pos(poset, kwargs, nodelist, edgelist)
 
         self._setup_legend(ax, **kw_used(kwargs, self._setup_legend))
-        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self   ._draw_edges))
+        self._draw_edges(G, pos, ax, edgelist, **kw_used(kwargs, self._draw_edges))
         self._draw_nodes(G, pos, ax, nodelist, **kw_used(kwargs, self._draw_nodes))
 
         node_label_func = kwargs.get('node_label_func', self.node_label_func)
@@ -498,18 +501,20 @@ class LineVizNx(AbstractLineViz):
             self, G, pos, ax, edgelist,
             edge_radius=None, edge_color=None,
             edge_width=None, node_size=None,
+            edge_cmap=None,
     ):
         """Draw edges via networkx package"""
         edge_radius = get_not_none(edge_radius, self.edge_radius)
         edge_color = get_not_none(edge_color, self.edge_color)
         edge_width = get_not_none(edge_width, self.edge_width)
         node_size = get_not_none(node_size, self.node_size)
+        edge_cmap = get_not_none(edge_cmap, self.edge_cmap)
 
         cs = f'arc3,rad={edge_radius}' if edge_radius is not None else None
         nx.draw_networkx_edges(
             G, pos,
             edgelist=edgelist,
-            edge_color=edge_color, width=edge_width,
+            edge_color=edge_color, width=edge_width, edge_cmap=edge_cmap,
             node_size=node_size,
             arrowstyle='-', connectionstyle=cs,
             ax=ax,

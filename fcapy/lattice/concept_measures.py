@@ -48,10 +48,11 @@ def stability_bounds(c_i, lattice: ConceptLattice):
     Approximate but polynomial time to compute measure of concept stability
     """
     c = lattice[c_i]
-    dd_i = lattice.children_dict[c_i]
     inv_diff = [0]
-    if len(dd_i) > 0:
-        inv_diff = [2 ** (-len(set(c.extent_i) - set(lattice[d_i].extent_i))) for d_i in dd_i]
+
+    children_i = lattice.children(c_i)
+    if len(children_i) > 0:
+        inv_diff = [2 ** (-len(set(c.extent_i) - set(lattice[child_i].extent_i))) for child_i in children_i]
 
     lb = 1 - sum(inv_diff)
     ub = 1 - max(inv_diff)

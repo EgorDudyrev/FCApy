@@ -57,6 +57,27 @@ def test_intent_extent_i(animal_movement_data):
     assert ctx.intention_i([]) == list(range(ctx.n_attributes))
 
 
+def test_intent_extent_i_monotone(animal_movement_data):
+    data = animal_movement_data['data']
+    ctx = FormalContext(data=data)
+
+    assert ctx.extension_monotone_i([0]) == ctx.extension_i([0])
+
+    assert set(ctx.extension_monotone_i([0, 1])) == {g_i for m_i in [0, 1] for g_i in ctx.extension_monotone_i([m_i])}
+
+    int_ = ctx.intention_monotone_i([2, 3])
+    assert set(int_) == {3}, 'FormalContext.intention_i failed. Should be {3}}'
+
+    int_ = [0, 1, 3]
+    assert ctx.intention_monotone_i(ctx.extension_monotone_i(int_)) == int_, \
+        'Basic FCA theorem failed. Check FormalContext.extension_i, intention_i'
+
+    assert ctx.extension_monotone_i([]) == []
+    assert ctx.intention_monotone_i([]) == []
+    assert ctx.extension_monotone_i(list(range(ctx.n_attributes))) == list(range(ctx.n_objects))
+    assert ctx.intention_monotone_i(list(range(ctx.n_objects))) == list(range(ctx.n_attributes))
+
+
 def test_intent_extent(animal_movement_data):
     data, obj_names, attr_names = itemgetter('data', 'obj_names', 'attr_names')(animal_movement_data)
 
@@ -82,6 +103,10 @@ def test_intent_extent(animal_movement_data):
     assert K.extension('0') == ['0']
     assert K.extension('1') == ['0', '1']
     assert K.extension('2') == []
+
+    ext_ = ['dove', 'duck', 'goose', 'owl', 'hawk', 'eagle', 'fox', 'wolf', 'cat', 'tiger', 'lion']
+    assert ctx.extension(['fly', 'hunt'], is_monotone=True) == ext_
+    assert ctx.intention(['duck', 'goose'], is_monotone=True) == ['swim']
 
 
 def test_n_objects(animal_movement_data):
@@ -271,3 +296,4 @@ def test_get_minimal_generators():
 def test_invert():
     ctx = read_csv('data/mango_bin.csv')
     assert ~~ctx == ctx, 'FormalContext.__invert__ failed'
+

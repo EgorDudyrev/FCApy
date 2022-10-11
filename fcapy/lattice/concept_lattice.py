@@ -4,7 +4,7 @@ This module provides a ConceptLattice class. It may be considered as the main mo
 """
 import json
 
-from typing import Tuple, Union, Optional, List, Dict, FrozenSet, Set, Collection
+from typing import Tuple, Union, Optional, List, Dict, Set, Collection
 
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
@@ -79,6 +79,8 @@ class ConceptLattice(Lattice):
                 A dictionary with children relation (preceding concepts) on ``concepts``
             parents_dict: `dict`{`int`, `list`[`int`]}
                 A dictionary with parents relation (succeeding concepts)  on ``concepts``
+            is_monotone: bool
+                A flag whether lattice contains antimonotone (default) or monotone concepts
         """
         assert not (kwargs.get('children_dict') is not None and kwargs.get('parents_dict') is not None),\
             'Specify either "children_dict" or "parents_dict", not both at the same time'
@@ -89,11 +91,11 @@ class ConceptLattice(Lattice):
         children_dict = {k: frozenset(vs) for k, vs in children_dict.items()} if children_dict is not None else None
 
         super(ConceptLattice, self).__init__(
-            concepts, self.concepts_leq_func,
+            concepts,
             use_cache=True, children_dict=children_dict
         )
-
         self._generators_dict = {}
+        self._is_monotone = kwargs.get('is_monotone', False)
 
     @property
     def T(self):
@@ -116,8 +118,12 @@ class ConceptLattice(Lattice):
 
                 meas_dict[k].append(v)
         meas_dict = {k: np.array(vs) for k, vs in meas_dict.items()}
-        assert len(set([len(vs) for vs in meas_dict.values()])) == 1
+        assert len(set([len(vs) for vs in meas_dict.values()])) == 1 or len(meas_dict) == 0
         return meas_dict
+
+    @property
+    def is_monotone(self):
+        return self._is_monotone
 
     @staticmethod
     def get_top_bottom_concepts_i(
@@ -174,15 +180,19 @@ class ConceptLattice(Lattice):
     @classmethod
     def from_context(
             cls,
-            context: FormalContext or MVContext,
-            algo: Optional[str] = None, **kwargs
-    ):
+            context: Union[FormalContext, MVContext],
+            algo: Optional[str] = None,
+            is_monotone: bool = False,
+            **kwargs
+    ) -> 'ConceptLattice':
         """Return a `ConceptLattice` constructed on the ``context`` by algorithm ``algo``
 
         Parameters
         ----------
         context: 'FormalContext` or 'MVContext`
         algo: `str` in {'CbO', 'Sofia', 'RandomForest'}
+        is_monotone: bool
+            Whether to build antimonotone lattice (if False, default) or monotone concept lattice
         kwargs:
             Parameters used in CbO, Sofia and RandomForest algorithms from `fcapy.algorithms.concept_construction` module
 
@@ -192,6 +202,9 @@ class ConceptLattice(Lattice):
             A concept lattice constructed on the ``context`` by algorithm ``algo``
 
         """
+        if is_monotone:
+            return cls._from_context_monotone(context, algo, **kwargs)
+
         if algo is None:
             algo = 'CbO' if type(context) == MVContext else 'Lindig'
 
@@ -244,10 +257,37 @@ class ConceptLattice(Lattice):
                              f'Possible values are: "CbO" (stands for CloseByOne), "Sofia", "RandomForest", "Lindig"')
         return ltc
 
+    @classmethod
+    def _from_context_monotone(cls, context: FormalContext, algo: str, **kwargs) -> 'ConceptLattice':
+        if not isinstance(context, FormalContext):
+            raise NotImplementedError('Monotone concept lattice can only be constructed on Formal Contexts (for now)')
+
+        L = ConceptLattice.from_context(~context, algo=algo, is_monotone=False, **kwargs)
+        obj_idxs = set(range(context.n_objects))
+        ctx_hash = context.hash_fixed()
+        obj_names = context.object_names
+
+        new_concepts = []
+        for i, c in enumerate(L):
+            new_ext_i = sorted(obj_idxs - set(c.extent_i))
+
+            c_new = FormalConcept(
+                extent_i=new_ext_i,
+                extent=[obj_names[g_i] for g_i in new_ext_i],
+                intent_i=c.intent_i,
+                intent=[m[4:] if m.startswith('not ') else f'not {m}' for m in c.intent],
+                context_hash=ctx_hash,
+                is_monotone=True,
+            )
+            new_concepts.append(c_new)
+
+        L = ConceptLattice(new_concepts, children_dict=L.children_dict, is_monotone=True)
+        return L
+
     @staticmethod
     def sort_concepts(
             concepts: List[FormalConcept or PatternConcept]
-    ) -> List[Union[FormalConcept or PatternConcept]]:
+    ) -> Optional[List[FormalConcept or PatternConcept]]:
         """Return the topologically sorted set of concepts
 
         (ordered by descending of support, lexicographical order of extent indexes)
@@ -410,6 +450,9 @@ class ConceptLattice(Lattice):
             A list of dictionaries containing information about generators ran while tracing.
 
         """
+        if self.is_monotone:
+            raise NotImplementedError('Tracing lattice of monotone concepts is not yet supported')
+
         concept_extents = {}
         if return_generators_extents:
             generators_extents = []
@@ -726,12 +769,16 @@ class ConceptLattice(Lattice):
         )
         return ltc
 
-    def write_json(self, path: str = None) -> Optional[str]:
+    def write_json(self, objs_order: List[str], attrs_order: List[str], path: str = None) -> Optional[str]:
         """Convert (and possible save) a ConceptLattice in .json format
 
         Parameters
         ----------
-        path: `str`
+        objs_order: List[str]
+            Names of objects put into list (so that name of object i is objs_order[i])
+        attrs_order: List[str]
+            Names of attributes put into list (so that name of attribute i is attrs_order[i])
+        path: str
             A path to .json file
 
         Returns
@@ -751,8 +798,11 @@ class ConceptLattice(Lattice):
             'Top': [self.top], "Bottom": [self.bottom],
             "NodesCount": len(self), "ArcsCount": len(arcs)
         }
-        nodes_data = {"Nodes": [c.to_dict(json_ready=True) if isinstance(c, PatternConcept) else c.to_dict()
-                                for c in self]}
+        if isinstance(self[0], PatternConcept):
+            to_dict_kwargs = dict(json_ready=True)
+        else:  # if FormalConcept
+            to_dict_kwargs = dict(objs_order=objs_order, attrs_order=attrs_order)
+        nodes_data = {"Nodes": [c.to_dict(**to_dict_kwargs) for c in self]}
         arcs_data = {"Arcs": arcs}
         file_data = [lattice_metadata, nodes_data, arcs_data]
         json_data = json.dumps(file_data)
@@ -775,8 +825,3 @@ class ConceptLattice(Lattice):
         `nx.DiGraph`
         """
         return self._to_networkx(direction, 'concept')
-
-    @staticmethod
-    def concepts_leq_func(a: FormalConcept or PatternConcept, b: FormalConcept or PatternConcept):
-        """A function to compare two formal (or pattern) concepts"""
-        return a <= b

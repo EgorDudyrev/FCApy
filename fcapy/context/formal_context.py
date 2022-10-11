@@ -176,7 +176,7 @@ class FormalContext:
         """A set of target values for supervised ML tasks"""
         return self._target
 
-    def extension_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None) -> List[int]:
+    def extension_i(self, attribute_indexes: Collection[int], base_objects_i: Collection[int] = None) -> List[int]:
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
 
         Parameters
@@ -198,15 +198,14 @@ class FormalContext:
 
         return list(self.data.all_i(1, base_objects_i, attribute_indexes))
 
-    def extension_monotone_i(self, attribute_indexes: Iterable[int], base_objects_i: Iterable[int] = None)\
+    def extension_monotone_i(self, attribute_indexes: Collection[int], base_objects_i: Collection[int] = None)\
             -> List[int]:
-        raise NotImplementedError
+        if len(attribute_indexes) == self.n_attributes:
+            return list(range(self.n_objects)) if base_objects_i is None else base_objects_i
 
-        # base_objects_i = slice(self.n_objects) if base_objects_i is None else base_objects_i
-        # extension_i = self.data.any(1, list(base_objects_i), list(attribute_indexes))
-        # return extension_i
+        return list(self.data.any_i(1, base_objects_i, attribute_indexes))
 
-    def extension(self, attributes: Iterable[str], base_objects: Iterable[str] = None, is_monotone: bool = False)\
+    def extension(self, attributes: Collection[str], base_objects: Collection[str] = None, is_monotone: bool = False)\
             -> List[str]:
         """Return maximal set of objects which share given ``attributes``
 
@@ -269,15 +268,17 @@ class FormalContext:
         return list(self.data.all_i(0, object_indexes, base_attrs_i))
 
     def intention_monotone_i(self, object_indexes: Iterable[int], base_attrs_i: Iterable[int] = None)\
-            -> Tuple[int, ...]:
+            -> List[int]:
         """Return indexes of maximal set of attributes shared by any of given ``object_indexes``"""
-        raise NotImplementedError
+        attr_iterator = range(self.n_attributes) if base_attrs_i is None else base_attrs_i
 
-        # base_attrs_i = slice(0, self.n_attributes) if base_attrs_i is None else base_attrs_i
-        # complement_objs = list(set(range(self.n_objects))-set(object_indexes))
-        # complement_attrs_flg = self.data.any(0, complement_objs, base_attrs_i)
-        # intention_i = tuple([i for i, flg in enumerate(complement_attrs_flg) if not flg])
-        # return intention_i
+        if len(object_indexes) == self.n_objects:
+            return list(attr_iterator)
+
+        object_indexes = set(object_indexes)
+        inv_objs_i = [g_i for g_i in range(self.n_objects) if g_i not in object_indexes]
+        inv_attrs_i = set(self.data.any_i(0, inv_objs_i, base_attrs_i))
+        return [m_i for m_i in attr_iterator if m_i not in inv_attrs_i]
 
     def intention(self, objects: Iterable[str], is_monotone: bool = False) -> List[str]:
         """Return maximal set of attributes which are shared by given ``objects``
@@ -676,9 +677,8 @@ class FormalContext:
 
     def __invert__(self):
         data_inv = ~self.data
-        obj_inv = [g[4:] if g.startswith('not ') else 'not ' + g for g in self.object_names]
         attrs_inv = [m[4:] if m.startswith('not ') else 'not ' + m for m in self.attribute_names]
-        return self.__class__(data_inv, obj_inv, attrs_inv, self.description, self.target)
+        return self.__class__(data_inv, self.object_names, attrs_inv, self.description, self.target)
 
     def to_numeric(self):
         """A method to extract the data of the context in a numerical form (and the names of numerical attributes)
