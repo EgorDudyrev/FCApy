@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from fcapy.context import converters, FormalContext
+from fcapy.context import converters, FormalContext, BINTABLE_CLASSES
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.mvcontext import MVContext, pattern_structure as PS
@@ -38,19 +38,20 @@ def test_concept_lattice_init():
 
 
 def test_from_context():
-    ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
-    ltc = ConceptLattice.from_context(ctx)
+    for backend in ['auto'] + list(BINTABLE_CLASSES):
+        ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'], backend=backend)
+        ltc = ConceptLattice.from_context(ctx)
 
-    context_hash = ctx.hash_fixed()
+        context_hash = ctx.hash_fixed()
 
-    c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=context_hash)
-    c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=context_hash)
-    c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=context_hash)
-    c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=context_hash)
-    concepts = [c1, c2, c3, c4]
+        c1 = FormalConcept((), (), (0, 1), ('a', 'b'), context_hash=context_hash)
+        c2 = FormalConcept((0,), ('a',), (0,), ('a',), context_hash=context_hash)
+        c3 = FormalConcept((0, 1), ('a', 'b'), (), (), context_hash=context_hash)
+        c4 = FormalConcept((1,), ('b',), (1,), ('b',), context_hash=context_hash)
+        concepts = [c1, c2, c3, c4]
 
-    assert set(ltc) == set(concepts),\
-        'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
+        assert set(ltc) == set(concepts),\
+            'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
     ctx = converters.read_csv('data/mango_bin.csv')
     ltc_cbo, ltc_sofia, ltc_lindig = [ConceptLattice.from_context(ctx, algo=alg_name)
@@ -87,7 +88,6 @@ def test_from_context_monotone():
     ctx = FormalContext([[True, False], [False, True]], ['a', 'b'], ['a', 'b'])
     ltc = ConceptLattice.from_context(ctx, is_monotone=True)
 
-    context_hash = ctx.hash_fixed()
     c_kwargs = dict(context_hash=ctx.hash_fixed(), is_monotone=True)
 
     c1 = FormalConcept((), (), (), (), **c_kwargs)

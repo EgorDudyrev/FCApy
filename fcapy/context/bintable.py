@@ -3,7 +3,7 @@ This module offers a class BinTable to work with binary table efficiently.
 
 """
 from abc import ABCMeta, abstractmethod
-from typing import List, Tuple, Optional, Collection, Sequence
+from typing import List, Tuple, Optional, Collection, Sequence, Union
 
 from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
@@ -404,6 +404,51 @@ class BinTableNumpy(AbstractBinTable):
     def T(self) -> 'BinTableNumpy':
         return self.__class__(self.data.T)
 
+    def all(self, axis: int = None, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None)\
+            -> Union[bool, Row_DType]:
+        if axis not in {None, 0, 1}:
+            raise berrors.UnknownAxisError(axis)
+
+        data_slice = self.data
+        if rows is not None:
+            data_slice = data_slice[rows]
+        if columns is not None:
+            data_slice = data_slice[:, columns]
+
+        if axis is None:
+            return data_slice.all()
+        return data_slice.all(axis).flatten()
+
+    def any(self, axis: int = None, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None)\
+            -> Union[bool, Row_DType]:
+        if axis not in {None, 0, 1}:
+            raise berrors.UnknownAxisError(axis)
+
+        data_slice = self.data
+        if rows is not None:
+            data_slice = data_slice[rows]
+        if columns is not None:
+            data_slice = data_slice[:, columns]
+
+        if axis is None:
+            return data_slice.any()
+        return data_slice.any(axis).flatten()
+
+    def sum(self, axis: int = None, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) \
+            -> Union[bool, Row_DType]:
+        if axis not in {None, 0, 1}:
+            raise berrors.UnknownAxisError(axis)
+
+        data_slice = self.data
+        if rows is not None:
+            data_slice = data_slice[rows]
+        if columns is not None:
+            data_slice = data_slice[:, columns]
+
+        if axis is None:
+            return data_slice.sum()
+        return data_slice.sum(axis).flatten()
+
     def all_i(self, axis: int, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
         flg_all = self.all(axis, rows, columns)
 
@@ -411,6 +456,10 @@ class BinTableNumpy(AbstractBinTable):
             full_ar = np.arange(self.width) if columns is None else columns
         else:  # axis == 1
             full_ar = np.arange(self.height) if rows is None else rows
+
+        if not isinstance(full_ar, np.ndarray):
+            full_ar = np.array(full_ar)
+
         return full_ar[flg_all]
 
     def any_i(self, axis: int, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
@@ -420,7 +469,14 @@ class BinTableNumpy(AbstractBinTable):
             full_ar = np.arange(self.width) if columns is None else columns
         else:  # axis == 1
             full_ar = np.arange(self.height) if rows is None else rows
+
+        if not isinstance(full_ar, np.ndarray):
+            full_ar = np.array(full_ar)
+
         return full_ar[flg_any]
+
+    def to_list(self) -> List[List[bool]]:
+        return self.data.tolist()
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> npt.NDArray[bool]:
         return np.array(data)
@@ -437,50 +493,34 @@ class BinTableNumpy(AbstractBinTable):
 
         return True
 
+    # The following function should never be called
+    # as everything is implemented in public all(..), any(...), sum(...) functions
     def _all(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> bool:
-        if rows is None and columns is None:
-            return self.data.all()
-        return self.data[rows, columns].all()
+        raise NotImplementedError
 
     def _all_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
-        if rows is None and columns is None:
-            return self.data.all(1)
-        return self.data[rows, columns].all(1)
+        raise NotImplementedError
 
     def _all_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
-        if rows is None and columns is None:
-            return self.data.all(0)
-        return self.data[rows, columns].all(0)
+        raise NotImplementedError
 
     def _any(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> bool:
-        if rows is None and columns is None:
-            return self.data.any()
-        return self.data[rows, columns].any()
+        raise NotImplementedError
 
     def _any_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
-        if rows is None and columns is None:
-            return self.data.any(1)
-        return self.data[rows, columns].any(1)
+        raise NotImplementedError
 
     def _any_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
-        if rows is None and columns is None:
-            return self.data.any(0)
-        return self.data[rows, columns].any(0)
+        raise NotImplementedError
 
     def _sum(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> int:
-        if rows is None and columns is None:
-            return self.data.sum()
-        return self.data[rows, columns].sum()
+        raise NotImplementedError
 
     def _sum_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
-        if rows is None and columns is None:
-            return self.data.sum(1)
-        return self.data[rows, columns].sum(1)
+        raise NotImplementedError
 
     def _sum_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
-        if rows is None and columns is None:
-            return self.data.sum(0)
-        return self.data[rows, columns].sum(0)
+        raise NotImplementedError
 
     def __eq__(self, other: 'BinTableNumpy'):
         if self.height != other.height:
@@ -503,11 +543,23 @@ class BinTableBitarray(AbstractBinTable):
 
     def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_all = self.all(axis, rows, columns)
-        return flg_all.search(1)
+
+        idxs = flg_all.itersearch(1)
+        if axis == 0:
+            output = [columns[i] for i in idxs] if columns is not None else list(idxs)
+        else:  # axis == 1
+            output = [rows[i] for i in idxs] if rows is not None else list(idxs)
+        return output
 
     def any_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_any = self.any(axis, rows, columns)
-        return flg_any.search(1)
+
+        idxs = flg_any.itersearch(1)
+        if axis == 0:
+            output = [columns[i] for i in idxs] if columns is not None else list(idxs)
+        else:  # axis == 1
+            output = [rows[i] for i in idxs] if rows is not None else list(idxs)
+        return output
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
         return [fbitarray(row) for row in data]
@@ -703,9 +755,15 @@ BINTABLE_DEPENDENCY_DICT = {'BinTableBitarray': {'bitarray'}, 'BinTableNumpy': {
 
 
 def init_bintable(data: Collection, class_name: str = 'auto') -> 'AbstractBinTable':
-    if class_name != 'auto':
-        return BINTABLE_CLASSES[class_name](data)
+    if class_name == 'auto':
+        for class_name, deps in BINTABLE_DEPENDENCY_DICT.items():
+            if all([LIB_INSTALLED[lib_name] for lib_name in deps]):
+                return BINTABLE_CLASSES[class_name](data)
 
-    for class_name, deps in BINTABLE_DEPENDENCY_DICT.items():
-        if all([LIB_INSTALLED[lib_name] for lib_name in deps]):
-            return BINTABLE_CLASSES[class_name](data)
+    if data.__class__.__name__ == class_name:
+        return data
+
+    if isinstance(data, AbstractBinTable):  # convert data from one BinTable class to another
+        return BINTABLE_CLASSES[class_name](data.data)
+
+    return BINTABLE_CLASSES[class_name](data)
