@@ -17,7 +17,9 @@ if LIB_INSTALLED['numpy']:
 
 
 class AbstractBinTable(metaclass=ABCMeta):
-    def __init__(self, data: List[List[bool]] = None):
+    Row_DType = Collection[bool]
+
+    def __init__(self, data: List[Row_DType] = None):
         self.data = data
 
     @property
@@ -44,7 +46,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 
     @property
     def T(self) -> 'AbstractBinTable':
-        return self.__class__(self.data.T)
+        return self.__class__([list(row) for row in zip(*self.data)])
 
     def all(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
             -> bool or Collection[bool]:
@@ -67,7 +69,7 @@ class AbstractBinTable(metaclass=ABCMeta):
         return [i for i, flg in iterator if flg]
 
     def any(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
-            -> bool or Collection[bool]:
+            -> bool or Row_DType:
         if axis not in {None, 0, 1}:
             raise berrors.UnknownAxisError(axis)
 
@@ -147,7 +149,7 @@ class AbstractBinTable(metaclass=ABCMeta):
         return data, len(data), len(data[0])
 
     @abstractmethod
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> Collection:
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> Collection[Row_DType]:
         ...
 
     @abstractmethod
@@ -155,11 +157,11 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _all_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
+    def _all_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> Row_DType:
         ...
 
     @abstractmethod
-    def _all_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
+    def _all_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> Row_DType:
         ...
 
     @abstractmethod
@@ -167,11 +169,11 @@ class AbstractBinTable(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def _any_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
+    def _any_per_row(self, rows: Collection[int] = None, columns: Collection[int] = None) -> Row_DType:
         ...
 
     @abstractmethod
-    def _any_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> List[bool]:
+    def _any_per_column(self, rows: Collection[int] = None, columns: Collection[int] = None) -> Row_DType:
         ...
 
     @abstractmethod
@@ -207,12 +209,12 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _get_item(self, row_idx: int, column_idx: int) -> bool:
         return bool(self.data[row_idx][column_idx])
 
-    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> Collection:
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> Row_DType:
         if column_slicer is None:
             return self.data[row_idx]
         return self.data[row_idx][column_slicer]
 
-    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Collection:
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Row_DType:
         return self.data[row_slicer][:, column_idx]
 
     def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None)\
@@ -236,15 +238,12 @@ class AbstractBinTable(metaclass=ABCMeta):
 
 class BinTableLists(AbstractBinTable):
     data: List[List[bool]]  # Updating type hint
+    Row_DType = List[bool]
 
     def to_list(self) -> List[List[bool]]:
         return self.data
 
-    @property
-    def T(self) -> 'BinTableLists':
-        return self.__class__([list(row) for row in zip(*self.data)])
-
-    def _validate_data(self, data: List[List[bool]]) -> bool:
+    def _validate_data(self, data: List[Row_DType]) -> bool:
         if len(data) == 0:
             return True
 
@@ -260,7 +259,7 @@ class BinTableLists(AbstractBinTable):
 
         return True
 
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[List[bool]]:
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
         return data
 
     def _all(self, rows: List[int] = None, columns: List[int] = None) -> bool:
@@ -279,13 +278,13 @@ class BinTableLists(AbstractBinTable):
 
         return True
 
-    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return [all(self.data[i]) for i in rows]
         return [all([self.data[i][j] for j in columns]) for i in rows]
 
-    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             vals, columns = [True] * self.width, range(self.width)
@@ -313,13 +312,13 @@ class BinTableLists(AbstractBinTable):
                         return True
         return False
 
-    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return [any(self.data[i]) for i in rows]
         return [any([self.data[i][j] for j in columns] for i in rows)]
 
-    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[bool]:
+    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             vals, columns = range(self.width), [False] * self.width
@@ -354,7 +353,7 @@ class BinTableLists(AbstractBinTable):
             vals = [v + int(row[col_i]) for v, col_i in zip(vals, columns)]
         return vals
 
-    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> List[bool]:
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> Row_DType:
         row = self.data[row_idx]
         if column_slicer:
             if isinstance(column_slicer, slice):
@@ -362,7 +361,7 @@ class BinTableLists(AbstractBinTable):
             return [row[col] for col in column_slicer]
         return row
 
-    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> List[bool]:
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Row_DType:
         if isinstance(row_slicer, slice):
             row_slicer = range(*row_slicer.indices(self.height))
         column = [self.data[row_i][column_idx] for row_i in row_slicer]
@@ -399,7 +398,29 @@ class BinTableLists(AbstractBinTable):
 
 class BinTableNumpy(AbstractBinTable):
     data: npt.NDArray[bool]  # Updating type hint
-    T: npt.NDArray[bool]
+    Row_DType = npt.NDArray[bool]
+
+    @property
+    def T(self) -> 'BinTableNumpy':
+        return self.__class__(self.data.T)
+
+    def all_i(self, axis: int, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        flg_all = self.all(axis, rows, columns)
+
+        if axis == 0:
+            full_ar = np.arange(self.width) if columns is None else columns
+        else:  # axis == 1
+            full_ar = np.arange(self.height) if rows is None else rows
+        return full_ar[flg_all]
+
+    def any_i(self, axis: int, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[int]:
+        flg_any = self.any(axis, rows, columns)
+
+        if axis == 0:
+            full_ar = np.arange(self.width) if columns is None else columns
+        else:  # axis == 1
+            full_ar = np.arange(self.height) if rows is None else rows
+        return full_ar[flg_any]
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> npt.NDArray[bool]:
         return np.array(data)
@@ -421,12 +442,12 @@ class BinTableNumpy(AbstractBinTable):
             return self.data.all()
         return self.data[rows, columns].all()
 
-    def _all_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+    def _all_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
         if rows is None and columns is None:
             return self.data.all(1)
         return self.data[rows, columns].all(1)
 
-    def _all_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+    def _all_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
         if rows is None and columns is None:
             return self.data.all(0)
         return self.data[rows, columns].all(0)
@@ -436,12 +457,12 @@ class BinTableNumpy(AbstractBinTable):
             return self.data.any()
         return self.data[rows, columns].any()
 
-    def _any_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+    def _any_per_row(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
         if rows is None and columns is None:
             return self.data.any(1)
         return self.data[rows, columns].any(1)
 
-    def _any_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> npt.NDArray[bool]:
+    def _any_per_column(self, rows: npt.NDArray[int] = None, columns: npt.NDArray[int] = None) -> Row_DType:
         if rows is None and columns is None:
             return self.data.any(0)
         return self.data[rows, columns].any(0)
@@ -474,12 +495,21 @@ class BinTableNumpy(AbstractBinTable):
 
 class BinTableBitarray(AbstractBinTable):
     data: List[fbitarray]  # Updating type hint
+    Row_DType = fbitarray
 
     @property
     def T(self) -> 'BinTableBitarray':
         return self.__class__([fbitarray(row) for row in zip(*self.data)])
 
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[fbitarray]:
+    def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        flg_all = self.all(axis, rows, columns)
+        return flg_all.search(1)
+
+    def any_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        flg_any = self.any(axis, rows, columns)
+        return flg_any.search(1)
+
+    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
         return [fbitarray(row) for row in data]
 
     def _validate_data(self, data: List[fbitarray]) -> bool:
@@ -511,7 +541,7 @@ class BinTableBitarray(AbstractBinTable):
 
         return True
 
-    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return fbitarray([self.data[i].all() for i in rows])
@@ -521,7 +551,7 @@ class BinTableBitarray(AbstractBinTable):
 
         return fbitarray([(self.data[i] | mask).all() for i in rows])
 
-    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         vals = bitarray(self.data[0] | (~self.data[0]))  # Bitarray of Trues
         if columns is None:
@@ -556,7 +586,7 @@ class BinTableBitarray(AbstractBinTable):
 
         return False
 
-    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
             return fbitarray([self.data[i].any() for i in rows])
@@ -565,7 +595,7 @@ class BinTableBitarray(AbstractBinTable):
         mask = fbitarray([j in columns for j in range(self.width)])
         return fbitarray([(self.data[i] & mask).any() for i in rows])
 
-    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> fbitarray:
+    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
 
         vals = bitarray(self.data[0] & (~self.data[0]))  # Bitarray of all False
@@ -616,7 +646,7 @@ class BinTableBitarray(AbstractBinTable):
 
         return vals
 
-    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> fbitarray:
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice = None) -> Row_DType:
         row = self.data[row_idx]
         if column_slicer:
             if isinstance(column_slicer, slice):
@@ -624,7 +654,7 @@ class BinTableBitarray(AbstractBinTable):
             return fbitarray([row[col_i] for col_i in column_slicer])
         return row
 
-    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> fbitarray:
+    def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Row_DType:
         if isinstance(row_slicer, slice):
             row_slicer = range(*row_slicer.indices(self.height))
         return fbitarray([self._data[row_i][column_idx] for row_i in row_slicer])
