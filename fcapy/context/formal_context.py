@@ -5,7 +5,7 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from itertools import combinations
 from numbers import Integral
-from typing import Tuple, Iterable, List, Collection, Set
+from typing import Tuple, Iterable, List, Collection, Set, Union
 
 from frozendict import frozendict
 import zlib
@@ -67,7 +67,7 @@ class FormalContext:
             Name of BinTable class to work with data
 
         """
-        self._data = init_bintable(data, backend) if not isinstance(data, AbstractBinTable) else data
+        self._data = init_bintable(data, backend)
         self.object_names = object_names
         self.attribute_names = attribute_names
         self.description = description
@@ -175,6 +175,10 @@ class FormalContext:
     def target(self):
         """A set of target values for supervised ML tasks"""
         return self._target
+
+    @property
+    def backend(self) -> str:
+        return type(self.data).__name__
 
     def extension_i(self, attribute_indexes: Collection[int], base_objects_i: Collection[int] = None) -> List[int]:
         """Return indexes of maximal set of objects which share given ``attribute_indexes``
@@ -326,6 +330,11 @@ class FormalContext:
         return self.data.width
 
     @property
+    def size(self) -> Tuple[int, int]:
+        """Get the size of the context (num. of objects and num. of attributes)"""
+        return self.data.height, self.data.width
+
+    @property
     def description(self) -> str:
         """Get or set the human readable description of the context
 
@@ -355,7 +364,7 @@ class FormalContext:
     @property
     def T(self) -> 'FormalContext':
         """Transpose the context"""
-        return self.__class__(self.data.T.data, self.attribute_names, self.object_names)
+        return self.__class__(self.data.T.data, self.attribute_names, self.object_names, backend=self.backend)
 
     def write_cxt(self, path=None):
         """Convert the FormalContext into cxt file format (save if ``path`` is given)
@@ -545,21 +554,27 @@ class FormalContext:
         data_to_print = '\n'.join([header] + lines)
         return data_to_print
 
-    def get_minimal_generators(self, intent, base_generator=None, base_objects=None, use_indexes=False):
+    def get_minimal_generators(
+            self,
+            intent: Union[List[str], List[int]],
+            base_generator: Union[List[str], List[int]] = None,
+            base_objects: Union[List[str], List[int]] = None,
+            use_indexes: bool = False
+    ) -> List[Tuple]:
         r"""Get a set of minimal generators for closed intent ``intent``
 
         WARNING: The current algorithm looks for mimimUM generators instead of mimimAL
 
         Parameters
         ----------
-        intent : `list` of `string` or `int`
+        intent :
             A set of attribute names (or indexes if ``use_indexes`` set to True) to construct generators for.
-        base_generator : `list` of `string` or `int`
+        base_generator :
             A set of attribute names (or indexes if ``use_indexes`` set to True)
             which should be included in each constructed generator
-        base_objects : `list` of `string` or `int`
+        base_objects :
             A set of object names (or indexes if ``use_indexes`` set to True) used to check the generators
-        use_indexes : bool
+        use_indexes :
             A flag whether to use object and attribute names (if set to False) or indexes (otherwise)
         Returns
         -------
@@ -583,7 +598,7 @@ class FormalContext:
         if use_indexes:
             return self.get_minimal_generators_i(intent, base_generator, base_objects)
 
-        intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent] if not use_indexes else intent
+        intent_i = [m_i for m_i, m in enumerate(self.attribute_names) if m in intent]
 
         base_generator = list(base_generator) if base_generator is not None else []
         base_generator = [m_i for m_i, m in enumerate(self.attribute_names) if m in base_generator]
@@ -592,7 +607,6 @@ class FormalContext:
             base_objects_i = list(range(self.n_objects))
         else:
             base_objects_i = [g_i for g_i, g in enumerate(self._object_names) if g in base_objects]
-        base_objects_i = frozenset(base_objects_i)
 
         min_gens = self.get_minimal_generators_i(intent_i, base_generator, base_objects_i)
 
@@ -600,11 +614,14 @@ class FormalContext:
         return min_gens
 
     def get_minimal_generators_i(
-            self, intent: List[int], base_generator: List[int] = None, base_objects: List[int] = None
-    ) -> Set[Tuple[int, ...]]:
-        intent_i = set(intent)
+            self,
+            intent_i: List[int],
+            base_generator: List[int] = None,
+            base_objects_i: List[int] = None
+    ) -> List[Tuple[int, ...]]:
+        intent_i = set(intent_i)
         base_generator = list(base_generator) if base_generator is not None else []
-        base_objects_i = frozenset(base_objects)
+        base_objects_i = list(base_objects_i)
 
         attrs_to_iterate = [m_i for m_i in range(self.n_attributes) if m_i not in base_generator]
         min_gens = set()
@@ -619,7 +636,7 @@ class FormalContext:
             if len(min_gens) > 0:
                 break
 
-        return min_gens
+        return list(min_gens)
 
     def __eq__(self, other):
         """Wrapper for the comparison method __eq__"""
@@ -671,14 +688,14 @@ class FormalContext:
             object_names = slice_list(self._object_names, row_slice)
             attribute_names = slice_list(self._attribute_names, column_slice)
             target = slice_list(self._target, row_slice) if self._target is not None else None
-            data = FormalContext(data, object_names, attribute_names, target=target)
+            data = self.__class__(data, object_names, attribute_names, target=target, backend=self.backend)
 
         return data
 
     def __invert__(self):
         data_inv = ~self.data
         attrs_inv = [m[4:] if m.startswith('not ') else 'not ' + m for m in self.attribute_names]
-        return self.__class__(data_inv, self.object_names, attrs_inv, self.description, self.target)
+        return self.__class__(data_inv, self.object_names, attrs_inv, target=self.target, backend=self.backend)
 
     def to_numeric(self):
         """A method to extract the data of the context in a numerical form (and the names of numerical attributes)
