@@ -3,13 +3,12 @@ This module offers a class BinTable to work with binary table efficiently.
 
 """
 from abc import ABCMeta, abstractmethod
-from typing import List, Tuple, Optional, Collection, Sequence, Union
+from typing import List, Tuple, Optional, Collection, Union
 
 from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['bitarray']:
-    from bitarray import frozenbitarray as fbitarray
-    from bitarray import bitarray
+    from bitarray import frozenbitarray as fbarray, bitarray as barray, util as butil
 
 if LIB_INSTALLED['numpy']:
     import numpy as np
@@ -46,7 +45,7 @@ class AbstractBinTable(metaclass=ABCMeta):
 
     @property
     def T(self) -> 'AbstractBinTable':
-        return self.__class__([list(row) for row in zip(*self.data)])
+        return self.__class__([self._get_column(range(self.height), col_i) for col_i in range(self.width)])
 
     def all(self, axis: int = None, rows: Collection[int] = None, columns: Collection[int] = None)\
             -> bool or Collection[bool]:
@@ -228,7 +227,7 @@ class AbstractBinTable(metaclass=ABCMeta):
         assert len(data) > 0, "Too small data to decide what class does it belong to"
         if isinstance(data, list) and isinstance(data[0], list):
             return 'BinTableLists'
-        if isinstance(data, list) and isinstance(data[0], fbitarray):
+        if isinstance(data, list) and isinstance(data[0], fbarray):
             return 'BinTableBitarray'
         if isinstance(data, np.ndarray):
             return 'BinTableNumpy'
@@ -534,12 +533,8 @@ class BinTableNumpy(AbstractBinTable):
 
 
 class BinTableBitarray(AbstractBinTable):
-    data: List[fbitarray]  # Updating type hint
-    Row_DType = fbitarray
-
-    @property
-    def T(self) -> 'BinTableBitarray':
-        return self.__class__([fbitarray(row) for row in zip(*self.data)])
+    data: List[fbarray]  # Updating type hint
+    Row_DType = fbarray
 
     def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_all = self.all(axis, rows, columns)
@@ -562,9 +557,9 @@ class BinTableBitarray(AbstractBinTable):
         return output
 
     def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
-        return [fbitarray(row) for row in data]
+        return [fbarray(row) for row in data]
 
-    def _validate_data(self, data: List[fbitarray]) -> bool:
+    def _validate_data(self, data: List[fbarray]) -> bool:
         if len(data) == 0:
             return True
 
@@ -584,7 +579,7 @@ class BinTableBitarray(AbstractBinTable):
                     return False
         else:
             columns = set(columns)
-            mask = fbitarray([j not in columns for j in range(self.width)])
+            mask = fbarray([j not in columns for j in range(self.width)])
 
             for i in rows:
                 row = self.data[i]
@@ -596,16 +591,16 @@ class BinTableBitarray(AbstractBinTable):
     def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
-            return fbitarray([self.data[i].all() for i in rows])
+            return fbarray([self.data[i].all() for i in rows])
 
         columns = set(columns)
-        mask = fbitarray([j not in columns for j in range(self.width)])
+        mask = fbarray([j not in columns for j in range(self.width)])
 
-        return fbitarray([(self.data[i] | mask).all() for i in rows])
+        return fbarray([(self.data[i] | mask).all() for i in rows])
 
     def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
-        vals = bitarray(self.data[0] | (~self.data[0]))  # Bitarray of Trues
+        vals = ~butil.zeros(self.width)
         if columns is None:
             for i in rows:
                 vals &= self.data[i]
@@ -613,13 +608,13 @@ class BinTableBitarray(AbstractBinTable):
                     break
         else:
             columns_set = set(columns)
-            mask = fbitarray([j in columns_set for j in range(self.width)])
+            mask = fbarray([j in columns_set for j in range(self.width)])
             for i in rows:
                 vals &= self.data[i]
                 if not (vals & mask).any():  # If all values are False
                     break
 
-            vals = fbitarray([vals[i] for i in columns])
+            vals = fbarray([vals[i] for i in columns])
         return vals
 
     def _any(self, rows: List[int] = None, columns: List[int] = None) -> bool:
@@ -630,7 +625,7 @@ class BinTableBitarray(AbstractBinTable):
                     return True
         else:
             columns = set(columns)
-            mask = fbitarray([j in columns for j in range(self.width)])
+            mask = fbarray([j in columns for j in range(self.width)])
 
             for i in rows:
                 if (self.data[i] & mask).any():
@@ -641,16 +636,16 @@ class BinTableBitarray(AbstractBinTable):
     def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
         if columns is None:
-            return fbitarray([self.data[i].any() for i in rows])
+            return fbarray([self.data[i].any() for i in rows])
 
         columns = set(columns)
-        mask = fbitarray([j in columns for j in range(self.width)])
-        return fbitarray([(self.data[i] & mask).any() for i in rows])
+        mask = fbarray([j in columns for j in range(self.width)])
+        return fbarray([(self.data[i] & mask).any() for i in rows])
 
     def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
         rows = range(self.height) if rows is None else rows
 
-        vals = bitarray(self.data[0] & (~self.data[0]))  # Bitarray of all False
+        vals = butil.zeros(self.width)
         if columns is None:
             for i in rows:
                 vals |= self.data[i]
@@ -658,14 +653,14 @@ class BinTableBitarray(AbstractBinTable):
                     break
         else:
             columns_set = set(columns)
-            mask = fbitarray([j not in columns_set for j in range(self.width)])
+            mask = fbarray([j not in columns_set for j in range(self.width)])
 
             for i in rows:
                 vals |= self.data[i]
                 if (vals | mask).all():
                     break
 
-            vals = fbitarray([vals[i] for i in columns])
+            vals = fbarray([vals[i] for i in columns])
         return vals
 
     def _sum(self, rows: List[int] = None, columns: List[int] = None) -> int:
@@ -677,7 +672,7 @@ class BinTableBitarray(AbstractBinTable):
             return [self.data[i].count() for i in rows]
 
         columns = set(columns)
-        mask = fbitarray([j in columns for j in range(self.width)])
+        mask = fbarray([j in columns for j in range(self.width)])
         return [(self.data[i] & mask).count() for i in rows]
 
     def _sum_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
@@ -691,7 +686,7 @@ class BinTableBitarray(AbstractBinTable):
             vals = [0] * len(columns)
 
             columns_set = set(columns)
-            mask = fbitarray([j in columns_set for j in range(self.width)])
+            mask = fbarray([j in columns_set for j in range(self.width)])
             for i in rows:
                 for j in (self.data[i] & mask).search(1):
                     vals[j] += 1
@@ -703,13 +698,13 @@ class BinTableBitarray(AbstractBinTable):
         if column_slicer:
             if isinstance(column_slicer, slice):
                 return row[column_slicer]
-            return fbitarray([row[col_i] for col_i in column_slicer])
+            return fbarray([row[col_i] for col_i in column_slicer])
         return row
 
     def _get_column(self, row_slicer: List[int] or slice, column_idx: int) -> Row_DType:
         if isinstance(row_slicer, slice):
             row_slicer = range(*row_slicer.indices(self.height))
-        return fbitarray([self._data[row_i][column_idx] for row_i in row_slicer])
+        return fbarray([self._data[row_i][column_idx] for row_i in row_slicer])
 
     def _get_subtable(self, row_slicer: List[int] or slice, column_slicer: List[int] or slice or None) \
             -> 'BinTableBitarray':
@@ -721,7 +716,7 @@ class BinTableBitarray(AbstractBinTable):
         elif isinstance(column_slicer, slice):
             subtable = [self.data[row_i][column_slicer] for row_i in row_slicer]
         else:
-            subtable = [fbitarray([self.data[row_i][col_i] for col_i in column_slicer]) for row_i in row_slicer]
+            subtable = [fbarray([self.data[row_i][col_i] for col_i in column_slicer]) for row_i in row_slicer]
 
         return self.__class__(subtable)
 

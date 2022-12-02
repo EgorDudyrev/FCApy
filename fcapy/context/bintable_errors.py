@@ -45,7 +45,7 @@ class UnknownDataTypeError(TypeError):
     def __str__(self):
         msg = '\n'.join([
             "Dont know how to process the given `data`. ",
-            "Acceptable types of data: List[List[bool]], npt.NDArray[bool], List[fbitarray]. ",
+            "Acceptable types of data: List[List[bool]], npt.NDArray[bool], List[fbarray]. ",
             f"The given type: {self.unknown_type}"
         ]).strip()
         return msg
