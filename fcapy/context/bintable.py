@@ -147,8 +147,9 @@ class AbstractBinTable(metaclass=ABCMeta):
     def _transform_data_inherent(data) -> Tuple[Collection, int, int]:
         return data, len(data), len(data[0])
 
+    @staticmethod
     @abstractmethod
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> Collection[Row_DType]:
+    def _transform_data_fromlists(data: List[List[bool]]) -> Collection[Row_DType]:
         ...
 
     @abstractmethod
@@ -231,6 +232,8 @@ class AbstractBinTable(metaclass=ABCMeta):
             return 'BinTableBitarray'
         if isinstance(data, np.ndarray):
             return 'BinTableNumpy'
+        if isinstance(data, tuple) and len(data) == 2 and isinstance(data[0], fbitarray) and isinstance(data[1], int):
+            return 'BinTableBitarray'
 
         raise berrors.UnknownDataTypeError(type(data))
 
@@ -258,7 +261,8 @@ class BinTableLists(AbstractBinTable):
 
         return True
 
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
+    @staticmethod
+    def _transform_data_fromlists(data: List[List[bool]]) -> List[Row_DType]:
         return data
 
     def _all(self, rows: List[int] = None, columns: List[int] = None) -> bool:
@@ -477,7 +481,8 @@ class BinTableNumpy(AbstractBinTable):
     def to_list(self) -> List[List[bool]]:
         return self.data.tolist()
 
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> npt.NDArray[bool]:
+    @staticmethod
+    def _transform_data_fromlists(data: List[List[bool]]) -> npt.NDArray[bool]:
         return np.array(data)
 
     def _validate_data(self, data: npt.NDArray[bool]) -> bool:
@@ -556,7 +561,8 @@ class BinTableBitarray(AbstractBinTable):
             output = [rows[i] for i in idxs] if rows is not None else list(idxs)
         return output
 
-    def _transform_data_fromlists(self, data: List[List[bool]]) -> List[Row_DType]:
+    @staticmethod
+    def _transform_data_fromlists(data: List[List[bool]]) -> List[Row_DType]:
         return [fbarray(row) for row in data]
 
     def _validate_data(self, data: List[fbarray]) -> bool:
@@ -745,8 +751,213 @@ class BinTableBitarray(AbstractBinTable):
         return self.__class__(data_neg)
 
 
-BINTABLE_CLASSES = {cl.__name__: cl for cl in [BinTableLists, BinTableNumpy, BinTableBitarray]}
-BINTABLE_DEPENDENCY_DICT = {'BinTableBitarray': {'bitarray'}, 'BinTableNumpy': {'numpy'}, 'BinTableLists': set()}
+class BinTableOneBitarray(AbstractBinTable):
+    """WORK IN PROGRESS"""
+
+    data: Tuple[fbarray, int]  # Updating type hint  (bitarray, number of rows)
+    Row_DType = fbarray
+
+    @property
+    def T(self) -> 'BinTableOneBitarray':
+        bars_trans = [self.data[0][j::self.width] for j in range(self.width)]
+        data_T = self._transform_data_fromlists(bars_trans)
+        return self.__class__(data_T)
+
+    def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        flg_all = self.all(axis, rows, columns)
+
+        idxs = flg_all.itersearch(1)  # Use itersearch to speed up obtaining the indices
+        if axis == 0 and columns is not None:
+            output = (columns[i] for i in idxs)
+        elif axis == 1 and rows is not None:
+            output = (rows[i] for i in idxs)
+        else:
+            output = idxs
+        return list(output)
+
+    def any_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        flg_any = self.any(axis, rows, columns)
+
+        idxs = flg_any.itersearch(1)  # Use itersearch to speed up obtaining the indices
+        if axis == 0 and columns is not None:
+            output = (columns[i] for i in idxs)
+        elif axis == 1 and rows is not None:
+            output = (rows[i] for i in idxs)
+        else:
+            output = idxs
+        return list(output)
+
+    @staticmethod
+    def _transform_data_inherent(data) -> Tuple[Collection, int, int]:
+        return data, data[1], len(data[0])//data[1]
+
+    @staticmethod
+    def _transform_data_fromlists(data: List[List[bool]]) -> Tuple[fbarray, int]:
+        h, w = len(data), len(data[0])
+        bar = butil.zeros(h*w)
+
+        offset = 0
+        for i in range(h):
+            bar[offset:offset + w] |= fbarray(data[i])
+            offset += w
+
+        return fbarray(bar), h
+
+    def _validate_data(self, data: Tuple[fbarray, int]) -> bool:
+        bar, h = data
+        if len(bar) == 0:
+            return True
+
+        w = len(bar) / h
+        if int(w) != w:
+            raise berrors.UnmatchedLengthError()
+
+        return True
+
+    def _all(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        if rows is None and columns is None:
+            return self.data[0].all()
+
+        # at least one of `rows` and `columns` is given
+
+        if rows is None:  # i.e. only columns are given
+            iterator = (self._get_column(rows, j) for j in columns)
+        elif columns is None:  # i.e. only rows are given
+            iterator = (self._get_row(i, columns) for i in rows)
+        else:  # if both rows and columns are given
+            iterator = (self._get_row(i, columns) for i in rows)
+
+        for bar in iterator:
+            if not bar.all():
+                return False
+
+        return True
+
+    def _all_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
+        rows = range(self.height) if rows is None else rows
+
+        return fbarray([self._get_row(i, columns).all() for i in rows])
+
+    def _all_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
+        columns = range(self.width) if columns is None else columns
+
+        return fbarray([self._get_column(rows, j).all() for j in columns])
+
+    def _any(self, rows: List[int] = None, columns: List[int] = None) -> bool:
+        if rows is None and columns is None:
+            return self.data[0].any()
+
+        # at least one of `rows` and `columns` is given
+
+        if rows is None:  # i.e. only columns are given
+            iterator = (self._get_column(rows, j) for j in columns)
+        elif columns is None:  # i.e. only rows are given
+            iterator = (self._get_row(i, columns) for i in rows)
+        else:  # if both rows and columns are given
+            iterator = (self._get_row(i, columns) for i in rows)
+
+        for bar in iterator:
+            if bar.any():
+                return True
+
+        return False
+
+    def _any_per_row(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
+        rows = range(self.height) if rows is None else rows
+
+        return fbarray([self._get_row(i, columns).any() for i in rows])
+
+    def _any_per_column(self, rows: List[int] = None, columns: List[int] = None) -> Row_DType:
+        columns = range(self.width) if columns is None else columns
+
+        return fbarray([self._get_column(rows, j).any() for j in columns])
+
+    def _sum(self, rows: List[int] = None, columns: List[int] = None) -> int:
+        if rows is None and columns is None:
+            return self.data[0].count()
+
+        # at least one of `rows` and `columns` is given
+
+        if rows is None:  # i.e. only columns are given
+            iterator = (self._get_column(rows, j) for j in columns)
+        elif columns is None:  # i.e. only rows are given
+            iterator = (self._get_row(i, columns) for i in rows)
+        else:  # if both rows and columns are given
+            iterator = (self._get_row(i, columns) for i in rows)
+
+        return sum((bar.count() for bar in iterator))
+
+    def _sum_per_row(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        rows = range(self.height) if rows is None else rows
+
+        return [self._get_row(i, columns).count() for i in rows]
+
+    def _sum_per_column(self, rows: List[int] = None, columns: List[int] = None) -> List[int]:
+        columns = range(self.width) if columns is None else columns
+
+        return [self._get_column(rows, j).count() for j in columns]
+
+    def _get_row(self, row_idx: int, column_slicer: List[int] or slice or None = None) -> Row_DType:
+        row = self.data[0][row_idx*self.width][:self.width]
+
+        if column_slicer is None:
+            return row
+
+        if isinstance(column_slicer, slice):
+            return row[column_slicer]
+
+        return fbarray([row[col_i] for col_i in column_slicer])
+
+    def _get_column(self, row_slicer: List[int] or slice or None, column_idx: int) -> Row_DType:
+        column = self.data[0][column_idx::self.width]
+
+        if row_slicer is None:
+            return column
+
+        if isinstance(row_slicer, slice):
+            return column[row_slicer]
+
+        return fbarray([column[row_i] for row_i in row_slicer])
+
+    def _get_subtable(self, row_slicer: List[int] or slice or None, column_slicer: List[int] or slice or None) \
+            -> 'BinTableOneBitarray':
+        if row_slicer is None and column_slicer is None:
+            return self.__class__(self.data)
+
+        if isinstance(row_slicer, slice):
+            row_slicer = range(*row_slicer.indices(self.height))
+        subtable = [self._get_row(row_i, column_slicer) for row_i in row_slicer]
+        return self.__class__((subtable, len(row_slicer)))
+
+    def __eq__(self, other: 'BinTableOneBitarray'):
+        if self.height != other.height:
+            return False
+        if self.width != other.width:
+            return False
+        return self.data[0] == other.data[0]
+
+    def __hash__(self):
+        return hash(self.data)
+
+    def __and__(self, other: 'BinTableOneBitarray') -> 'BinTableOneBitarray':
+        return self.__class__((self.data[0] & other.data[0], self.data[1]))
+
+    def __or__(self, other: 'BinTableOneBitarray') -> 'BinTableOneBitarray':
+        return self.__class__((self.data[0] | other.data[0], self.data[1]))
+
+    def __invert__(self) -> 'BinTableOneBitarray':
+        return self.__class__((~self.data[0], self.data[1]))
+
+
+BINTABLE_CLASSES = {cl.__name__: cl for cl in [
+    BinTableLists, BinTableNumpy, BinTableBitarray,  # BinTableOneBitarray
+]}
+BINTABLE_DEPENDENCY_DICT = {
+    'BinTableBitarray': {'bitarray'},
+    'BinTableNumpy': {'numpy'},
+    'BinTableLists': set(),
+    # 'BinTableOneBitarray': {'bitarray'},
+}
 
 
 def init_bintable(data: Collection, class_name: str = 'auto') -> 'AbstractBinTable':
