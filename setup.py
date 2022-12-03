@@ -11,7 +11,7 @@ def run_install(**kwargs):
             'frozendict',
             'bitsets',
             'bitarray',
-            'numpy>=1.20'
+            'numpy>=1.20.0'
         ],
         'mvcontext': [
             'frozendict'
@@ -64,11 +64,11 @@ def run_install(**kwargs):
         packages=setuptools.find_packages(exclude=("tests",)),
         classifiers=[
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
         ],
-        python_requires='>=3.6',
+        python_requires='>=3.7',
         extras_require=extras_require
     )
 
