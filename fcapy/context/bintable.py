@@ -7,12 +7,12 @@ from typing import List, Tuple, Optional, Collection, Union
 
 from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
-if LIB_INSTALLED['bitarray']:
-    from bitarray import frozenbitarray as fbarray, bitarray as barray, util as butil
+#if LIB_INSTALLED['bitarray']:
+from bitarray import frozenbitarray as fbarray, bitarray as barray, util as butil
 
-if LIB_INSTALLED['numpy']:
-    import numpy as np
-    import numpy.typing as npt
+#if LIB_INSTALLED['numpy']:
+import numpy as np
+import numpy.typing as npt
 
 
 class AbstractBinTable(metaclass=ABCMeta):
