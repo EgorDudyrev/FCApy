@@ -9,7 +9,7 @@ Context
     :toctree: generated/
 
     context.FormalContext
-    context.BinTable
+    context.bintable
     context.converters
 
 MVContext

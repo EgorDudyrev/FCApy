@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.4.1] - 2022-12-03
+
+OSDA toolkit edition.
+This version introduces monotonic concepts that are (among all)
+relevant for Ordered Sets in Data Analysis course in HSE University
+
+### Changed
+
+* Add monotonic concepts support: a.k.a. "disjunctive" formal concepts*;
+* Start refactoring BinTables: a class to work efficiently with tables of binary values. 
+
+\* _A disjunctive formal concept `(A, B)` is a pair of objects `A` and attributes `B`. 
+ The sets are s.t. each attribute from `B` describes at least one of the objects from `A`. 
+ And `A` is the maximal set of objects corresponding to specific `B`._
+
 ## [0.1.4] - 2022-07-04
 
 Pretty and easier-to-use visualizations via NetworkX.

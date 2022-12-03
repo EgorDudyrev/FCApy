@@ -10,7 +10,8 @@ def run_install(**kwargs):
             'pandas',
             'frozendict',
             'bitsets',
-            'bitarray'
+            'bitarray',
+            'numpy>=1.20.0'
         ],
         'mvcontext': [
             'frozendict'
@@ -53,7 +54,7 @@ def run_install(**kwargs):
 
     setuptools.setup(
         name="fcapy",
-        version="0.1.5",
+        version="0.1.4.1",
         author="Egor Dudyrev",
         author_email="egor.dudyrev@yandex.ru",
         description="A library to work with formal (and pattern) contexts, concepts, lattices",
@@ -63,11 +64,11 @@ def run_install(**kwargs):
         packages=setuptools.find_packages(exclude=("tests",)),
         classifiers=[
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
             "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
             "Operating System :: OS Independent",
         ],
-        python_requires='>=3.6',
+        python_requires='>=3.7',
         extras_require=extras_require
     )
 
