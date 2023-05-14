@@ -1,11 +1,10 @@
 import pytest
-from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.ml import decision_lattice as dl
 from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.mvcontext import pattern_structure as ps
 
 import numpy as np
-from sklearn.datasets import load_iris, load_boston
+from sklearn.datasets import load_iris
 from sklearn.metrics import accuracy_score, mean_squared_error, mean_absolute_error
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -61,7 +60,9 @@ def test_dlclassifier():
         "DecisionLatticeClassifier.predict_proba failed. Probability predictions does not match class predictions"
 
 
+@pytest.mark.skip(reason="Load boston function has been removed. Should rewrite the test for another dataset")
 def test_dlregressor():
+    from sklearn.datasets import load_boston
     boston_data = load_boston()
     X_boston = boston_data['data'][:10]
     y_boston = boston_data['target'][:10]
@@ -88,7 +89,10 @@ def test_dlregressor():
     assert mse_test < 29, f"DecisionLatticeRegressor failed. To low test quality {mse_test}"
 
 
+@pytest.mark.skip(reason="Load boston function has been removed. Should rewrite the test for another dataset")
 def test_dlr_from_dtrees():
+    from sklearn.datasets import load_boston
+
     boston_data = load_boston()
     X_boston = boston_data['data'][:100]
     y_boston = boston_data['target'][:100]
