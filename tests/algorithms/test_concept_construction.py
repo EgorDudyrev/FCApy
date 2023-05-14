@@ -152,7 +152,7 @@ def test_random_forest_concepts():
     y_test = ctx.to_pandas().loc[['mango']]['fruit'].values
 
     ctx = read_csv('data/mango_bin.csv')
-    ctx_full = from_pandas(ctx.to_pandas().drop('fruit', 1))
+    ctx_full = from_pandas(ctx.to_pandas().drop(columns=['fruit']))
 
     ctx_full._target = list(y_train) + list(y_test)
     dlc = DL.DecisionLatticeClassifier(algo='RandomForest', algo_params={'random_state': 42})

@@ -27,7 +27,7 @@ class AbstractPS:
     """
     def __init__(self, data, name=None):
         """Initialize the PatternStructure with some ``data`` and the distinct ``name`` of pattern structure"""
-        self._data = data
+        self.data = data
         self._name = name
 
     def intention_i(self, object_indexes):
@@ -45,8 +45,9 @@ class AbstractPS:
 
     @data.setter
     def data(self, value):
-        assert len(value) == len(self._data), "Length of new data does not match the length of old one"
-        self._data = value
+        if '_data' in self.__dict__:
+            assert len(value) == len(self._data), "Length of new data does not match the length of old one"
+        self._data = self._transform_data(value)
 
     @property
     def name(self):
@@ -102,14 +103,131 @@ class AbstractPS:
         return cls.intersect_descriptions(a,b) == a
 
     @classmethod
-    def to_json(cls, x):
-        """Convert description ``x`` into .json format"""
-        raise NotImplementedError
-
-    @classmethod
     def from_json(cls, x_json):
         """Load description from ``x_json`` .json format"""
-        raise NotImplementedError
+        return json.loads(x_json)
+
+    @classmethod
+    def to_json(cls, x):
+        """Convert description ``x`` into .json format"""
+        return json.dumps(x)
+
+    @staticmethod
+    def _transform_data(values: list) -> list:
+        return values
+
+    def describe_pattern(self, value) -> str:
+        return f"{self.name}: {value}"
+
+
+class AttributePS(AbstractPS):
+    """
+    A pattern structure to mimic an attribute of formal context.
+    That is, there are only two possible values: True and False. And False means not "not True" but "anything"
+
+    """
+    def intention_i(self, object_indexes):
+        """Select a common description of objects ``object_indexes``"""
+        return all(self._data[g_i] for g_i in object_indexes)
+
+    def extension_i(self, description: bool, base_objects_i=None):
+        """Select a subset of objects of ``base_objects_i`` which share ``description``"""
+        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+        if not description:
+            return list(base_objects_i)
+
+        return [g_i for g_i in base_objects_i if self._data[g_i]]
+
+    def description_to_generators(self, description, projection_num):
+        """Convert a closed ``description`` into a set of generators of this closed description (Optional)"""
+        return [description]
+
+    def generators_to_description(self, generators):
+        """Combine a set of ``generators`` into one closed description (Optional)"""
+        return all(generators)
+
+    def to_numeric(self):
+        """Convert the complex ``data`` of the PatternStructure to a set of numeric columns"""
+        return [int(x) for x in self.data], self.name
+
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        """Compute the set of generators to select the ``new_intent`` from ``old_intent``"""
+        if new_intent == old_intent:
+            return []
+
+        if not new_intent and old_intent:
+            return []
+
+        return [True]
+
+    @staticmethod
+    def intersect_descriptions(a, b):
+        """Compute the maximal common description of two descriptions `a` and `b`"""
+        return a and b
+
+    @staticmethod
+    def unite_descriptions(a, b):
+        """Compute the minimal description includes the descriptions `a` and `b`"""
+        return a or b
+
+    @staticmethod
+    def _transform_data(values: list) -> list[bool]:
+        return [bool(v) for v in values]
+
+    def describe_pattern(self, value) -> str:
+        return self.name if value else ''
+
+
+class SetPS(AbstractPS):
+    """
+    A pattern structure describing categorical data.
+
+    """
+    def intention_i(self, object_indexes):
+        """Select a common description of objects ``object_indexes``"""
+        intent = set()
+        for g_i in object_indexes:
+            intent |= self._data[g_i]
+        return intent
+
+    def extension_i(self, description: bool, base_objects_i=None):
+        """Select a subset of objects of ``base_objects_i`` which share ``description``"""
+        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+        return [g_i for g_i in base_objects_i if self._data[g_i] & description == self._data[g_i]]
+
+    def to_numeric(self):
+        """Convert the complex ``data`` of the PatternStructure to a set of numeric columns"""
+        uniq_vals = set()
+        for v in self.data:
+            uniq_vals |= v
+        uniq_vals = sorted(uniq_vals)
+        vals_to_cols_map = {v: i for i, v in enumerate(uniq_vals)}
+        zero_row = [False for _ in uniq_vals]
+
+        num_data = []
+        for row_vals in self.data:
+            x_num = zero_row.copy()
+            for v in row_vals:
+                x_num[vals_to_cols_map[v]] = True
+            num_data.append(x_num)
+        return num_data, [f"{self.name}_{v}" for v in uniq_vals]
+
+    @staticmethod
+    def intersect_descriptions(a, b):
+        """Compute the maximal common description of two descriptions `a` and `b`"""
+        return a | b
+
+    @staticmethod
+    def unite_descriptions(a, b):
+        """Compute the minimal description includes the descriptions `a` and `b`"""
+        return a | b
+
+    @staticmethod
+    def _transform_data(values: list) -> list[set]:
+        return [set(v) if isinstance(v, Iterable) and not isinstance(v, str) else {v} for v in values]
+
+    def describe_pattern(self, value) -> str:
+        return f"{self.name}: {', '.join([str(v) for v in value])}" if value else ''
 
 
 class IntervalPS(AbstractPS):
@@ -130,19 +248,15 @@ class IntervalPS(AbstractPS):
     If object description is defined by a single number x we turn it into an interval [x, x]
 
     """
-    def __init__(self, data, name=None):
-        """Initialize the Interval PS with the ``data`` and a distinct ``name``"""
-        super(IntervalPS, self).__init__(data, name)
-        self.data = data
-
     @property
     def data(self):
-        """The data for IntervalPS to work with (`list` of `tuple` representing the intervals)"""
+        """The data for PatternStructure to work with"""
         return self._data
 
     @data.setter
     def data(self, value):
-        assert len(value) == len(self._data), "Length of new data does not match the length of old one"
+        if '_data' in self.__dict__:
+            assert len(value) == len(self._data), "Length of new data does not match the length of old one"
 
         self._data = []
         for x in value:
@@ -327,3 +441,6 @@ class IntervalPS(AbstractPS):
         if LIB_INSTALLED['numpy'] and x is not None:
             x = (np.float32(x[0]), np.float32(x[1]))
         return x
+
+    def describe_pattern(self, value: tuple[float, float] or None) -> str:
+        return f"{self.name}: ({value[0]}, {value[1]})" if value is not None else ''

@@ -49,10 +49,8 @@ def test_abstract_ps_eq_hash():
 
 def test_abstract_ps_tofrom_json():
     aps = pattern_structure.AbstractPS
-    with pytest.raises(NotImplementedError):
-        aps.to_json(1)
-    with pytest.raises(NotImplementedError):
-        aps.from_json('1')
+    assert aps.to_json(1) == '1'
+    assert aps.from_json('1') == 1
 
 
 def test_interval_ps_extension_intention():

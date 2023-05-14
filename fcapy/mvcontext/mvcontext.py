@@ -598,3 +598,10 @@ class MVContext:
             if not self._pattern_structures[ps_i].leq_descriptions(descr, b[ps_i]):
                 return False
         return True
+
+    def describe_pattern(self, data: dict) -> str:
+        pattern_names = [ps.name for ps in self.pattern_structures]
+        data_i = {pattern_names.index(k): v for k, v in data.items()}
+        description = [self.pattern_structures[i].describe_pattern(v) for i, v in data_i.items()]
+        description = [descr for descr in description if descr]
+        return '; '.join(description)
