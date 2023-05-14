@@ -102,14 +102,65 @@ class AbstractPS:
         return cls.intersect_descriptions(a,b) == a
 
     @classmethod
-    def to_json(cls, x):
-        """Convert description ``x`` into .json format"""
-        raise NotImplementedError
-
-    @classmethod
     def from_json(cls, x_json):
         """Load description from ``x_json`` .json format"""
-        raise NotImplementedError
+        return json.loads(x_json)
+
+    @classmethod
+    def to_json(cls, x):
+        """Convert description ``x`` into .json format"""
+        return json.dumps(x)
+
+
+class AttributePS(AbstractPS):
+    r"""
+    A pattern structure to mimic an attribute of formal context.
+    That is, there are only two possible values: True and False. And False means not "not True" but "anything"
+
+    """
+    def intention_i(self, object_indexes):
+        """Select a common description of objects ``object_indexes``"""
+        return all(self._data[g_i] for g_i in object_indexes)
+
+    def extension_i(self, description: bool, base_objects_i=None):
+        """Select a subset of objects of ``base_objects_i`` which share ``description``"""
+        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+        if not description:
+            return list(base_objects_i)
+
+        return [g_i for g_i in base_objects_i if self._data[g_i]]
+
+    def description_to_generators(self, description, projection_num):
+        """Convert a closed ``description`` into a set of generators of this closed description (Optional)"""
+        return [description]
+
+    def generators_to_description(self, generators):
+        """Combine a set of ``generators`` into one closed description (Optional)"""
+        return all(generators)
+
+    def to_numeric(self):
+        """Convert the complex ``data`` of the PatternStructure to a set of numeric columns"""
+        return [int(x) for x in self.data], self.name
+
+    def generators_by_intent_difference(self, new_intent, old_intent):
+        """Compute the set of generators to select the ``new_intent`` from ``old_intent``"""
+        if new_intent == old_intent:
+            return []
+
+        if not new_intent and old_intent:
+            return []
+
+        return [True]
+
+    @staticmethod
+    def intersect_descriptions(a, b):
+        """Compute the maximal common description of two descriptions `a` and `b`"""
+        return a and b
+
+    @staticmethod
+    def unite_descriptions(a, b):
+        """Compute the minimal description includes the descriptions `a` and `b`"""
+        return a or b
 
 
 class IntervalPS(AbstractPS):
