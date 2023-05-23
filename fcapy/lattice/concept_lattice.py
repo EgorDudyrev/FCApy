@@ -800,8 +800,10 @@ class ConceptLattice(Lattice):
         }
         if isinstance(self[0], PatternConcept):
             to_dict_kwargs = dict(json_ready=True)
-        else:  # if FormalConcept
+        elif isinstance(self[0], FormalConcept):  # if FormalConcept
             to_dict_kwargs = dict(objs_order=objs_order, attrs_order=attrs_order)
+        else:
+            raise TypeError(f'Lattice element format is neither PatternConcept nor FormalConcept but {type(self[0])}')
         nodes_data = {"Nodes": [c.to_dict(**to_dict_kwargs) for c in self]}
         arcs_data = {"Arcs": arcs}
         file_data = [lattice_metadata, nodes_data, arcs_data]

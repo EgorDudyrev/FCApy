@@ -6,6 +6,7 @@ from collections.abc import Iterable
 import math
 from numbers import Number
 import json
+from typing import Sequence
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
@@ -237,11 +238,11 @@ class SetPS(AbstractPS):
 
     @classmethod
     def to_json(cls, x: Iterable) -> str:
-        return super().to_json(sorted(x))
+        return super(SetPS, cls).to_json(sorted(x))
 
     @classmethod
     def from_json(cls, x_json: str) -> set:
-        return set(super().from_json(x_json))
+        return set(super(SetPS, cls).from_json(x_json))
 
 
 class IntervalPS(AbstractPS):
@@ -262,91 +263,53 @@ class IntervalPS(AbstractPS):
     If object description is defined by a single number x we turn it into an interval [x, x]
 
     """
-    @property
-    def data(self):
-        """The data for PatternStructure to work with"""
-        return self._data
+    @staticmethod
+    def _transform_data(values: Iterable[Sequence[float] or Number]) -> list[tuple[float, float]]:
+        data = []
+        for x in values:
+            new_x: tuple[float, float] = None
 
-    @data.setter
-    def data(self, value):
-        if '_data' in self.__dict__:
-            assert len(value) == len(self._data), "Length of new data does not match the length of old one"
-
-        self._data = []
-        for x in value:
-            if isinstance(x, Iterable) and len(x) == 2:
+            if isinstance(x, Sequence) and len(x) == 2:
                 new_x = x
-            elif isinstance(x, Iterable) and len(x) == 1:
+            if isinstance(x, Sequence) and len(x) == 1:
                 new_x = (x[0], x[0])
-            elif isinstance(x, Number):
+            if isinstance(x, Number):
                 new_x = (x, x)
-            else:
+
+            if new_x is None:
                 raise TypeError(
                     f"Input data of {type(x)} is not supported by IntervalPS. "
-                    f"Possible types are: any of Number, iterables of 1 or 2 elements"
+                    f"Possible types are: any of Number, Sequence of 1 or 2 elements"
                 )
-            self._data.append(new_x)
+            data.append((float(new_x[0]), float(new_x[1])))
 
-        if LIB_INSTALLED['numpy']:
-            self._data = np.array(self._data, dtype=np.float32)
-            # TODO: Rewrite sorting to ascending (right border of interval)
-            # TODO: and descending (left border of interval) orders
-            map_isort_i = sorted(range(len(self._data)), key=lambda x: self._data[x][1])
-            self._map_i_isort = sorted(range(len(self._data)), key=lambda x: map_isort_i[x])
+        return data
 
-    def intention_i(self, object_indexes):
+    def intention_i(self, object_indexes: Sequence[int]) -> tuple[float, float] or None:
         """Select a common interval description for all objects from ``object_indexes``"""
         if len(object_indexes) == 0:
             return None
 
-        if not LIB_INSTALLED['numpy']:
-            min_, max_ = self._data[object_indexes[0]]
-            for g_i in object_indexes[1:]:
-                v_min, v_max = self._data[g_i]
-                min_ = v_min if v_min < min_ else min_
-                max_ = v_max if v_max > max_ else max_
-        else:
-            min_g_i, max_g_i = object_indexes[0], object_indexes[0]
-            min_sort_i, max_sort_i = self._map_i_isort[min_g_i], self._map_i_isort[max_g_i]
-            for g_i in object_indexes[1:]:
-                sort_i = self._map_i_isort[g_i]
-                if sort_i < min_sort_i:
-                    min_g_i = g_i
-                    min_sort_i = sort_i
-                if sort_i > max_sort_i:
-                    max_g_i = g_i
-                    max_sort_i = sort_i
-
-            min_, max_ = self._data[min_g_i][0], self._data[max_g_i][1]
-
+        min_, max_ = self._data[object_indexes[0]]
+        for g_i in object_indexes[1:]:
+            v_min, v_max = self._data[g_i]
+            min_ = v_min if v_min < min_ else min_
+            max_ = v_max if v_max > max_ else max_
         return min_, max_
 
-    def extension_i(self, description, base_objects_i=None):
+    def extension_i(self, description: tuple[float, float] or float or None, base_objects_i: list[int] = None) -> list[int]:
         """Select a set of indexes of objects from ``base_objects_i`` which fall into interval of ``description``"""
         if description is None:
             return []
 
-        if isinstance(description, Iterable):
-            min_, max_ = description[0], description[1]
-        else:
-            min_ = max_ = description
+        min_, max_ = description if not isinstance(description, Number) else (description, description)
 
-        if not LIB_INSTALLED['numpy']:
-            base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
-            g_is = [g_i for g_i in base_objects_i if min_ <= self._data[g_i][0] and self._data[g_i][1] <= max_]
-        else:
-            if base_objects_i is None:
-                base_objects_i = np.arange(len(self._data))
-            if not isinstance(base_objects_i, np.ndarray):
-                if isinstance(base_objects_i, (list, tuple)):
-                    base_objects_i = np.array(base_objects_i)
-                else:
-                    base_objects_i = np.array(tuple(base_objects_i))
-
-            g_is = base_objects_i[(min_ <= self._data[base_objects_i, 0]) & (self._data[base_objects_i, 1] <= max_)]
+        base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
+        g_is = [int(g_i) for g_i in base_objects_i if min_ <= self._data[g_i][0] and self._data[g_i][1] <= max_]
         return g_is
 
-    def description_to_generators(self, description, projection_num):
+    def description_to_generators(self, description: tuple[float, float], projection_num: int)\
+            -> list[tuple[float, float] or None]:
         """Convert the closed interval of ``description`` into a set of more broader intervals that generate it
 
         For example, an interval (-inf, 10] can describe the same set of objects as a closed interval [0, 10].
@@ -384,7 +347,7 @@ class IntervalPS(AbstractPS):
             generators = [(description[0], description[1])]
         return generators
 
-    def generators_to_description(self, generators):
+    def generators_to_description(self, generators: list[tuple[float, float] or None]) -> tuple[float, float] or None:
         """Combine a set of ``generators`` into a single closed description"""
         if any([gen is None for gen in generators]):
             return None
@@ -400,7 +363,7 @@ class IntervalPS(AbstractPS):
         return description
 
     def __eq__(self, other):
-        same_data = self._data == other.data if not LIB_INSTALLED['numpy'] else (self._data == other.data).all()
+        same_data = self._data == other.data
         return same_data and self._name == other.name
 
     def __hash__(self):
@@ -410,7 +373,8 @@ class IntervalPS(AbstractPS):
         """Turn `IntervalPS` data into a set of numeric columns and their names"""
         return self._data, (f"{self.name}_from", f"{self.name}_to")
 
-    def generators_by_intent_difference(self, new_intent, old_intent):
+    def generators_by_intent_difference(self, new_intent: tuple[float, float], old_intent: tuple[float, float])\
+            -> list[tuple[float, float] or None]:
         """Compute the set of generators to select the ``new_intent`` from ``old_intent``"""
         if new_intent is None:
             return [None]
@@ -427,34 +391,83 @@ class IntervalPS(AbstractPS):
         return [self.generators_to_description([new_intent, old_intent])]
 
     @staticmethod
-    def intersect_descriptions(a, b):
+    def intersect_descriptions(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float] or None:
         """Compute the maximal common description of two descriptions `a` and `b`"""
         intersection = (max(a[0], b[0]), min(a[1], b[1]))
-        if intersection[0]>intersection[1]:
+        if intersection[0] > intersection[1]:
             return None
         return intersection
 
     @staticmethod
-    def unite_descriptions(a, b):
+    def unite_descriptions(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
         """Compute the minimal description includes the descriptions `a` and `b`"""
         unity = (min(a[0], b[0]), max(a[1], b[1]))
         return unity
 
     @classmethod
-    def to_json(cls, x):
+    def to_json(cls, x: tuple[float, float] or None) -> str:
         """Convert description ``x`` into .json format"""
-        if LIB_INSTALLED['numpy'] and x is not None:
-            x = (float(x[0]) , float(x[1]))
-        x_json = json.dumps(x)
-        return x_json
+        x = [float(x[0]), float(x[1])] if x is not None else None
+        return json.dumps(x)
 
     @classmethod
-    def from_json(cls, x_json):
+    def from_json(cls, x_json: str) -> tuple[float, float] or None:
         """Load description from ``x_json`` .json format"""
         x = json.loads(x_json)
-        if LIB_INSTALLED['numpy'] and x is not None:
-            x = (np.float32(x[0]), np.float32(x[1]))
-        return x
+        return tuple(x) if x is not None else None
 
     def describe_pattern(self, value: tuple[float, float] or None) -> str:
         return f"{self.name}: ({value[0]}, {value[1]})" if value is not None else ''
+
+
+class IntervalNumpyPS(IntervalPS):
+    r"""
+    An class to work with Interval Pattern Structures from FCA theory via Numpy package
+
+    Notes
+    -----
+    An Interval Pattern Structure describes any object g with a closed interval g' = [g_{min}, g_{max}]
+    Thus:
+
+    1) Given an interval [a, b] we can select objects A which description falls into an interval [a,b]:
+        A = {g \in G | a <= g_{min} & g_{max} <= b }
+    2) Given a set of objects A \subseteq G we can determine their common description [a, b]: \
+         a = min({g_{min} | g \in A})
+         b = max({g_{max} | g \in A})
+
+    If object description is defined by a single number x we turn it into an interval [x, x]
+
+    """
+    @classmethod
+    def _transform_data(cls, values: Iterable) -> np.ndarray:
+        return np.array(super(IntervalNumpyPS, cls)._transform_data(values))
+
+    def intention_i(self, object_indexes: list[int]) -> tuple[float, float] or None:
+        """Select a common interval description for all objects from ``object_indexes``"""
+        if len(object_indexes) == 0:
+            return None
+
+        return float(self._data[object_indexes, 0].min()), float(self._data[object_indexes, 1].max())
+
+    def extension_i(self, description: tuple[float, float] or None, base_objects_i: list[int] = None) -> list[int]:
+        """Select a set of indexes of objects from ``base_objects_i`` which fall into interval of ``description``"""
+        if description is None:
+            return []
+
+        min_, max_ = description
+        if base_objects_i is None:
+            flg = (min_ <= self._data[:,0]) & (self._data[:, 1] <= max_)
+        else:
+            flg = (min_ <= self._data[base_objects_i, 0]) & (self._data[base_objects_i, 1] <= max_)
+
+        return flg.nonzero()[0].tolist()
+
+    def __eq__(self, other):
+        same_data = (self._data == other.data).all()
+        return same_data and self._name == other.name
+
+    @classmethod
+    def to_json(cls, x: tuple[float, float] or None) -> str:
+        if isinstance(x, np.ndarray):
+            x = x.tolist()
+        return super(IntervalNumpyPS, cls).to_json(x)
