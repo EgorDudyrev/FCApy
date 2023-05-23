@@ -126,8 +126,11 @@ class AttributePS(AbstractPS):
     That is, there are only two possible values: True and False. And False means not "not True" but "anything"
 
     """
-    def intention_i(self, object_indexes):
+    def intention_i(self, object_indexes: list[int]):
         """Select a common description of objects ``object_indexes``"""
+        if not object_indexes:
+            return False
+
         return all(self._data[g_i] for g_i in object_indexes)
 
     def extension_i(self, description: bool, base_objects_i=None):
@@ -183,15 +186,18 @@ class SetPS(AbstractPS):
     A pattern structure describing categorical data.
 
     """
-    def intention_i(self, object_indexes):
+    def intention_i(self, object_indexes) -> set:
         """Select a common description of objects ``object_indexes``"""
         intent = set()
         for g_i in object_indexes:
             intent |= self._data[g_i]
         return intent
 
-    def extension_i(self, description: bool, base_objects_i=None):
+    def extension_i(self, description: set or None, base_objects_i=None):
         """Select a subset of objects of ``base_objects_i`` which share ``description``"""
+        if description is None:
+            return []
+
         base_objects_i = range(len(self._data)) if base_objects_i is None else base_objects_i
         return [g_i for g_i in base_objects_i if self._data[g_i] & description == self._data[g_i]]
 
@@ -213,21 +219,29 @@ class SetPS(AbstractPS):
         return num_data, [f"{self.name}_{v}" for v in uniq_vals]
 
     @staticmethod
-    def intersect_descriptions(a, b):
+    def intersect_descriptions(a: set, b: set) -> set:
         """Compute the maximal common description of two descriptions `a` and `b`"""
         return a | b
 
     @staticmethod
-    def unite_descriptions(a, b):
+    def unite_descriptions(a: set, b: set) -> set:
         """Compute the minimal description includes the descriptions `a` and `b`"""
         return a | b
 
     @staticmethod
-    def _transform_data(values: list) -> list[set]:
+    def _transform_data(values: list[Iterable or str]) -> list[set]:
         return [set(v) if isinstance(v, Iterable) and not isinstance(v, str) else {v} for v in values]
 
-    def describe_pattern(self, value) -> str:
+    def describe_pattern(self, value: set) -> str:
         return f"{self.name}: {', '.join([str(v) for v in value])}" if value else ''
+
+    @classmethod
+    def to_json(cls, x: Iterable) -> str:
+        return super().to_json(sorted(x))
+
+    @classmethod
+    def from_json(cls, x_json: str) -> set:
+        return set(super().from_json(x_json))
 
 
 class IntervalPS(AbstractPS):

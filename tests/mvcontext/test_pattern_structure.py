@@ -107,3 +107,37 @@ def test_interval_ps_tofrom_json():
     ips = pattern_structure.IntervalPS
     assert ips.to_json((1,1)) == '[1.0, 1.0]'
     assert ips.from_json('[1.0, 1.0]') == (1,1)
+
+
+def test_set_ps_extension_intention():
+    sps = pattern_structure.SetPS(['a', 'b', 'c', 'd'])
+    assert sps.extension_i(None) == [], "SetPS.extension_i failed"
+    assert sps.extension_i({'b', 'c'}) == [1, 2], "SetPS.extension_i failed"
+
+    assert sps.intention_i([]) == set(), 'SetPS.intention_i failed'
+    assert sps.intention_i([0, 1, 3]) == {'a', 'b', 'd'}, "SetPS.intention_i failed"
+    assert sps.extension_i(sps.intention_i([1, 2, 3])) == [1, 2, 3], "SetPS.extension_i/intention_i failed"
+
+
+def test_set_ps_tofrom_json():
+    ips = pattern_structure.SetPS
+    assert ips.to_json({'a', 'b', 'c'}) == '["a", "b", "c"]'
+    assert ips.from_json('["a", "b", "c"]') == {'a', 'b', 'c'}
+
+
+def test_attribute_ps_extension_intention():
+    aps = pattern_structure.AttributePS([True, False, True, True])
+    assert aps.extension_i(True) == [0, 2, 3], "AttributePS.extension_i failed"
+    assert aps.extension_i(False) == [0, 1, 2, 3], "AttributePS.extension_i failed"
+
+    assert aps.intention_i([]) is False, 'AttributePS.intention_i failed'
+    assert aps.intention_i([0, 1, 3]) is False, "AttributePS.intention_i failed"
+    assert aps.extension_i(aps.intention_i([0, 2, 3])) == [0, 2, 3], "AttributePS.extension_i/intention_i failed"
+
+
+def test_attribute_ps_tofrom_json():
+    ips = pattern_structure.AttributePS
+    assert ips.to_json(True) == 'true'
+    assert ips.to_json(False) == 'false'
+    assert ips.from_json('false') is False
+
