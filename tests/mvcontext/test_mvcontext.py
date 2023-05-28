@@ -274,3 +274,10 @@ def test_to_binarize():
     K_true = context.FormalContext(bin_data_true, object_names=mvK.object_names, attribute_names=attr_names_true)
     assert mvK.binarize()
     assert mvK.binarize() == K_true
+
+
+def test_n_bin_attrs():
+    ptypes = {'attr': PS.AttributePS, 'sps': PS.SetPS, 'ips': PS.IntervalPS}
+    data = [[True, 'a', 1], [False, 'b', 2]]
+    mvK = mvcontext.MVContext(data, pattern_types=ptypes, attribute_names=['attr', 'sps', 'ips'])
+    assert mvK.n_bin_attrs == mvK.binarize().n_bin_attrs

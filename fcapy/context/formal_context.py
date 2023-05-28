@@ -717,3 +717,7 @@ class FormalContext:
         for i, m in enumerate(self.attribute_names):
             extent = fbarray(self.data[:, i])
             yield m, extent
+
+    @property
+    def n_bin_attrs(self) -> int:
+        return self.data.width

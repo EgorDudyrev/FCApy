@@ -124,6 +124,10 @@ class AbstractPS:
     def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
         raise NotImplementedError
 
+    @property
+    def n_bin_attrs(self) -> int:
+        return sum(1 for _ in self.to_bin_attr_extents())
+
 
 class AttributePS(AbstractPS):
     """
@@ -187,6 +191,10 @@ class AttributePS(AbstractPS):
 
     def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
         yield self.describe_pattern(True), fbarray(self.data)
+
+    @property
+    def n_bin_attrs(self) -> int:
+        return 1
 
 
 class SetPS(AbstractPS):
@@ -262,6 +270,14 @@ class SetPS(AbstractPS):
                 comb_set = set(comb)
                 extent = fbarray([row & comb_set == row for row in self.data])
                 yield self.describe_pattern(comb), extent
+
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_vals = set()
+        for row in self.data:
+            uniq_vals |= row
+        n_uniq = len(uniq_vals)
+        return 2**n_uniq
 
 
 class IntervalPS(AbstractPS):
@@ -453,6 +469,11 @@ class IntervalPS(AbstractPS):
 
         yield self.describe_pattern(None), fbarray([False] * len(self.data))
 
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_left, uniq_right = [set(vs) for vs in zip(*self.data)]
+        return len(uniq_left) + len(uniq_right)
+
 
 class IntervalNumpyPS(IntervalPS):
     r"""
@@ -520,3 +541,8 @@ class IntervalNumpyPS(IntervalPS):
             yield self.describe_pattern((min_left, right_bound)), extent
 
         yield self.describe_pattern(None), fbarray([False] * len(self.data))
+
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_left, uniq_right = np.unique(self.data[:, 0]), np.unique(self.data[:, 1])
+        return len(uniq_left) + len(uniq_right)

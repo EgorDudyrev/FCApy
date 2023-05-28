@@ -619,3 +619,7 @@ class MVContext:
         K.object_names = self.object_names
         K.attribute_names = attr_names
         return K
+
+    @property
+    def n_bin_attrs(self) -> int:
+        return sum(ps.n_bin_attrs for ps in self.pattern_structures)
