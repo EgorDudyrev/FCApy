@@ -6,10 +6,12 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 import zlib
-from typing import Tuple
+from typing import Tuple, Iterator
 import json
+from bitarray import frozenbitarray as fbarray
 
 from fcapy import LIB_INSTALLED
+from fcapy.context import FormalContext
 from fcapy.mvcontext import pattern_structure as PS
 
 
@@ -95,7 +97,7 @@ class MVContext:
         self._attribute_names = value
 
     @property
-    def pattern_structures(self):
+    def pattern_structures(self) -> list[PS.AbstractPS]:
         """A list of pattern structures kept in a context"""
         return self._pattern_structures
 
@@ -113,7 +115,7 @@ class MVContext:
         """A list of target values for Supervised ML scenarios"""
         return self._target
 
-    def assemble_pattern_structures(self, data, pattern_types):
+    def assemble_pattern_structures(self, data, pattern_types) -> list[PS.AbstractPS]:
         """Return pattern_structures based on ``data`` and the ``pattern_types``"""
         if data is None:
             return None
@@ -605,3 +607,15 @@ class MVContext:
         description = [self.pattern_structures[i].describe_pattern(v) for i, v in data_i.items()]
         description = [descr for descr in description if descr]
         return '; '.join(description)
+
+    def to_bin_attr_extents(self) -> Iterator[tuple[str, fbarray]]:
+        for ps_i, ps in enumerate(self.pattern_structures):
+            for m, extent in ps.to_bin_attr_extents():
+                yield m, extent
+
+    def binarize(self) -> FormalContext:
+        attr_names, attr_extents = zip(*list(self.to_bin_attr_extents()))
+        K = FormalContext(list(attr_extents)).T
+        K.object_names = self.object_names
+        K.attribute_names = attr_names
+        return K

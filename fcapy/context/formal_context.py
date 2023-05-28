@@ -5,7 +5,8 @@ It contains a class FormalContext which represents a Formal Context object from 
 """
 from itertools import combinations
 from numbers import Integral
-from typing import Tuple, Iterable, List, Collection, Set, Union
+from typing import Tuple, Iterable, List, Collection, Union, Iterator
+from bitarray import frozenbitarray as fbarray
 
 from frozendict import frozendict
 import zlib
@@ -711,3 +712,8 @@ class FormalContext:
 
         """
         return self._data.to_list(), self._attribute_names
+
+    def to_bin_attr_extents(self) -> Iterator[tuple[str, fbarray]]:
+        for i, m in enumerate(self.attribute_names):
+            extent = fbarray(self.data[:, i])
+            yield m, extent

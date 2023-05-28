@@ -1,4 +1,6 @@
 import pytest
+from bitarray import frozenbitarray
+
 from fcapy.mvcontext import pattern_structure
 import math
 from fcapy import LIB_INSTALLED
@@ -137,3 +139,49 @@ def test_attribute_ps_tofrom_json():
     assert ips.to_json(False) == 'false'
     assert ips.from_json('false') is False
 
+
+def test_attribute_ps_to_bin_attr_extents():
+    aps = pattern_structure.AttributePS([True, False], 'attr')
+    bin_extents_true = [('attr', frozenbitarray('10'))]
+    assert list(aps.to_bin_attr_extents()) == bin_extents_true
+
+
+def test_set_ps_to_bin_attr_extents():
+    sps = pattern_structure.SetPS([{'a'}, {'b'}, {'c'}], 'set')
+    bin_extents_true = [
+        ('set: a, b, c', frozenbitarray('111')),
+        ('set: a, b', frozenbitarray('110')),
+        ('set: a, c', frozenbitarray('101')),
+        ('set: b, c', frozenbitarray('011')),
+        ('set: a', frozenbitarray('100')),
+        ('set: b', frozenbitarray('010')),
+        ('set: c', frozenbitarray('001')),
+        ('set: ∅', frozenbitarray('000'))
+    ]
+    assert list(sps.to_bin_attr_extents()) == bin_extents_true
+
+
+def test_interval_ps_to_bin_attr_extents():
+    ips = pattern_structure.IntervalPS([1, 2, 3], 'ips')
+    bin_extents_true = [
+        ('ips: (1.0, 3.0)', frozenbitarray('111')),
+        ('ips: (2.0, 3.0)', frozenbitarray('011')),
+        ('ips: (3.0, 3.0)', frozenbitarray('001')),
+        ('ips: (1.0, 2.0)', frozenbitarray('110')),
+        ('ips: (1.0, 1.0)', frozenbitarray('100')),
+        ('ips: ∅',          frozenbitarray('000'))
+    ]
+    assert list(ips.to_bin_attr_extents()) == bin_extents_true
+
+
+def test_interval_numpy_ps_to_bin_attr_extents():
+    nips = pattern_structure.IntervalNumpyPS([1, 2, 3], 'nips')
+    bin_extents_true = [
+        ('nips: (1.0, 3.0)', frozenbitarray('111')),
+        ('nips: (2.0, 3.0)', frozenbitarray('011')),
+        ('nips: (3.0, 3.0)', frozenbitarray('001')),
+        ('nips: (1.0, 2.0)', frozenbitarray('110')),
+        ('nips: (1.0, 1.0)', frozenbitarray('100')),
+        ('nips: ∅',          frozenbitarray('000'))
+    ]
+    assert list(nips.to_bin_attr_extents()) == bin_extents_true
