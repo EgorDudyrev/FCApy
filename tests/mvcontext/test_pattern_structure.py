@@ -54,56 +54,86 @@ def test_abstract_ps_tofrom_json():
 
 
 def test_interval_ps_extension_intention():
-    LIB_INSTALLED['numpy'] = False
-    ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
-    assert ips.extension_i(None) == [], "IntervalPS.extension_i failed"
-    assert ips.extension_i((2, 3)) == [2, 3, 4], "IntervalPS.extension_i failed"
-    assert ips.extension_i((2, 2)) == ips.extension_i(2), "IntervalPS.extension_i failed"
+    for cls in [pattern_structure.IntervalPS, pattern_structure.IntervalNumpyPS]:
+        ips = cls([0, 1, 2, 3, 2])
+        assert ips.extension_i(None) == [], f"{cls.__name__}.extension_i failed"
+        assert ips.extension_i((2, 3)) == [2, 3, 4], f"{cls.__name__}.extension_i failed"
+        # No longer applicable
+        # assert ips.extension_i((2, 2)) == ips.extension_i(2), f"{cls.__name__}.extension_i failed"
 
-    LIB_INSTALLED['numpy'] = True
-    ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
-    assert (ips.extension_i(None) == np.array([])).all(), "IntervalPS.extension_i failed"
-    assert (ips.extension_i((2, 3)) == np.array([2, 3, 4])).all(), "IntervalPS.extension_i failed"
-    assert (ips.extension_i((2, 2)) == np.array(ips.extension_i(2))).all(), "IntervalPS.extension_i failed"
+        assert ips.extension_i((2, 3), [0, 1, 2, 3, 4]) == [2, 3, 4],  f"{cls.__name__}.extension_i failed"
+        # No longer applicable
+        # assert ips.extension_i((2, 3), frozenset([0, 1, 2, 3, 4])) == [2, 3, 4], f"{cls.__name__}.extension_i failed"
+        # assert ips.extension_i((2, 3), np.array([0, 1, 2, 3, 4])) == [2, 3, 4], f"{cls.__name__}.extension_i failed"
 
-    assert (ips.extension_i((2, 3), [0, 1, 2, 3, 4]) == np.array([2, 3, 4])).all(), "IntervalPS.extension_i failed"
-    assert (ips.extension_i((2, 3), frozenset([0, 1, 2, 3, 4])) == np.array([2, 3, 4])).all(),\
-        "IntervalPS.extension_i failed"
-    assert (ips.extension_i((2, 3), np.array([0, 1, 2, 3, 4])) == np.array([2, 3, 4])).all(), \
-        "IntervalPS.extension_i failed"
-
-    ips = pattern_structure.IntervalPS([0, 1, 2, 3, 2])
-    assert ips.intention_i([]) is None, 'IntervalPS.intention_i failed'
-    assert ips.intention_i([0, 1, 3]) == (0, 3), "IntervalPS.intention_i failed"
-    assert ips.intention_i([2, 4]) == (2, 2), "IntervalPS.intention_i failed"
-    assert (ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4]).all(), "IntervalPS.extension_i/intention_i failed"
+        ips = cls([0, 1, 2, 3, 2])
+        assert ips.intention_i([]) is None, f'{cls.__name__}.intention_i failed'
+        assert ips.intention_i([0, 1, 3]) == (0, 3), f"{cls.__name__}.intention_i failed"
+        assert ips.intention_i([2, 4]) == (2, 2), f"{cls.__name__}.intention_i failed"
+        assert ips.extension_i(ips.intention_i([1, 2, 4])) == [1, 2, 4], f"{cls.__name__}.extension_i/intention_i failed"
 
 
 def test_interval_ps_descriptions_tofrom_generators():
-    ips = pattern_structure.IntervalPS([])
-    description_true = (1, 2)
-    generators_true = [(-math.inf, 2), (1, math.inf)]
+    for cls in [pattern_structure.IntervalPS, pattern_structure.IntervalNumpyPS]:
+        ips = cls([])
+        description_true = (1, 2)
+        generators_true = [(-math.inf, 2), (1, math.inf)]
 
-    assert ips.description_to_generators(description_true, projection_num=0) == [(-math.inf, math.inf)]
+        assert ips.description_to_generators(description_true, projection_num=0) == [(-math.inf, math.inf)]
 
-    assert ips.description_to_generators(description_true, projection_num=1) == generators_true,\
-        "IntervalPS.description_to_generators failed"
-    assert ips.generators_to_description(generators_true) == description_true, \
-        "IntervalPS.generators_to_description failed"
-    assert ips.description_to_generators(
-        ips.generators_to_description(generators_true), projection_num=1) == generators_true,\
-        "IntervalPS.generators_to_description pipe failed"
+        assert ips.description_to_generators(description_true, projection_num=1) == generators_true,\
+            f"{cls.__name__}.description_to_generators failed"
+        assert ips.generators_to_description(generators_true) == description_true, \
+            f"{cls.__name__}.generators_to_description failed"
+        assert ips.description_to_generators(
+            ips.generators_to_description(generators_true), projection_num=1) == generators_true,\
+            f"{cls.__name__}.generators_to_description pipe failed"
 
-    assert ips.description_to_generators(4, projection_num=1) == [(-math.inf, 4), (4, math.inf)],\
-        "IntervalPS.description_to_generators failed"
-    assert ips.generators_to_description([(-math.inf, 4), (4, math.inf)]) == 4, \
-        "IntervalPS.generators_to_description failed"
+        assert ips.description_to_generators(4, projection_num=1) == [(-math.inf, 4), (4, math.inf)],\
+            f"{cls.__name__}.description_to_generators failed"
+        assert ips.generators_to_description([(-math.inf, 4), (4, math.inf)]) == 4, \
+            f"{cls.__name__}.generators_to_description failed"
 
-    assert ips.description_to_generators(description_true, projection_num=2)[0] == description_true,\
-        "IntervalPS.generators_to_description failed"
+        assert ips.description_to_generators(description_true, projection_num=2)[0] == description_true,\
+            f"{cls.__name__}.generators_to_description failed"
 
 
 def test_interval_ps_tofrom_json():
-    ips = pattern_structure.IntervalPS
-    assert ips.to_json((1,1)) == '[1.0, 1.0]'
-    assert ips.from_json('[1.0, 1.0]') == (1,1)
+    for cls in [pattern_structure.IntervalPS, pattern_structure.IntervalNumpyPS]:
+        ips = cls
+        assert ips.to_json((1,1)) == '[1.0, 1.0]'
+        assert ips.from_json('[1.0, 1.0]') == (1., 1.)
+
+
+def test_set_ps_extension_intention():
+    sps = pattern_structure.SetPS(['a', 'b', 'c', 'd'])
+    assert sps.extension_i(None) == [], "SetPS.extension_i failed"
+    assert sps.extension_i({'b', 'c'}) == [1, 2], "SetPS.extension_i failed"
+
+    assert sps.intention_i([]) == set(), 'SetPS.intention_i failed'
+    assert sps.intention_i([0, 1, 3]) == {'a', 'b', 'd'}, "SetPS.intention_i failed"
+    assert sps.extension_i(sps.intention_i([1, 2, 3])) == [1, 2, 3], "SetPS.extension_i/intention_i failed"
+
+
+def test_set_ps_tofrom_json():
+    ips = pattern_structure.SetPS
+    assert ips.to_json({'a', 'b', 'c'}) == '["a", "b", "c"]'
+    assert ips.from_json('["a", "b", "c"]') == {'a', 'b', 'c'}
+
+
+def test_attribute_ps_extension_intention():
+    aps = pattern_structure.AttributePS([True, False, True, True])
+    assert aps.extension_i(True) == [0, 2, 3], "AttributePS.extension_i failed"
+    assert aps.extension_i(False) == [0, 1, 2, 3], "AttributePS.extension_i failed"
+
+    assert aps.intention_i([]) is False, 'AttributePS.intention_i failed'
+    assert aps.intention_i([0, 1, 3]) is False, "AttributePS.intention_i failed"
+    assert aps.extension_i(aps.intention_i([0, 2, 3])) == [0, 2, 3], "AttributePS.extension_i/intention_i failed"
+
+
+def test_attribute_ps_tofrom_json():
+    ips = pattern_structure.AttributePS
+    assert ips.to_json(True) == 'true'
+    assert ips.to_json(False) == 'false'
+    assert ips.from_json('false') is False
+
