@@ -471,3 +471,4 @@ class IntervalNumpyPS(IntervalPS):
         if isinstance(x, np.ndarray):
             x = x.tolist()
         return super(IntervalNumpyPS, cls).to_json(x)
+
