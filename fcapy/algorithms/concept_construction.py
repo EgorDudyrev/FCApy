@@ -227,6 +227,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         return bounds
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
+    min_extent_size_new = K.n_objects
 
     n_projs = K.n_bin_attrs
     proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
@@ -235,9 +236,10 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         if attr_extent_ba.all():
             continue
 
-        new_extents = (extent & attr_extent_ba for extent in extents_proj)
-        new_extents = {extent for extent in new_extents if extent.count() >= min_supp}
+        new_extents = {extent & attr_extent_ba for extent in extents_proj}
         extents_proj = sorted(set(extents_proj) | new_extents, key=lambda extent: extent.count())
+        extents_proj = extents_proj[:1] + [extent for extent in extents_proj[1:] if extent.count() >= min_supp]
+
         if len(extents_proj) > L_max:
             measure_values = stability_lbounds(extents_proj)
             thold = sorted(measure_values)[::-1][L_max]
