@@ -236,7 +236,7 @@ def test_add_concept():
     ctx = converters.read_csv('data/mango_bin.csv')
     from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 
-    concepts = cca.close_by_one(ctx)
+    concepts = list(cca.close_by_one(ctx))
     np.random.shuffle(concepts)
     top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts)
     concepts = [concepts[top_concept_i], concepts[bottom_concept_i]] + \

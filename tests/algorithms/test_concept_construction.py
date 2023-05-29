@@ -26,35 +26,21 @@ def test_close_by_one():
         c_json['Context_Hash'] = context.hash_fixed()
         concepts_loaded.append(FormalConcept.from_dict(c_json))
 
-    concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
+    concepts_constructed = list(cca.close_by_one(context))
     assert set(concepts_constructed) == set(concepts_loaded),\
         "Close_by_one error. Constructed concepts do not match the true ones"
 
-    data = cca.close_by_one(context, output_as_concepts=False, iterate_extents=True)
-    extents_i, intents_i = data['extents_i'], data['intents_i']
-
-    def is_equal(idx, c):
-        return set(c.extent_i) == set(extents_i[idx]) and set(c.intent_i) == set(intents_i[idx])
-    assert all([is_equal(c_i, c) for c_i, c in enumerate(concepts_constructed)]),\
-        'Close_by_one failed. Output concepts as dict do not match output concepts as concepts'
-
     context = read_csv("data/mango_bin.csv")
-    concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
+    concepts_constructed = list(cca.close_by_one(context))
     assert len(concepts_constructed) == 22, "Close_by_one failed. Binary mango dataset should have 22 concepts"
 
-    concepts_constructed_iterixt = cca.close_by_one(context, output_as_concepts=True, iterate_extents=False)
-    concepts_constructed_iterauto = cca.close_by_one(context, output_as_concepts=True, iterate_extents=None)
-    assert set(concepts_constructed) == set(concepts_constructed_iterixt),\
-        "Close_by_one failed. Iterations over extents and intents give different set of concepts"
-    assert set(concepts_constructed) == set(concepts_constructed_iterauto), \
-        "Close_by_one failed. Iterations over extents and automatically chosen set give different set of concepts"
 
     data = [[1], [2]]
     object_names = ['a', 'b']
     attribute_names = ['M1']
     pattern_types = {'M1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    concepts = cca.close_by_one(mvctx)
+    concepts = list(cca.close_by_one(mvctx))
     context_hash = mvctx.hash_fixed()
     c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)},
                         pattern_types, mvctx.attribute_names, context_hash=context_hash)
@@ -69,7 +55,7 @@ def test_close_by_one():
 
 def test_sofia():
     ctx = read_cxt('data/digits.cxt')
-    concepts_all = cca.close_by_one(ctx)
+    concepts_all = list(cca.close_by_one(ctx))
     concepts_sofia = cca.sofia(ctx, len(concepts_all))
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
