@@ -57,6 +57,8 @@ def test_sofia():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = list(cca.close_by_one(ctx))
     concepts_sofia = cca.sofia(ctx, len(concepts_all))
+    concepts_sofia = [FormalConcept(c.extent_i, c.extent, c.intent_i, c.intent, context_hash=ctx.hash_fixed())
+                      for c in concepts_sofia]
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
