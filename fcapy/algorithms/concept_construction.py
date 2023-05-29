@@ -213,9 +213,9 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
         combinations_to_check.extend(new_combs)
 
 
-def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False)\
+def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False)\
         -> list[FormalConcept | PatternConcept]:
-    import numpy as np
+    min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
     def stability_lbounds(extents: list[fbarray]) -> list[float]:
         children_ordering = inverse_order(sort_intents_inclusion(extents))
@@ -235,7 +235,8 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False
         if attr_extent_ba.all():
             continue
 
-        new_extents = {extent & attr_extent_ba for extent in extents_proj}
+        new_extents = (extent & attr_extent_ba for extent in extents_proj)
+        new_extents = {extent for extent in new_extents if extent.count() >= min_supp}
         extents_proj = sorted(set(extents_proj) | new_extents, key=lambda extent: extent.count())
         if len(extents_proj) > L_max:
             measure_values = stability_lbounds(extents_proj)
