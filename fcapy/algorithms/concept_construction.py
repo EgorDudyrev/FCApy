@@ -45,8 +45,9 @@ def close_by_one(context: FormalContext | MVContext, n_projections_to_binarize: 
             concepts_iterator = close_by_one_objectwise_fbarray(context)
         else:  # not wide, i.e. contains more objects than attributes
             concepts_transpose_iter = close_by_one_objectwise_fbarray(context.T)
+            context_hash = context.hash_fixed()
             concepts_iterator = (
-                FormalConcept(c.intent_i, c.intent, c.extent_i, c.extent, context_hash=context.hash_fixed())
+                FormalConcept(c.intent_i, c.intent, c.extent_i, c.extent, context_hash=context_hash)
                 for c in concepts_transpose_iter
             )
 
@@ -65,11 +66,12 @@ def close_by_one(context: FormalContext | MVContext, n_projections_to_binarize: 
             else:  # context.n_objects > n_projections
                 extents_iter = ((c.intent_i, c.intent) for c in close_by_one_objectwise_fbarray(context.binarize().T))
 
+            context_hash = context.hash_fixed()
             def pattern_concept_factory(extent_i, extent):
                 intent_i = context.intention_i(extent_i)
                 intent = {context.pattern_structures[ps_i].name: pattern for ps_i, pattern in intent_i.items()}
                 return PatternConcept(extent_i, extent, intent_i, intent,
-                                      context.pattern_types, context.attribute_names, context_hash=context.hash_fixed())
+                                      context.pattern_types, context.attribute_names, context_hash=context_hash)
             concepts_iterator = (pattern_concept_factory(extent_i, extent) for extent_i, extent in extents_iter)
     return concepts_iterator
 
@@ -213,24 +215,26 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
 
 def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False)\
         -> list[FormalConcept | PatternConcept]:
-    from fcapy.lattice import ConceptLattice
+    import numpy as np
 
     def stability_lbounds(extents: list[fbarray]) -> list[float]:
         children_ordering = inverse_order(sort_intents_inclusion(extents))
 
         bounds = [
-            sum([2 ** (-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True)])
+            sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
             for children, extent in zip(children_ordering, extents)
         ]
         return bounds
-
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
     n_projs = K.n_bin_attrs
     proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
-                               desc='Iter. Sofia projections', disable=not use_tqdm)
+                                    desc='Iter. Sofia projections', disable=not use_tqdm)
     for proj_i, (_, attr_extent_ba) in proj_iterator:
+        if attr_extent_ba.all():
+            continue
+
         new_extents = {extent & attr_extent_ba for extent in extents_proj}
         extents_proj = sorted(set(extents_proj) | new_extents, key=lambda extent: extent.count())
         if len(extents_proj) > L_max:
@@ -239,13 +243,14 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False
             extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
 
+    context_hash = K.hash_fixed()
     def concept_factory(extent_ba: fbarray):
         extent_ids = list(extent_ba.itersearch(True))
         intent_ids = K.intention_i(extent_ids)
         if isinstance(K, FormalContext):
             return FormalConcept(extent_ids, [K.object_names[g_i] for g_i in extent_ids],
                                  intent_ids, [K.attribute_names[m_i] for m_i in intent_ids],
-                                 context_hash=K.hash_fixed())
+                                 context_hash=context_hash)
 
         return PatternConcept(
             extent_ids, [K.object_names[g_i] for g_i in extent_ids],
@@ -253,7 +258,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False
                          for ps_i, description in intent_ids.items()},
             pattern_types=K.pattern_types,
             attribute_names=K.attribute_names,
-            context_hash=K.hash_fixed()
+            context_hash=context_hash
         )
     final_concepts = [concept_factory(extent) for extent in extents_proj]
     return final_concepts
@@ -469,12 +474,13 @@ def lcm_skmine(context: FormalContext | MVContext, min_supp: float = 1, n_jobs: 
         extents_i.append(list(range(context_bin.n_objects)))
         intents_i.append(context_bin.intention_i(extents_i[-1]))
 
+    context_hash = context.hash_fixed()
     if isinstance(context, FormalContext):
         def concept_factory(extent_i, intent_i):
             return FormalConcept(
                 extent_i, [context.object_names[g_i] for g_i in extent_i],
                 intent_i, [context.attribute_names[m_i] for m_i in intent_i],
-                context_hash=context.hash_fixed()
+                context_hash=context_hash
             )
     else:
         def concept_factory(extent_i, _):
@@ -482,6 +488,6 @@ def lcm_skmine(context: FormalContext | MVContext, min_supp: float = 1, n_jobs: 
             intent = {context.pattern_structures[ps_i].name: pattern for ps_i, pattern in intent_i.items()}
             return PatternConcept(extent_i, [context.object_names[g_i] for g_i in extent_i],
                                   intent_i, intent,
-                                  context.pattern_types, context.attribute_names, context_hash=context.hash_fixed())
+                                  context.pattern_types, context.attribute_names, context_hash=context_hash)
 
     return [concept_factory(extent_i, intent_i) for extent_i, intent_i in zip(extents_i, intents_i)]
