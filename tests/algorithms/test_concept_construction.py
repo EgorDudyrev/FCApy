@@ -67,11 +67,10 @@ def test_close_by_one():
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 
-def test_sofia_binary():
+def test_sofia():
     ctx = read_cxt('data/digits.cxt')
     concepts_all = cca.close_by_one(ctx)
-    lattice_sofia = cca.sofia_binary(ctx, len(concepts_all))
-    concepts_sofia = list(lattice_sofia)
+    concepts_sofia = cca.sofia(ctx, len(concepts_all))
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
@@ -82,56 +81,14 @@ def test_sofia_binary():
     ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
     with pytest.warns(UserWarning):
         ltc_all.calc_concepts_measures('stability', ctx)
-    stabilities_all = [c.measures['Stab'] for c in ltc_all]
-    stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
+    ltc_all.calc_concepts_measures('LStab')
+    mean_stability_all = sum(c.measures['LStab'] for c in ltc_all) / len(ltc_all)
 
-    ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
-    ltc_sofia_precalc = ConceptLattice.read_json('data/digits_sofia_lattice_22.json')
-    assert ltc_sofia == ltc_sofia_precalc
-
-    with pytest.warns(UserWarning):
-        ltc_sofia.calc_concepts_measures('stability', ctx)
-    stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia]
-    stabilities_sofia_mean = sum(stabilities_sofia) / len(stabilities_sofia)
-
-    assert stabilities_sofia_mean > stabilities_all_mean,\
-        'sofia_binary failed. Sofia algorithm does not produce the subset of stable concepts'
-
-    for projection_sorting in ['ascending', 'descending', 'random']:
-        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, proj_sorting=projection_sorting)
-    with pytest.raises(ValueError):
-        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, proj_sorting="UnKnOwN OrDeR")
-
-
-def test_sofia_general():
-    ctx = read_cxt('data/digits.cxt')
-    concepts_all = cca.close_by_one(ctx)
-    lattice_sofia = cca.sofia_general(ctx, len(concepts_all))
-    concepts_sofia = list(lattice_sofia)
-    assert len(concepts_all) == len(concepts_sofia),\
-        'sofia_general failed. Sofia algorithm produces wrong number of all concepts' \
-        f'({len(concepts_sofia)} against {len(concepts_all)})'
-    assert set(concepts_all) == set(concepts_sofia), \
-        'sofia_general failed. Sofia algorithm produces wrong set of all concepts. '
-
-    subconcepts_dict_all = lca.complete_comparison(concepts_all)
-    ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
-    with pytest.warns(UserWarning):
-        ltc_all.calc_concepts_measures('stability', ctx)
-    stabilities_all = [c.measures['Stab'] for c in ltc_all]
-    stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
-
-    lattice_sofia = cca.sofia_general(ctx, len(concepts_all)//2)
-    concepts_sofia = list(lattice_sofia)
-    subconcepts_dict_sofia = lca.complete_comparison(concepts_sofia)
-    ltc_sofia = ConceptLattice(concepts_sofia, subconcepts_dict=subconcepts_dict_sofia)
-    with pytest.warns(UserWarning):
-        ltc_sofia.calc_concepts_measures('stability', ctx)
-    stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia]
-    stabilities_sofia_mean = sum(stabilities_sofia) / len(stabilities_sofia)
-
-    assert stabilities_sofia_mean > stabilities_all_mean,\
-        'sofia_general failed. Sofia algorithm does not produce the subset of stable concepts'
+    ltc_sofia_half = ConceptLattice(cca.sofia(ctx, len(concepts_all)//2))
+    ltc_sofia_half.calc_concepts_measures('LStab')
+    mean_stability_half = sum(c.measures['LStab'] for c in ltc_sofia_half) / len(ltc_sofia_half)
+    assert mean_stability_half > mean_stability_all, \
+        'sofia failed. Sofia algorithm does not produce the subset of stable concepts'
 
 
 def test_parse_decision_tree_to_extents():

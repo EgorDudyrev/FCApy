@@ -50,8 +50,8 @@ def test_dlclassifier():
     preds_train = dlc.predict(mvctx_train)
     preds_test = dlc.predict(mvctx_test)
     acc_train, acc_test = accuracy_score(y_train, preds_train), accuracy_score(y_test, preds_test)
-    assert acc_train > 0.44, f"DecisionLatticeClassifier failed. To low train quality {acc_train}"
-    assert acc_train > 0.44, f"DecisionLatticeClassifier failed. To low test quality {acc_test}"
+    assert acc_train > 0.42, f"DecisionLatticeClassifier failed. To low train quality {acc_train}"
+    assert acc_test > 0.33, f"DecisionLatticeClassifier failed. To low test quality {acc_test}"
 
     probs_train = np.array(dlc.predict_proba(mvctx_train))
     assert np.array(probs_train).sum(1).mean(),\

@@ -5,12 +5,13 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 
 """
 from collections import deque
-from typing import List, Tuple, Iterator, Iterable, Any
+from typing import List, Tuple, Iterator, Iterable
 
 import numpy as np
 import pandas as pd
 from bitarray import frozenbitarray as fbarray
 from bitarray.util import zeros as bazeros
+from caspailleur.order import inverse_order, sort_intents_inclusion
 
 from fcapy.context.formal_context import FormalContext
 from fcapy.context.bintable import BinTableBitarray
@@ -18,9 +19,6 @@ from fcapy.mvcontext.mvcontext import MVContext
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
 from fcapy.utils import utils
-import random
-from copy import deepcopy, copy
-import math
 
 
 def close_by_one(context: MVContext, output_as_concepts=True, iterate_extents=None,
@@ -275,279 +273,9 @@ def close_by_one_objectwise_fbarray(context: FormalContext or MVContext) -> list
         combinations_to_check.extend(new_combs)
 
 
-def sofia_objectwise(
-        K: FormalContext or MVContext,
-        L_max: int = 100, measure_name: str = 'LStab',
-        use_tqdm: bool = False,
-        proj_start: int = None
-) -> 'ConceptLattice':
+def sofia(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bool = False)\
+        -> list[FormalConcept or PatternConcept]:
     from fcapy.lattice import ConceptLattice
-
-    #############
-    # The Setup #
-    #############
-    is_K_multivalued = isinstance(K, MVContext)
-
-    # Define concept constructors based on the class of context K
-    if is_K_multivalued:
-        def concept_factory(ext_i, ext_, int_i, int_, hash_):
-            return PatternConcept(ext_i, ext_, int_i, int_, K.pattern_types, K.attribute_names, context_hash=hash_)
-    else:
-        def concept_factory(ext_i, ext_, int_i, int_, hash_):
-            return FormalConcept(ext_i, ext_, int_i, int_, context_hash=hash_)
-
-    def close_by_one_proj(K_, extents, i):
-        f = close_by_one(
-            K_,
-            initial_combinations=extents, iter_concepts_to_check=[i-1],
-            output_as_concepts=True, iterate_extents=True,
-        )
-        return f
-
-    # Define where to start and where to end while iterating projections
-    proj_start = int(math.log2(L_max)) if proj_start is None else proj_start
-    max_proj = len(K)
-
-    proj_iterator = range(proj_start + 1, max_proj + 1)
-    if use_tqdm:
-        proj_iterator = utils.safe_tqdm(
-            proj_iterator, desc='SOFIA: Iterate objects', initial=proj_start, total=max_proj
-        )
-
-    #################
-    # The Algorithm #
-    #################
-
-    # Step 1: Construct a lattice on a small enough subset of the context
-    K_proj = K[:proj_start]
-    L_proj = ConceptLattice.from_context(K_proj, algo='CbO')
-
-    for proj_i in proj_iterator:
-        # Step i.0: Update context projection
-        K_proj = K[:proj_i]
-
-        # Step i.1: Update old concepts to the new context
-        K_proj_hash = K_proj.hash_fixed()
-        for c in L_proj:
-            ext_i_new = K_proj.extension_i(c.intent_i)
-            ext_new = [K_proj.object_names[g_i] for g_i in ext_i_new]
-            c_new = concept_factory(ext_i_new, ext_new, c.intent_i, c.intent, K_proj_hash)
-            L_proj._update_element(c, c_new)
-
-        # Step i.2: Construct concepts on a new part of the context
-        extents_proj = [c.extent_i for c in L_proj]
-        new_concepts = close_by_one_proj(K_proj, extents_proj, proj_i)
-
-        # Step i.3: Add new concepts to the lattice
-
-        # concepts that were changed during projection iteration
-        concepts_to_add = list(set(new_concepts) - set(L_proj))
-        # sort concepts to ensure there will be no moment with multiple top or bottom concepts
-        concepts_to_add = L_proj.sort_concepts(concepts_to_add)
-        if len(concepts_to_add) >= 2 and concepts_to_add[-1] < L_proj[L_proj.bottom]:
-            concepts_to_add = [concepts_to_add[-1]] + concepts_to_add[:-1]
-
-        for c in concepts_to_add:  # As, for now, ConceptLattice does not support addition of many elements at once
-            L_proj.add(c)
-
-        # Step i.4: Drop bad concepts from the lattice (if needed)
-        if len(L_proj) > L_max:
-            L_proj.calc_concepts_measures(measure_name, K_proj)
-            measure_values = L_proj.measures[measure_name]
-            thold = sorted(measure_values)[::-1][L_max]
-
-            top_i, bottom_i = L_proj.top, L_proj.bottom
-            concepts_to_remove = [i for i, v in enumerate(measure_values)
-                                  if v <= thold and i != top_i and i != bottom_i]
-
-            for c_i in concepts_to_remove[::-1]:
-                del L_proj[c_i]
-
-    return L_proj
-
-
-def sofia_binary(
-        K: FormalContext, L_max: int = 100,
-        iterate_attributes: bool = False, measure: str = 'LStab',
-        proj_sorting: str = None, proj_start: int = None, use_tqdm: bool = False):
-    """Return a lattice of the most interesting concepts generated by SOFIA algorithm. Optimized for `FormalContext`
-
-    WARNING: The author of the algorithm (A. Buzmakov) said this function is not an accurate implementation
-    of the original Sofia algorithm. Thus the function may work not as efficient as expected.
-
-    Parameters
-    ----------
-    K: `FormalContext`
-        A context to build a list of concepts on
-    L_max: `int`
-        Maximum size of returned lattice. That is the maximum number of most interesting concepts
-    iterate_attributes: `bool`
-        A flag whether to iterate a set of attributes as a chain of projections (if set to True) or a set of objects o/w
-    measure: `string`
-        The name of a concept interesting measure_name to maximize
-    proj_sorting: `str` of {'ascending', 'descending', 'random', None}
-        A way to sort a chain of projections by their support.
-        E.g. if ``iterate_attributes`` is set to True, 'Ascending' sorting start running projections
-        from an attribute shared by the least amount of objects to an attributes shared by the most amount of objects
-    proj_start: `int`
-        A number of projection (a set of attributes/objects) to construct a basic `ConceptLattice` on
-    use_tqdm: `bool`
-        A flag whether to visualize the progress of the algorithm with `tqdm` bar or not
-
-    Returns
-    -------
-    lattice: `ConceptLattice`
-        A ConceptLattice which contains a set of Formal (or Pattern) concepts
-        with high values of given interesting measure
-
-    """
-    if iterate_attributes:
-        raise NotImplementedError('Sofia algorithm does not work properly for value ``iterate_attributes`` = False'
-                                  'due to wrong stability index calculations')
-
-    def setup_projection_order(K_):
-        max_proj_ = len(K_)
-        if proj_sorting == 'ascending':
-            def key_func(proj_i):
-                return len(K_.intention_i([proj_i]))
-        elif proj_sorting == 'descending':
-            def key_func(proj_i):
-                return -len(K_.intention_i([proj_i]))
-        elif proj_sorting == 'random':
-            rand_idxs = random.sample(range(max_proj_), k=max_proj_)
-
-            def key_func(proj_i):
-                return rand_idxs[proj_i]
-        elif proj_sorting is None:
-            key_func = None
-        else:
-            raise ValueError(f'Sofia_binary error. Unknown proj_sorting is given: {proj_sorting}. ' +
-                             'Possible ones are "ascending", "descending", "random"')
-
-        order = range(max_proj_)
-        if key_func:
-            order = sorted(order, key=key_func)
-        return order
-
-    def setup_measure(measure_):
-        if not isinstance(measure_, str):
-            raise TypeError('Sofia_binary error. For now, you can only specify the name of already defined measure')
-        return measure_
-
-    if iterate_attributes is None:
-        iterate_attributes = False
-        # iterate_attributes = len(K.attribute_names) < len(K.object_names)  #  TODO: Add iterate_attributes support
-
-    K_hash = K.hash_fixed()
-    if iterate_attributes:
-        K = K.T
-
-    proj_order = setup_projection_order(K)
-    measure_name = setup_measure(measure)
-
-    L = sofia_objectwise(K[proj_order], L_max, measure_name=measure_name, use_tqdm=use_tqdm, proj_start=proj_start)
-
-    if iterate_attributes:
-        L = L.T
-
-    for i, c in enumerate(L):
-        c_data = {k: v for k, v in c.__dict__.items() if not k.startswith('_')}
-        c_data['context_hash'] = K_hash
-        L._update_element(c, c.__class__(**c_data))
-
-    return L
-
-
-def sofia_general(K: MVContext, L_max=100, measure='LStab', proj_to_start=None, use_tqdm=False):
-    """Return a lattice of the most interesting concepts generated by SOFIA algorithm. Can work with any `MVContext`
-
-    WARNING: The author of the algorithm (A. Buzmakov) said this is not an accurate implementation
-    of the original Sofia algorithm. Thus, the function may work not as efficient as expected.
-    Moreover, it represents the simplest way to construct a lattice over MVContext. Therefore, it is very inefficient.
-
-    Parameters
-    ----------
-    K: `FormalContext` or `MVContext`
-        A context to build a list of concepts on
-    L_max: `int`
-        Maximum size of returned lattice. That is the maximum number of most interesting concepts
-    measure: `string`
-        The name of a concept interesting measure to maximize
-    proj_to_start: `int`
-        A number of projection (a set of attributes/objects) to construct a basic `ConceptLattice` on
-    use_tqdm: `bool`
-        A flag whether to visualize the progress of the algorithm with `tqdm` bar or not
-
-    Returns
-    -------
-    lattice: `ConceptLattice`
-        A ConceptLattice which contains a set of Formal (or Pattern) concepts
-        with high values of given interesting measure
-
-    """
-    return sofia_objectwise(K, L_max, measure, use_tqdm, proj_to_start)
-
-
-def sofia(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bool = False) -> 'ConceptLattice':
-    from fcapy.lattice import ConceptLattice
-
-    def proj_concept_factory(extent_ids: list[int], intent_ids: list[int], proj_number: int):
-        return FormalConcept(extent_ids, extent_ids, intent_ids, intent_ids, context_hash=proj_number)
-
-    L_proj = ConceptLattice([proj_concept_factory(list(range(K.n_objects)), [], -1),
-                             ])#proj_concept_factory([], [], -1)])
-
-    n_projs = K.n_bin_attrs
-    proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
-                               desc='Iter. Sofia projections', disable=not use_tqdm)
-    for proj_i, (_, attr_extent_ba) in proj_iterator:
-        attr_extent_i_set = set(attr_extent_ba.itersearch(True))
-
-        new_concepts = set()
-        for c in L_proj:
-            is_same_concept = set(c.extent_i) & set(attr_extent_i_set) == set(c.extent_i)
-            if is_same_concept:
-                c_updated = proj_concept_factory(c.extent_i, c.intent_i + (proj_i, ), proj_i)
-            else:
-                c_updated = proj_concept_factory(c.extent_i, c.intent_i, proj_i)
-                new_extent = [g_i for g_i in c.extent_i if g_i in attr_extent_i_set]
-                c_new = proj_concept_factory(new_extent, c.intent_i + (proj_i, ), proj_i)
-                new_concepts.add(c_new)
-            new_concepts.add(c_updated)
-        # new_concepts = sorted(new_concepts, key=lambda c: (len(c.extent_i), c.extent_i), reverse=False)# for debugging purposes
-        L_proj = ConceptLattice(new_concepts)
-        if len(L_proj) > L_max:
-            L_proj.calc_concepts_measures('LStab')
-            measure_values = L_proj.measures['LStab']
-            thold = sorted(measure_values)[::-1][L_max]
-
-            top_i, bottom_i = L_proj.top, L_proj.bottom
-            concepts_to_remove = [i for i, v in enumerate(measure_values)
-                                  if v <= thold and i != top_i and i != bottom_i]
-
-            for c_i in concepts_to_remove[::-1]:
-                del L_proj[c_i]
-
-    def concept_factory(extent_ids: list[int]):
-        intent_ids = K.intention_i(extent_ids)
-        if isinstance(K, FormalContext):
-            return FormalConcept(extent_ids, [K.object_names[g_i] for g_i in extent_ids],
-                                 intent_ids, [K.attribute_names[m_i] for m_i in intent_ids],
-                                 context_hash=K.hash_fixed())
-
-        return PatternConcept(
-            extent_ids, [K.object_names[g_i] for g_i in extent_ids],
-            intent_ids, {K.pattern_structures[ps_i].name: description
-                         for ps_i, description in intent_ids.items()},
-            context_hash=K.hash_fixed()
-        )
-    final_concepts = [concept_factory(c.extent_i) for c in L_proj]
-    return ConceptLattice(final_concepts, subconcepts_dict=L_proj.children_dict)
-
-
-def sofia_bitarray(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bool = False) -> 'ConceptLattice':
-    from fcapy.lattice import ConceptLattice
-    from caspailleur.order import inverse_order, sort_intents_inclusion
 
     def stability_lbounds(extents: list[fbarray]) -> list[float]:
         children_ordering = inverse_order(sort_intents_inclusion(extents))
@@ -585,12 +313,12 @@ def sofia_bitarray(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bo
             extent_ids, [K.object_names[g_i] for g_i in extent_ids],
             intent_ids, {K.pattern_structures[ps_i].name: description
                          for ps_i, description in intent_ids.items()},
+            pattern_types=K.pattern_types,
+            attribute_names=K.attribute_names,
             context_hash=K.hash_fixed()
         )
     final_concepts = [concept_factory(extent) for extent in extents_proj]
-    subconcepts_order = inverse_order(sort_intents_inclusion(extents_proj))
-    subconcepts_dict = dict(enumerate([frozenset(ba.itersearch(True)) for ba in subconcepts_order]))
-    return ConceptLattice(final_concepts, subconcepts_dict=subconcepts_dict)
+    return final_concepts
 
 
 def parse_decision_tree_to_extents(tree, X, n_jobs=1) -> List[Tuple[int, ...]]:
