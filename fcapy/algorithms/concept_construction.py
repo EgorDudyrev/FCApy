@@ -5,7 +5,7 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 
 """
 from collections import deque
-from typing import List, Tuple, Iterator, Iterable
+from typing import List, Tuple, Iterator, Iterable, Any
 
 import numpy as np
 import pandas as pd
@@ -486,6 +486,111 @@ def sofia_general(K: MVContext, L_max=100, measure='LStab', proj_to_start=None, 
 
     """
     return sofia_objectwise(K, L_max, measure, use_tqdm, proj_to_start)
+
+
+def sofia(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bool = False) -> 'ConceptLattice':
+    from fcapy.lattice import ConceptLattice
+
+    def proj_concept_factory(extent_ids: list[int], intent_ids: list[int], proj_number: int):
+        return FormalConcept(extent_ids, extent_ids, intent_ids, intent_ids, context_hash=proj_number)
+
+    L_proj = ConceptLattice([proj_concept_factory(list(range(K.n_objects)), [], -1),
+                             ])#proj_concept_factory([], [], -1)])
+
+    n_projs = K.n_bin_attrs
+    proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
+                               desc='Iter. Sofia projections', disable=not use_tqdm)
+    for proj_i, (_, attr_extent_ba) in proj_iterator:
+        attr_extent_i_set = set(attr_extent_ba.itersearch(True))
+
+        new_concepts = set()
+        for c in L_proj:
+            is_same_concept = set(c.extent_i) & set(attr_extent_i_set) == set(c.extent_i)
+            if is_same_concept:
+                c_updated = proj_concept_factory(c.extent_i, c.intent_i + (proj_i, ), proj_i)
+            else:
+                c_updated = proj_concept_factory(c.extent_i, c.intent_i, proj_i)
+                new_extent = [g_i for g_i in c.extent_i if g_i in attr_extent_i_set]
+                c_new = proj_concept_factory(new_extent, c.intent_i + (proj_i, ), proj_i)
+                new_concepts.add(c_new)
+            new_concepts.add(c_updated)
+        # new_concepts = sorted(new_concepts, key=lambda c: (len(c.extent_i), c.extent_i), reverse=False)# for debugging purposes
+        L_proj = ConceptLattice(new_concepts)
+        if len(L_proj) > L_max:
+            L_proj.calc_concepts_measures('LStab')
+            measure_values = L_proj.measures['LStab']
+            thold = sorted(measure_values)[::-1][L_max]
+
+            top_i, bottom_i = L_proj.top, L_proj.bottom
+            concepts_to_remove = [i for i, v in enumerate(measure_values)
+                                  if v <= thold and i != top_i and i != bottom_i]
+
+            for c_i in concepts_to_remove[::-1]:
+                del L_proj[c_i]
+
+    def concept_factory(extent_ids: list[int]):
+        intent_ids = K.intention_i(extent_ids)
+        if isinstance(K, FormalContext):
+            return FormalConcept(extent_ids, [K.object_names[g_i] for g_i in extent_ids],
+                                 intent_ids, [K.attribute_names[m_i] for m_i in intent_ids],
+                                 context_hash=K.hash_fixed())
+
+        return PatternConcept(
+            extent_ids, [K.object_names[g_i] for g_i in extent_ids],
+            intent_ids, {K.pattern_structures[ps_i].name: description
+                         for ps_i, description in intent_ids.items()},
+            context_hash=K.hash_fixed()
+        )
+    final_concepts = [concept_factory(c.extent_i) for c in L_proj]
+    return ConceptLattice(final_concepts, subconcepts_dict=L_proj.children_dict)
+
+
+def sofia_bitarray(K: FormalContext or MVContext, L_max: int = 100, use_tqdm: bool = False) -> 'ConceptLattice':
+    from fcapy.lattice import ConceptLattice
+    from caspailleur.order import inverse_order, sort_intents_inclusion
+
+    def stability_lbounds(extents: list[fbarray]) -> list[float]:
+        children_ordering = inverse_order(sort_intents_inclusion(extents))
+
+        bounds = [
+            sum([2 ** (-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True)])
+            for children, extent in zip(children_ordering, extents)
+        ]
+        return bounds
+
+
+    extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
+
+    n_projs = K.n_bin_attrs
+    proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
+                               desc='Iter. Sofia projections', disable=not use_tqdm)
+    for proj_i, (_, attr_extent_ba) in proj_iterator:
+        new_extents = {extent & attr_extent_ba for extent in extents_proj}
+        extents_proj = sorted(set(extents_proj) | new_extents, key=lambda extent: extent.count())
+        if len(extents_proj) > L_max:
+            measure_values = stability_lbounds(extents_proj)
+            thold = sorted(measure_values)[::-1][L_max]
+            extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
+                            if measure > thold or extent_i in {0, len(extents_proj)-1}]
+
+    def concept_factory(extent_ba: fbarray):
+        extent_ids = list(extent_ba.itersearch(True))
+        intent_ids = K.intention_i(extent_ids)
+        if isinstance(K, FormalContext):
+            return FormalConcept(extent_ids, [K.object_names[g_i] for g_i in extent_ids],
+                                 intent_ids, [K.attribute_names[m_i] for m_i in intent_ids],
+                                 context_hash=K.hash_fixed())
+
+        return PatternConcept(
+            extent_ids, [K.object_names[g_i] for g_i in extent_ids],
+            intent_ids, {K.pattern_structures[ps_i].name: description
+                         for ps_i, description in intent_ids.items()},
+            context_hash=K.hash_fixed()
+        )
+    final_concepts = [concept_factory(extent) for extent in extents_proj]
+    subconcepts_order = inverse_order(sort_intents_inclusion(extents_proj))
+    subconcepts_dict = dict(enumerate([frozenset(ba.itersearch(True)) for ba in subconcepts_order]))
+    return ConceptLattice(final_concepts, subconcepts_dict=subconcepts_dict)
 
 
 def parse_decision_tree_to_extents(tree, X, n_jobs=1) -> List[Tuple[int, ...]]:
