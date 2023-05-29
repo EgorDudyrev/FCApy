@@ -119,6 +119,12 @@ def test_lattice_construction_by_spanning_tree():
         'Parallel computing give wrong result when concepts are not sorted'
 
 
+def test_order_extent_comparison():
+    ctx = read_cxt('data/animal_movement.cxt')
+    concepts = list(ConceptLattice.from_context(ctx))
+    assert lca.complete_comparison(concepts) == lca.order_extents_comparison(concepts)
+
+
 def test_add_concept():
     ctx = read_csv('data/mango_bin.csv')
     np.random.seed(13)

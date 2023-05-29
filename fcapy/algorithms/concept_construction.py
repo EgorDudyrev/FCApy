@@ -446,3 +446,42 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
 
     lattice = ConceptLattice(concepts, children_dict=children_dict)
     return lattice
+
+
+def lcm_skmine(context: FormalContext | MVContext, min_supp: float = 1, n_jobs: int = 1)\
+        -> list[FormalConcept | PatternConcept]:
+    from skmine.itemsets import LCM
+
+    context_bin = context if isinstance(context, FormalContext) else context.binarize()
+    itemsets = [list(row.itersearch(True)) for row in BinTableBitarray(context_bin.data.data)]
+
+    lcm = LCM(min_supp=min_supp, n_jobs=n_jobs)
+    lcm_data = lcm.fit_transform(itemsets, return_tids=True)
+    intents_i = list(lcm_data['itemset'])
+    extents_i = [list(row) for row in lcm_data['tids']]
+    del lcm_data
+
+    if all(len(intent_i) < context_bin.n_attributes for intent_i in intents_i):
+        intents_i.append(list(range(context_bin.n_attributes)))
+        extents_i.append(context_bin.extension_i(intents_i[-1]))
+
+    if all(len(extent_i) < context_bin.n_objects for extent_i in extents_i):
+        extents_i.append(list(range(context_bin.n_objects)))
+        intents_i.append(context_bin.intention_i(extents_i[-1]))
+
+    if isinstance(context, FormalContext):
+        def concept_factory(extent_i, intent_i):
+            return FormalConcept(
+                extent_i, [context.object_names[g_i] for g_i in extent_i],
+                intent_i, [context.attribute_names[m_i] for m_i in intent_i],
+                context_hash=context.hash_fixed()
+            )
+    else:
+        def concept_factory(extent_i, _):
+            intent_i = context.intention_i(extent_i)
+            intent = {context.pattern_structures[ps_i].name: pattern for ps_i, pattern in intent_i.items()}
+            return PatternConcept(extent_i, [context.object_names[g_i] for g_i in extent_i],
+                                  intent_i, intent,
+                                  context.pattern_types, context.attribute_names, context_hash=context.hash_fixed())
+
+    return [concept_factory(extent_i, intent_i) for extent_i, intent_i in zip(extents_i, intents_i)]

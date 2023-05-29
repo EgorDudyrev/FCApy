@@ -214,7 +214,7 @@ class ConceptLattice(Lattice):
             kwargs_used = utils.get_kwargs_used(kwargs, algo_func)
             concepts = algo_func(context, **kwargs_used)
             concepts = cls.sort_concepts(concepts)
-            subconcepts_dict = lca.construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=True)
+            subconcepts_dict = lca.order_extents_comparison(concepts)
 
             ltc = ConceptLattice(
                 concepts=concepts, subconcepts_dict=subconcepts_dict
