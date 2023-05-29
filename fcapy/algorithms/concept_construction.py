@@ -243,7 +243,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, use_tqdm: bool = False
             extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
 
-    context_hash = K.hash_fixed()
+    context_hash = None  # K.hash_fixed()
     def concept_factory(extent_ba: fbarray):
         extent_ids = list(extent_ba.itersearch(True))
         intent_ids = K.intention_i(extent_ids)
