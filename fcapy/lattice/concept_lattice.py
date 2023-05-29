@@ -208,8 +208,9 @@ class ConceptLattice(Lattice):
         if algo is None:
             algo = 'CbO' if type(context) == MVContext else 'Lindig'
 
-        if algo in {'CbO', 'RandomForest', 'Sofia'}:
-            algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts, 'Sofia': cca.sofia}[algo]
+        if algo in {'CbO', 'RandomForest', 'Sofia', 'LCM'}:
+            algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts,
+                         'Sofia': cca.sofia, 'LCM': cca.lcm_skmine}[algo]
             kwargs_used = utils.get_kwargs_used(kwargs, algo_func)
             concepts = algo_func(context, **kwargs_used)
             concepts = cls.sort_concepts(concepts)

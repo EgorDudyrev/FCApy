@@ -54,12 +54,12 @@ def test_from_context():
             'ConceptLattice.from_context failed. Wrong concepts in the constructed lattice'
 
     ctx = converters.read_csv('data/mango_bin.csv')
-    ltc_cbo, ltc_sofia, ltc_lindig = [ConceptLattice.from_context(ctx, algo=alg_name)
-                                      for alg_name in ['CbO', 'Sofia', 'Lindig']]
-    for L in [ltc_cbo, ltc_sofia, ltc_lindig]:
+    ltc_cbo, ltc_sofia, ltc_lindig, ltc_LCM = [ConceptLattice.from_context(ctx, algo=alg_name)
+                                      for alg_name in ['CbO', 'Sofia', 'Lindig', 'LCM']]
+    for L in [ltc_cbo, ltc_sofia, ltc_lindig, ltc_LCM]:
         assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
             "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
-    for L in [ltc_sofia, ltc_lindig]:
+    for L in [ltc_sofia, ltc_lindig, ltc_LCM]:
         assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
 
     data = [[1, 10],
@@ -70,11 +70,11 @@ def test_from_context():
     attribute_names = ['M1', 'M2']
     pattern_types = {'M1': ps.IntervalPS, 'M2': ps.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    ltc_cbo, ltc_sofia = [ConceptLattice.from_context(mvctx, algo=alg_name) for alg_name in ['CbO', 'Sofia']]
-    for L in [ltc_cbo, ltc_sofia]:
+    ltc_cbo, ltc_sofia, ltc_LCM = [ConceptLattice.from_context(mvctx, algo=alg_name) for alg_name in ['CbO', 'Sofia', 'LCM']]
+    for L in [ltc_cbo, ltc_sofia, ltc_LCM]:
         assert all([idx == L.index(el) for idx, el in enumerate(L)]),\
             "ConceptLattice.from_context failed. Something is wrong with lattice.index function"
-    for L in [ltc_sofia]:
+    for L in [ltc_sofia, ltc_LCM]:
         assert ltc_cbo == L, "ConceptLattice.from_context failed. Lattices differ when constructed by different methods"
 
     with pytest.raises(NotImplementedError):
