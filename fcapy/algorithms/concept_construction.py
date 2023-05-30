@@ -236,6 +236,9 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         if attr_extent_ba.all():
             continue
 
+        if attr_extent_ba.count() < min_supp:
+            continue
+
         new_extents = {extent & attr_extent_ba for extent in extents_proj}
         extents_proj = sorted(set(extents_proj) | new_extents, key=lambda extent: extent.count())
         extents_proj = extents_proj[:1] + [extent for extent in extents_proj[1:] if extent.count() >= min_supp]
