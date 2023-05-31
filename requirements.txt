@@ -69,7 +69,7 @@ imagesize==1.4.1
     # via sphinx
 ipykernel==6.23.1
     # via ipywidgets
-ipython==8.13.2
+ipython==8.13.0
     # via
     #   ipykernel
     #   ipywidgets
