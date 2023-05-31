@@ -3,6 +3,8 @@ import os
 from operator import itemgetter
 import filecmp
 
+from bitarray import frozenbitarray
+
 from fcapy.context import FormalContext, read_cxt, read_json, read_csv, from_pandas
 from fcapy.lattice.concept_lattice import ConceptLattice
 from .data_to_test import animal_movement_data
@@ -297,3 +299,8 @@ def test_invert():
     ctx = read_csv('data/mango_bin.csv')
     assert ~~ctx == ctx, 'FormalContext.__invert__ failed'
 
+
+def test_to_bin_attr_extents():
+    K = FormalContext([[False, False, True], [False, True, True]], attribute_names=['a', 'b', 'c'])
+    bin_attr_extents_true = [('a', frozenbitarray('00')), ('b', frozenbitarray('01')), ('c', frozenbitarray('11'))]
+    assert list(K.to_bin_attr_extents()) == bin_attr_extents_true

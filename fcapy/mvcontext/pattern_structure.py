@@ -2,11 +2,12 @@
 This module contains classes of basic Pattern Structures which allow FCA to work with data of any complex description
 """
 
-from collections.abc import Iterable
 import math
+from itertools import combinations
 from numbers import Number
 import json
-from typing import Sequence
+from typing import Sequence, Iterable
+from bitarray import frozenbitarray as fbarray
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
@@ -120,6 +121,13 @@ class AbstractPS:
     def describe_pattern(self, value) -> str:
         return f"{self.name}: {value}"
 
+    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+        raise NotImplementedError
+
+    @property
+    def n_bin_attrs(self) -> int:
+        return sum(1 for _ in self.to_bin_attr_extents())
+
 
 class AttributePS(AbstractPS):
     """
@@ -181,6 +189,13 @@ class AttributePS(AbstractPS):
     def describe_pattern(self, value) -> str:
         return self.name if value else ''
 
+    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+        yield self.describe_pattern(True), fbarray(self.data)
+
+    @property
+    def n_bin_attrs(self) -> int:
+        return 1
+
 
 class SetPS(AbstractPS):
     """
@@ -234,7 +249,7 @@ class SetPS(AbstractPS):
         return [set(v) if isinstance(v, Iterable) and not isinstance(v, str) else {v} for v in values]
 
     def describe_pattern(self, value: set) -> str:
-        return f"{self.name}: {', '.join([str(v) for v in value])}" if value else ''
+        return f"{self.name}: {', '.join([str(v) for v in value]) if value else '∅'}"
 
     @classmethod
     def to_json(cls, x: Iterable) -> str:
@@ -243,6 +258,26 @@ class SetPS(AbstractPS):
     @classmethod
     def from_json(cls, x_json: str) -> set:
         return set(super(SetPS, cls).from_json(x_json))
+
+    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+        uniq_vals = set()
+        for row in self.data:
+            uniq_vals |= row
+        uniq_vals = sorted(uniq_vals)
+
+        for comb_size in range(len(uniq_vals), -1, -1):
+            for comb in combinations(uniq_vals, comb_size):
+                comb_set = set(comb)
+                extent = fbarray([row & comb_set == row for row in self.data])
+                yield self.describe_pattern(comb), extent
+
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_vals = set()
+        for row in self.data:
+            uniq_vals |= row
+        n_uniq = len(uniq_vals)
+        return 2**n_uniq
 
 
 class IntervalPS(AbstractPS):
@@ -417,7 +452,27 @@ class IntervalPS(AbstractPS):
         return tuple(x) if x is not None else None
 
     def describe_pattern(self, value: tuple[float, float] or None) -> str:
-        return f"{self.name}: ({value[0]}, {value[1]})" if value is not None else ''
+        return f"{self.name}: " + (f"({value[0]}, {value[1]})" if value is not None else "∅")
+
+    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+        uniq_left, uniq_right = [set(vs) for vs in zip(*self.data)]
+        min_left, max_right = min(uniq_left), max(uniq_right)
+
+        yield self.describe_pattern((min_left, max_right)), fbarray([True] * len(self.data))
+        for left_bound in sorted(uniq_left)[1:]:
+            extent = fbarray([left_bound <= left for left, _ in self.data])
+            yield self.describe_pattern((left_bound, max_right)), extent
+
+        for right_bound in sorted(uniq_right, reverse=True)[1:]:
+            extent = fbarray([right <= right_bound for _, right in self.data])
+            yield self.describe_pattern((min_left, right_bound)), extent
+
+        yield self.describe_pattern(None), fbarray([False] * len(self.data))
+
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_left, uniq_right = [set(vs) for vs in zip(*self.data)]
+        return len(uniq_left) + len(uniq_right)
 
 
 class IntervalNumpyPS(IntervalPS):
@@ -472,3 +527,22 @@ class IntervalNumpyPS(IntervalPS):
             x = x.tolist()
         return super(IntervalNumpyPS, cls).to_json(x)
 
+    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+        uniq_left, uniq_right = np.unique(self.data[:, 0]), np.unique(self.data[:, 1])
+        min_left, max_right = np.min(uniq_left), np.max(uniq_right)
+
+        yield self.describe_pattern((min_left, max_right)), fbarray([True] * len(self.data))
+        for left_bound in np.sort(uniq_left)[1:]:
+            extent = fbarray((left_bound <= self.data[:, 0]).tolist())
+            yield self.describe_pattern((left_bound, max_right)), extent
+
+        for right_bound in np.sort(uniq_right)[::-1][1:]:
+            extent = fbarray((self.data[:, 0] <= right_bound).tolist())
+            yield self.describe_pattern((min_left, right_bound)), extent
+
+        yield self.describe_pattern(None), fbarray([False] * len(self.data))
+
+    @property
+    def n_bin_attrs(self) -> int:
+        uniq_left, uniq_right = np.unique(self.data[:, 0]), np.unique(self.data[:, 1])
+        return len(uniq_left) + len(uniq_right)

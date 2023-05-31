@@ -1,9 +1,11 @@
 import pytest
+from bitarray import frozenbitarray
+
 from fcapy.mvcontext import mvcontext, pattern_structure as PS
 from fcapy.lattice.concept_lattice import ConceptLattice
 import math
 from frozendict import frozendict
-from fcapy import LIB_INSTALLED
+from fcapy import LIB_INSTALLED, context
 import numpy as np
 from sklearn.datasets import load_breast_cancer
 
@@ -239,3 +241,43 @@ def test_generators_by_intent_difference():
                                        use_indexes=True)
 
     assert set(mg1) == set(mg2), "MVContext.generators_by_intent_difference failed"
+
+
+def test_to_bin_attr_extents():
+    ptypes = {'attr': PS.AttributePS, 'sps': PS.SetPS, 'ips': PS.IntervalPS}
+    data = [[True, 'a', 1], [False, 'b', 2]]
+    K = mvcontext.MVContext(data, pattern_types=ptypes, attribute_names=['attr', 'sps', 'ips'])
+
+    bin_attrs_true = [
+        ('attr', frozenbitarray('10')),
+        ('sps: a, b', frozenbitarray('11')),
+        ('sps: a', frozenbitarray('10')),
+        ('sps: b', frozenbitarray('01')),
+        ('sps: ∅', frozenbitarray('00')),
+        ('ips: (1.0, 2.0)', frozenbitarray('11')),
+        ('ips: (2.0, 2.0)', frozenbitarray('01')),
+        ('ips: (1.0, 1.0)', frozenbitarray('10')),
+        ('ips: ∅',      frozenbitarray('00')),
+    ]
+    assert list(K.to_bin_attr_extents()) == bin_attrs_true
+
+
+def test_to_binarize():
+    ptypes = {'attr': PS.AttributePS, 'sps': PS.SetPS, 'ips': PS.IntervalPS}
+    data = [[True, 'a', 1], [False, 'b', 2]]
+    mvK = mvcontext.MVContext(data, pattern_types=ptypes, attribute_names=['attr', 'sps', 'ips'])
+
+    bin_data_true = [[True, True, True, False, False, True, False, True, False],
+                     [False, True, False, True, False, True, True, False, False]]
+    attr_names_true = ['attr', 'sps: a, b', 'sps: a', 'sps: b', 'sps: ∅',
+                  'ips: (1.0, 2.0)', 'ips: (2.0, 2.0)', 'ips: (1.0, 1.0)', 'ips: ∅']
+    K_true = context.FormalContext(bin_data_true, object_names=mvK.object_names, attribute_names=attr_names_true)
+    assert mvK.binarize()
+    assert mvK.binarize() == K_true
+
+
+def test_n_bin_attrs():
+    ptypes = {'attr': PS.AttributePS, 'sps': PS.SetPS, 'ips': PS.IntervalPS}
+    data = [[True, 'a', 1], [False, 'b', 2]]
+    mvK = mvcontext.MVContext(data, pattern_types=ptypes, attribute_names=['attr', 'sps', 'ips'])
+    assert mvK.n_bin_attrs == mvK.binarize().n_bin_attrs

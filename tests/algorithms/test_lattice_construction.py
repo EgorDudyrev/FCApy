@@ -119,10 +119,16 @@ def test_lattice_construction_by_spanning_tree():
         'Parallel computing give wrong result when concepts are not sorted'
 
 
+def test_order_extent_comparison():
+    ctx = read_cxt('data/animal_movement.cxt')
+    concepts = list(ConceptLattice.from_context(ctx))
+    assert lca.complete_comparison(concepts) == lca.order_extents_comparison(concepts)
+
+
 def test_add_concept():
     ctx = read_csv('data/mango_bin.csv')
     np.random.seed(13)
-    concepts_true = cca.close_by_one(ctx)
+    concepts_true = list(cca.close_by_one(ctx))
     np.random.shuffle(concepts_true)
     top_concept_i, bottom_concept_i = ConceptLattice.get_top_bottom_concepts_i(concepts_true)
     concepts_true = [concepts_true[top_concept_i], concepts_true[bottom_concept_i]] + \
@@ -184,8 +190,8 @@ def test_add_concept():
 
 def test_remove_concept():
     ctx = read_csv('data/mango_bin.csv')
-    concepts_true = cca.close_by_one(ctx)
-    concepts_true1 = cca.close_by_one(ctx)
+    concepts_true = list(cca.close_by_one(ctx))
+    concepts_true1 = list(cca.close_by_one(ctx))
     np.random.seed(13)
     np.random.shuffle(concepts_true)
     np.random.seed(13)

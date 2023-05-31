@@ -17,7 +17,8 @@ from fcapy.utils import utils
 
 def complete_comparison(
         concepts: Collection[FormalConcept or PatternConcept],
-        is_concepts_sorted: bool = False, n_jobs: int = 1, use_tqdm: bool = False):
+        is_concepts_sorted: bool = False, n_jobs: int = 1, use_tqdm: bool = False
+) -> dict[int, set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. A slow but accurate bruteforce method
 
     Parameters
@@ -75,7 +76,7 @@ def complete_comparison(
     return subconcepts_dict
 
 
-def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
+def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False) -> dict[int, int]:
     """Return a spanning tree of subconcepts relation on given ``concepts``.
 
     A spanning tree means that for each concept from ``concepts`` we look for one parent concept only
@@ -143,7 +144,8 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False):
     return subconcepts_st_dict, superconcepts_st_dict
 
 
-def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False):
+def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False)\
+        -> dict[int, set[int]]:
     """Return a dict with subconcepts relation on given concepts from given spanning tree of the relation.
 
     Parameters
@@ -416,7 +418,8 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
     return subconcepts_dict
 
 
-def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False):
+def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False)\
+        -> dict[int, set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. Uses spanning tree approach to fasten the computation
 
     Parameters
@@ -450,9 +453,31 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
     return subconcepts_dict
 
 
-def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
-                top_concept_i=None, bottom_concept_i=None,
-                inplace=True):
+def order_extents_comparison(concepts: list[FormalConcept | PatternConcept]) -> dict[int, set[int]]:
+    from caspailleur.order import inverse_order, sort_intents_inclusion, topological_sorting, test_topologically_sorted
+    from caspailleur.base_functions import isets2bas, bas2isets
+
+    n_objects = max(len(c.extent_i) for c in concepts)
+    extents_ba = list(isets2bas([c.extent_i for c in concepts], n_objects))
+    extents_ba_topo, id_to_topo_map = topological_sorting(extents_ba)
+    assert test_topologically_sorted(extents_ba_topo)
+    assert len(extents_ba_topo) == len(extents_ba)
+
+    subconcepts_ba_topo = inverse_order(sort_intents_inclusion(extents_ba_topo))
+
+    topo_to_id_map = {v: k for k, v in enumerate(id_to_topo_map)}
+
+    subconcepts_dict = {topo_to_id_map[i_topo]: {topo_to_id_map[s] for s in subs_topo.itersearch(True)}
+                        for i_topo, subs_topo in enumerate(subconcepts_ba_topo)}
+
+    return subconcepts_dict
+
+
+def add_concept(
+        new_concept, concepts, subconcepts_dict, superconcepts_dict,
+        top_concept_i=None, bottom_concept_i=None,
+        inplace=True
+) -> tuple[list[FormalConcept | PatternConcept], dict[int, set[int]], dict[int, set[int]], int, int]:
     """Add ``new_concept`` into a set of ``concepts`` regarding its subconcept relation
 
     Parameters
@@ -561,9 +586,11 @@ def add_concept(new_concept, concepts, subconcepts_dict, superconcepts_dict,
     return concepts, subconcepts_dict, superconcepts_dict, top_concept_i, bottom_concept_i
 
 
-def remove_concept(concept_i, concepts, subconcepts_dict, superconcepts_dict,
-                   top_concept_i=None, bottom_concept_i=None,
-                   inplace=True):
+def remove_concept(
+        concept_i, concepts, subconcepts_dict, superconcepts_dict,
+        top_concept_i=None, bottom_concept_i=None,
+        inplace=True
+) -> tuple[list[FormalConcept | PatternConcept], dict[int, set[int]], dict[int, set[int]], int, int]:
     """Remove a ``concept_i`` from a set of ``concepts`` regarding its subconcept relation
 
     Parameters

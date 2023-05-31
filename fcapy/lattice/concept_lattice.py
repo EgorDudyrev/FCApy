@@ -208,21 +208,20 @@ class ConceptLattice(Lattice):
         if algo is None:
             algo = 'CbO' if type(context) == MVContext else 'Lindig'
 
-        if algo in {'CbO', 'RandomForest'}:
-            algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts}[algo]
+        if algo in {'CbO', 'RandomForest', 'Sofia', 'LCM'}:
+            algo_func = {'CbO': cca.close_by_one, 'RandomForest': cca.random_forest_concepts,
+                         'Sofia': cca.sofia, 'LCM': cca.lcm_skmine}[algo]
             kwargs_used = utils.get_kwargs_used(kwargs, algo_func)
             concepts = algo_func(context, **kwargs_used)
             concepts = cls.sort_concepts(concepts)
-            subconcepts_dict = lca.construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=True)
+            subconcepts_dict = lca.order_extents_comparison(concepts)
 
             ltc = ConceptLattice(
                 concepts=concepts, subconcepts_dict=subconcepts_dict
             )
 
-        elif algo in {'Sofia', 'Lindig'}:
-            if algo == 'Sofia':
-                algo_func = cca.sofia_general if type(context) == MVContext else cca.sofia_binary
-            elif algo == 'Lindig':
+        elif algo in {'Lindig'}:
+            if algo == 'Lindig':
                 algo_func = cca.lindig_algorithm
             else:
                 raise NotImplementedError("Error. Some unknown algo seen")

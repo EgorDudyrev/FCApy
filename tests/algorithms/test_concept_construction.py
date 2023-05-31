@@ -26,35 +26,21 @@ def test_close_by_one():
         c_json['Context_Hash'] = context.hash_fixed()
         concepts_loaded.append(FormalConcept.from_dict(c_json))
 
-    concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
+    concepts_constructed = list(cca.close_by_one(context))
     assert set(concepts_constructed) == set(concepts_loaded),\
         "Close_by_one error. Constructed concepts do not match the true ones"
 
-    data = cca.close_by_one(context, output_as_concepts=False, iterate_extents=True)
-    extents_i, intents_i = data['extents_i'], data['intents_i']
-
-    def is_equal(idx, c):
-        return set(c.extent_i) == set(extents_i[idx]) and set(c.intent_i) == set(intents_i[idx])
-    assert all([is_equal(c_i, c) for c_i, c in enumerate(concepts_constructed)]),\
-        'Close_by_one failed. Output concepts as dict do not match output concepts as concepts'
-
     context = read_csv("data/mango_bin.csv")
-    concepts_constructed = cca.close_by_one(context, output_as_concepts=True, iterate_extents=True)
+    concepts_constructed = list(cca.close_by_one(context))
     assert len(concepts_constructed) == 22, "Close_by_one failed. Binary mango dataset should have 22 concepts"
 
-    concepts_constructed_iterixt = cca.close_by_one(context, output_as_concepts=True, iterate_extents=False)
-    concepts_constructed_iterauto = cca.close_by_one(context, output_as_concepts=True, iterate_extents=None)
-    assert set(concepts_constructed) == set(concepts_constructed_iterixt),\
-        "Close_by_one failed. Iterations over extents and intents give different set of concepts"
-    assert set(concepts_constructed) == set(concepts_constructed_iterauto), \
-        "Close_by_one failed. Iterations over extents and automatically chosen set give different set of concepts"
 
     data = [[1], [2]]
     object_names = ['a', 'b']
     attribute_names = ['M1']
     pattern_types = {'M1': PS.IntervalPS}
     mvctx = mvcontext.MVContext(data, pattern_types, object_names, attribute_names)
-    concepts = cca.close_by_one(mvctx)
+    concepts = list(cca.close_by_one(mvctx))
     context_hash = mvctx.hash_fixed()
     c0 = PatternConcept((0, 1), ('a', 'b'), {0: (1, 2)}, {'M1': (1, 2)},
                         pattern_types, mvctx.attribute_names, context_hash=context_hash)
@@ -67,11 +53,12 @@ def test_close_by_one():
     assert set(concepts) == {c0, c1, c2, c3}, 'Close_by_one failed.'
 
 
-def test_sofia_binary():
+def test_sofia():
     ctx = read_cxt('data/digits.cxt')
-    concepts_all = cca.close_by_one(ctx)
-    lattice_sofia = cca.sofia_binary(ctx, len(concepts_all))
-    concepts_sofia = list(lattice_sofia)
+    concepts_all = list(cca.close_by_one(ctx))
+    concepts_sofia = cca.sofia(ctx, len(concepts_all))
+    concepts_sofia = [FormalConcept(c.extent_i, c.extent, c.intent_i, c.intent, context_hash=ctx.hash_fixed())
+                      for c in concepts_sofia]
     assert len(concepts_all) == len(concepts_sofia),\
         'sofia_binary failed. Sofia algorithm produces wrong number of all concepts ' \
         f'({len(concepts_sofia)} against {len(concepts_all)})'
@@ -82,56 +69,14 @@ def test_sofia_binary():
     ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
     with pytest.warns(UserWarning):
         ltc_all.calc_concepts_measures('stability', ctx)
-    stabilities_all = [c.measures['Stab'] for c in ltc_all]
-    stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
+    ltc_all.calc_concepts_measures('LStab')
+    mean_stability_all = sum(c.measures['LStab'] for c in ltc_all) / len(ltc_all)
 
-    ltc_sofia = cca.sofia_binary(ctx, len(concepts_all)//2)
-    ltc_sofia_precalc = ConceptLattice.read_json('data/digits_sofia_lattice_22.json')
-    assert ltc_sofia == ltc_sofia_precalc
-
-    with pytest.warns(UserWarning):
-        ltc_sofia.calc_concepts_measures('stability', ctx)
-    stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia]
-    stabilities_sofia_mean = sum(stabilities_sofia) / len(stabilities_sofia)
-
-    assert stabilities_sofia_mean > stabilities_all_mean,\
-        'sofia_binary failed. Sofia algorithm does not produce the subset of stable concepts'
-
-    for projection_sorting in ['ascending', 'descending', 'random']:
-        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, proj_sorting=projection_sorting)
-    with pytest.raises(ValueError):
-        concepts_sofia = cca.sofia_binary(ctx, len(concepts_all) // 2, proj_sorting="UnKnOwN OrDeR")
-
-
-def test_sofia_general():
-    ctx = read_cxt('data/digits.cxt')
-    concepts_all = cca.close_by_one(ctx)
-    lattice_sofia = cca.sofia_general(ctx, len(concepts_all))
-    concepts_sofia = list(lattice_sofia)
-    assert len(concepts_all) == len(concepts_sofia),\
-        'sofia_general failed. Sofia algorithm produces wrong number of all concepts' \
-        f'({len(concepts_sofia)} against {len(concepts_all)})'
-    assert set(concepts_all) == set(concepts_sofia), \
-        'sofia_general failed. Sofia algorithm produces wrong set of all concepts. '
-
-    subconcepts_dict_all = lca.complete_comparison(concepts_all)
-    ltc_all = ConceptLattice(concepts_all, subconcepts_dict=subconcepts_dict_all)
-    with pytest.warns(UserWarning):
-        ltc_all.calc_concepts_measures('stability', ctx)
-    stabilities_all = [c.measures['Stab'] for c in ltc_all]
-    stabilities_all_mean = sum(stabilities_all) / len(stabilities_all)
-
-    lattice_sofia = cca.sofia_general(ctx, len(concepts_all)//2)
-    concepts_sofia = list(lattice_sofia)
-    subconcepts_dict_sofia = lca.complete_comparison(concepts_sofia)
-    ltc_sofia = ConceptLattice(concepts_sofia, subconcepts_dict=subconcepts_dict_sofia)
-    with pytest.warns(UserWarning):
-        ltc_sofia.calc_concepts_measures('stability', ctx)
-    stabilities_sofia = [c.measures['Stab'] for c in ltc_sofia]
-    stabilities_sofia_mean = sum(stabilities_sofia) / len(stabilities_sofia)
-
-    assert stabilities_sofia_mean > stabilities_all_mean,\
-        'sofia_general failed. Sofia algorithm does not produce the subset of stable concepts'
+    ltc_sofia_half = ConceptLattice(cca.sofia(ctx, len(concepts_all)//2))
+    ltc_sofia_half.calc_concepts_measures('LStab')
+    mean_stability_half = sum(c.measures['LStab'] for c in ltc_sofia_half) / len(ltc_sofia_half)
+    assert mean_stability_half > mean_stability_all, \
+        'sofia failed. Sofia algorithm does not produce the subset of stable concepts'
 
 
 def test_parse_decision_tree_to_extents():
