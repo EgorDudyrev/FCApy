@@ -224,9 +224,10 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
             children_ordering = inverse_order(sort_intents_inclusion(extents))
             log_proj_number = np.log2(proj_number)
             bounds = [
-                min((extent & (~extents[child_i])).count() for child_i in children.itersearch(True)) - log_proj_number
-                for children, extent in zip(children_ordering, extents)
+                min((extent & (~extents[child_i])).count() for child_i in children.itersearch(True))
+                if children.any() else 1 for children, extent in zip(children_ordering, extents)
             ]
+            bounds = [b-log_proj_number for b in bounds]
             return bounds
     else:
         def stability_lbounds(extents: list[fbarray], proj_number: int = None) -> list[float]:
