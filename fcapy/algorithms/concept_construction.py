@@ -255,7 +255,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         extents_proj = extents_proj[:1] + [extent for extent in extents_proj[1:] if extent.count() >= min_supp]
 
         if len(extents_proj) > L_max:
-            measure_values = stability_lbounds(extents_proj)
+            measure_values = stability_lbounds(extents_proj, proj_i+1)
             thold = sorted(measure_values)[::-1][L_max]
             extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
