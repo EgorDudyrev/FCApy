@@ -28,7 +28,6 @@ requires-python = ">=3.8"
 [project.optional-dependencies]
 docs = ["numpydoc", "sphinx_rtd_theme", "sphinx", 'nbsphinx']
 ml = ["xgboost"]
-docs = ["sphinx_rtd_theme"]
 
 [project.urls]
 Homepage = "https://github.com/EgorDudyrev/FCApy"
