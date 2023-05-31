@@ -419,7 +419,7 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
 
 
 def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False)\
-        -> dict[int, Set[int]]:
+        -> Dict[int, Set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. Uses spanning tree approach to fasten the computation
 
     Parameters
