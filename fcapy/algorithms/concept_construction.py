@@ -7,6 +7,7 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 from collections import deque
 from typing import List, Tuple, Iterator, Iterable
 
+import numpy as np
 from bitarray import frozenbitarray as fbarray
 from bitarray.util import zeros as bazeros
 from caspailleur.order import inverse_order, sort_intents_inclusion
@@ -213,18 +214,29 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
         combinations_to_check.extend(new_combs)
 
 
-def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False)\
+def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False,
+          use_loose_stability_lbound: bool = False)\
         -> list[FormalConcept | PatternConcept]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
-    def stability_lbounds(extents: list[fbarray]) -> list[float]:
-        children_ordering = inverse_order(sort_intents_inclusion(extents))
+    if use_loose_stability_lbound:
+        def stability_lbounds(extents: list[fbarray], proj_number: int) -> list[float]:
+            children_ordering = inverse_order(sort_intents_inclusion(extents))
+            log_proj_number = np.log2(proj_number)
+            bounds = [
+                min((extent & (~extents[child_i])).count() for child_i in children.itersearch(True)) - log_proj_number
+                for children, extent in zip(children_ordering, extents)
+            ]
+            return bounds
+    else:
+        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+            children_ordering = inverse_order(sort_intents_inclusion(extents))
 
-        bounds = [
-            1-sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
-            for children, extent in zip(children_ordering, extents)
-        ]
-        return bounds
+            bounds = [
+                1-sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
+                for children, extent in zip(children_ordering, extents)
+            ]
+            return bounds
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
