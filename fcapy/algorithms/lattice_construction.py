@@ -8,7 +8,7 @@ and there is no other concept between these two.
 
 """
 from copy import deepcopy
-from typing import Collection, Union, Tuple, List, Dict
+from typing import Collection, Union, Tuple, List, Dict, Set
 
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
@@ -18,7 +18,7 @@ from fcapy.utils import utils
 def complete_comparison(
         concepts: Collection[Union[FormalConcept, PatternConcept]],
         is_concepts_sorted: bool = False, n_jobs: int = 1, use_tqdm: bool = False
-) -> Dict[int, set[int]]:
+) -> Dict[int, Set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. A slow but accurate bruteforce method
 
     Parameters
@@ -145,7 +145,7 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False) 
 
 
 def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_sorted=False, use_tqdm=False)\
-        -> Dict[int, set[int]]:
+        -> Dict[int, Set[int]]:
     """Return a dict with subconcepts relation on given concepts from given spanning tree of the relation.
 
     Parameters
@@ -419,7 +419,7 @@ def construct_lattice_from_spanning_tree_parallel(concepts, sptree_chains, is_co
 
 
 def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_jobs=1, use_tqdm=False)\
-        -> dict[int, set[int]]:
+        -> dict[int, Set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. Uses spanning tree approach to fasten the computation
 
     Parameters
@@ -453,7 +453,7 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
     return subconcepts_dict
 
 
-def order_extents_comparison(concepts: List[Union[FormalConcept, PatternConcept]]) -> Dict[int, set[int]]:
+def order_extents_comparison(concepts: List[Union[FormalConcept, PatternConcept]]) -> Dict[int, Set[int]]:
     from caspailleur.order import inverse_order, sort_intents_inclusion, topological_sorting, test_topologically_sorted
     from caspailleur.base_functions import isets2bas
 
@@ -477,7 +477,7 @@ def add_concept(
         new_concept, concepts, subconcepts_dict, superconcepts_dict,
         top_concept_i=None, bottom_concept_i=None,
         inplace=True
-) -> Tuple[List[Union[FormalConcept, PatternConcept]], Dict[int, set[int]], Dict[int, set[int]], int, int]:
+) -> Tuple[List[Union[FormalConcept, PatternConcept]], Dict[int, Set[int]], Dict[int, Set[int]], int, int]:
     """Add ``new_concept`` into a set of ``concepts`` regarding its subconcept relation
 
     Parameters
@@ -590,7 +590,7 @@ def remove_concept(
         concept_i, concepts, subconcepts_dict, superconcepts_dict,
         top_concept_i=None, bottom_concept_i=None,
         inplace=True
-) -> Tuple[List[Union[FormalConcept, PatternConcept]], Dict[int, set[int]], Dict[int, set[int]], int, int]:
+) -> Tuple[List[Union[FormalConcept, PatternConcept]], Dict[int, Set[int]], Dict[int, Set[int]], int, int]:
     """Remove a ``concept_i`` from a set of ``concepts`` regarding its subconcept relation
 
     Parameters
