@@ -1,0 +1,33 @@
+# pyproject.toml
+
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fcapy"
+version = "0.1.4.1"
+description = "A library to work with formal (and pattern) contexts, concepts, lattices"
+readme = "README.md"
+authors = [{ name = "Egor Dudyrev" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+keywords = ["python", "fca", "formal-concept-analysis"]
+dependencies = [
+    'numpy>=1.20', 'scikit-mine>=1', 'bitarray>=2.5.1', 'tqdm',
+    'pandas', 'frozendict', 'bitsets', 'pydantic', 'joblib', 'scikit-learn',
+    'matplotlib', 'networkx>=2.5',
+]
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+docs = ["numpydoc", "sphinx_rtd_theme", "sphinx", 'nbsphinx']
+ml = ["xgboost"]
+
+[project.urls]
+Homepage = "https://github.com/EgorDudyrev/FCApy"
