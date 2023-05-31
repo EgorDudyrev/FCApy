@@ -31,3 +31,6 @@ ml = ["xgboost"]
 
 [project.urls]
 Homepage = "https://github.com/EgorDudyrev/FCApy"
+
+[tool.setuptools]
+py-modules = ["fcapy"]

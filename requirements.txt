@@ -5,8 +5,12 @@
 #    pip-compile pyproject.toml
 #
 bitarray==2.7.4
-    # via fcapy (pyproject.toml)
+    # via
+    #   caspailleur
+    #   fcapy (pyproject.toml)
 bitsets==0.8.4
+    # via fcapy (pyproject.toml)
+caspailleur==0.1.1
     # via fcapy (pyproject.toml)
 contourpy==1.0.7
     # via matplotlib
@@ -37,6 +41,7 @@ networkx==3.1
     #   scikit-mine
 numpy==1.24.3
     # via
+    #   caspailleur
     #   contourpy
     #   fcapy (pyproject.toml)
     #   matplotlib
@@ -72,7 +77,9 @@ scikit-learn==1.2.2
     #   fcapy (pyproject.toml)
     #   scikit-mine
 scikit-mine==1.0.0
-    # via fcapy (pyproject.toml)
+    # via
+    #   caspailleur
+    #   fcapy (pyproject.toml)
 scipy==1.10.1
     # via
     #   scikit-learn
@@ -84,7 +91,9 @@ sortedcontainers==2.4.0
 threadpoolctl==3.1.0
     # via scikit-learn
 tqdm==4.65.0
-    # via fcapy (pyproject.toml)
+    # via
+    #   caspailleur
+    #   fcapy (pyproject.toml)
 typing-extensions==4.6.2
     # via pydantic
 tzdata==2023.3
