@@ -229,7 +229,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
             ]
             return bounds
     else:
-        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+        def stability_lbounds(extents: list[fbarray], proj_number: int = None) -> list[float]:
             children_ordering = inverse_order(sort_intents_inclusion(extents))
 
             bounds = [
