@@ -8,7 +8,7 @@ from typing import List, Tuple, Optional, Collection, Union
 from fcapy.context import bintable_errors as berrors
 from fcapy import LIB_INSTALLED
 #if LIB_INSTALLED['bitarray']:
-from bitarray import frozenbitarray as fbarray, bitarray as barray, util as butil
+from bitarray import frozenbitarray as fbarray, util as butil
 
 #if LIB_INSTALLED['numpy']:
 import numpy as np
@@ -232,7 +232,7 @@ class AbstractBinTable(metaclass=ABCMeta):
             return 'BinTableBitarray'
         if isinstance(data, np.ndarray):
             return 'BinTableNumpy'
-        if isinstance(data, tuple) and len(data) == 2 and isinstance(data[0], fbitarray) and isinstance(data[1], int):
+        if isinstance(data, tuple) and len(data) == 2 and isinstance(data[0], fbarray) and isinstance(data[1], int):
             return 'BinTableBitarray'
 
         raise berrors.UnknownDataTypeError(type(data))

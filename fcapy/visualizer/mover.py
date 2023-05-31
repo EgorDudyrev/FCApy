@@ -1,6 +1,6 @@
 from typing import Dict, Tuple, List, Optional
 
-from attr import dataclass
+from dataclasses import dataclass
 
 from fcapy.poset import POSet
 from fcapy.visualizer.line_layouts import LAYOUTS

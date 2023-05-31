@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.4.2] - 2022-06-01
+
+Elaborate Pattern Structures.
+Rewrite Sofia algorithm to mine hundreds of most stable concepts on big data.
+Add IntervalPS and SetPS to basic pattern structures.
+
 ## [0.1.4.1] - 2022-12-03
 
 OSDA toolkit edition.

@@ -6,7 +6,7 @@ import math
 from itertools import combinations
 from numbers import Number
 import json
-from typing import Sequence, Iterable
+from typing import Sequence, Iterable, Tuple, List
 from bitarray import frozenbitarray as fbarray
 
 from fcapy import LIB_INSTALLED
@@ -121,7 +121,7 @@ class AbstractPS:
     def describe_pattern(self, value) -> str:
         return f"{self.name}: {value}"
 
-    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterable[Tuple[str, fbarray]]:
         raise NotImplementedError
 
     @property
@@ -135,7 +135,7 @@ class AttributePS(AbstractPS):
     That is, there are only two possible values: True and False. And False means not "not True" but "anything"
 
     """
-    def intention_i(self, object_indexes: list[int]):
+    def intention_i(self, object_indexes: List[int]):
         """Select a common description of objects ``object_indexes``"""
         if not object_indexes:
             return False
@@ -183,13 +183,13 @@ class AttributePS(AbstractPS):
         return a or b
 
     @staticmethod
-    def _transform_data(values: list) -> list[bool]:
+    def _transform_data(values: list) -> List[bool]:
         return [bool(v) for v in values]
 
     def describe_pattern(self, value) -> str:
         return self.name if value else ''
 
-    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterable[Tuple[str, fbarray]]:
         yield self.describe_pattern(True), fbarray(self.data)
 
     @property
@@ -245,7 +245,7 @@ class SetPS(AbstractPS):
         return a | b
 
     @staticmethod
-    def _transform_data(values: list[Iterable or str]) -> list[set]:
+    def _transform_data(values: List[Iterable or str]) -> List[set]:
         return [set(v) if isinstance(v, Iterable) and not isinstance(v, str) else {v} for v in values]
 
     def describe_pattern(self, value: set) -> str:
@@ -259,7 +259,7 @@ class SetPS(AbstractPS):
     def from_json(cls, x_json: str) -> set:
         return set(super(SetPS, cls).from_json(x_json))
 
-    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterable[Tuple[str, fbarray]]:
         uniq_vals = set()
         for row in self.data:
             uniq_vals |= row
@@ -299,10 +299,10 @@ class IntervalPS(AbstractPS):
 
     """
     @staticmethod
-    def _transform_data(values: Iterable[Sequence[float] or Number]) -> list[tuple[float, float]]:
+    def _transform_data(values: Iterable[Sequence[float] or Number]) -> List[Tuple[float, float]]:
         data = []
         for x in values:
-            new_x: tuple[float, float] = None
+            new_x: Tuple[float, float] = None
 
             if isinstance(x, Sequence) and len(x) == 2:
                 new_x = x
@@ -320,7 +320,7 @@ class IntervalPS(AbstractPS):
 
         return data
 
-    def intention_i(self, object_indexes: Sequence[int]) -> tuple[float, float] or None:
+    def intention_i(self, object_indexes: Sequence[int]) -> Tuple[float, float] or None:
         """Select a common interval description for all objects from ``object_indexes``"""
         if len(object_indexes) == 0:
             return None
@@ -332,7 +332,7 @@ class IntervalPS(AbstractPS):
             max_ = v_max if v_max > max_ else max_
         return min_, max_
 
-    def extension_i(self, description: tuple[float, float] or float or None, base_objects_i: list[int] = None) -> list[int]:
+    def extension_i(self, description: Tuple[float, float] or float or None, base_objects_i: List[int] = None) -> List[int]:
         """Select a set of indexes of objects from ``base_objects_i`` which fall into interval of ``description``"""
         if description is None:
             return []
@@ -343,8 +343,8 @@ class IntervalPS(AbstractPS):
         g_is = [int(g_i) for g_i in base_objects_i if min_ <= self._data[g_i][0] and self._data[g_i][1] <= max_]
         return g_is
 
-    def description_to_generators(self, description: tuple[float, float], projection_num: int)\
-            -> list[tuple[float, float] or None]:
+    def description_to_generators(self, description: Tuple[float, float], projection_num: int)\
+            -> List[Tuple[float, float] or None]:
         """Convert the closed interval of ``description`` into a set of more broader intervals that generate it
 
         For example, an interval (-inf, 10] can describe the same set of objects as a closed interval [0, 10].
@@ -382,7 +382,7 @@ class IntervalPS(AbstractPS):
             generators = [(description[0], description[1])]
         return generators
 
-    def generators_to_description(self, generators: list[tuple[float, float] or None]) -> tuple[float, float] or None:
+    def generators_to_description(self, generators: List[Tuple[float, float] or None]) -> Tuple[float, float] or None:
         """Combine a set of ``generators`` into a single closed description"""
         if any([gen is None for gen in generators]):
             return None
@@ -408,8 +408,8 @@ class IntervalPS(AbstractPS):
         """Turn `IntervalPS` data into a set of numeric columns and their names"""
         return self._data, (f"{self.name}_from", f"{self.name}_to")
 
-    def generators_by_intent_difference(self, new_intent: tuple[float, float], old_intent: tuple[float, float])\
-            -> list[tuple[float, float] or None]:
+    def generators_by_intent_difference(self, new_intent: Tuple[float, float], old_intent: Tuple[float, float])\
+            -> List[Tuple[float, float] or None]:
         """Compute the set of generators to select the ``new_intent`` from ``old_intent``"""
         if new_intent is None:
             return [None]
@@ -426,7 +426,7 @@ class IntervalPS(AbstractPS):
         return [self.generators_to_description([new_intent, old_intent])]
 
     @staticmethod
-    def intersect_descriptions(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float] or None:
+    def intersect_descriptions(a: Tuple[float, float], b: Tuple[float, float]) -> Tuple[float, float] or None:
         """Compute the maximal common description of two descriptions `a` and `b`"""
         intersection = (max(a[0], b[0]), min(a[1], b[1]))
         if intersection[0] > intersection[1]:
@@ -434,27 +434,27 @@ class IntervalPS(AbstractPS):
         return intersection
 
     @staticmethod
-    def unite_descriptions(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    def unite_descriptions(a: Tuple[float, float], b: Tuple[float, float]) -> Tuple[float, float]:
         """Compute the minimal description includes the descriptions `a` and `b`"""
         unity = (min(a[0], b[0]), max(a[1], b[1]))
         return unity
 
     @classmethod
-    def to_json(cls, x: tuple[float, float] or None) -> str:
+    def to_json(cls, x: Tuple[float, float] or None) -> str:
         """Convert description ``x`` into .json format"""
         x = [float(x[0]), float(x[1])] if x is not None else None
         return json.dumps(x)
 
     @classmethod
-    def from_json(cls, x_json: str) -> tuple[float, float] or None:
+    def from_json(cls, x_json: str) -> Tuple[float, float] or None:
         """Load description from ``x_json`` .json format"""
         x = json.loads(x_json)
         return tuple(x) if x is not None else None
 
-    def describe_pattern(self, value: tuple[float, float] or None) -> str:
+    def describe_pattern(self, value: Tuple[float, float] or None) -> str:
         return f"{self.name}: " + (f"({value[0]}, {value[1]})" if value is not None else "∅")
 
-    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterable[Tuple[str, fbarray]]:
         uniq_left, uniq_right = [set(vs) for vs in zip(*self.data)]
         min_left, max_right = min(uniq_left), max(uniq_right)
 
@@ -497,14 +497,14 @@ class IntervalNumpyPS(IntervalPS):
     def _transform_data(cls, values: Iterable) -> np.ndarray:
         return np.array(super(IntervalNumpyPS, cls)._transform_data(values))
 
-    def intention_i(self, object_indexes: list[int]) -> tuple[float, float] or None:
+    def intention_i(self, object_indexes: List[int]) -> Tuple[float, float] or None:
         """Select a common interval description for all objects from ``object_indexes``"""
         if len(object_indexes) == 0:
             return None
 
         return float(self._data[object_indexes, 0].min()), float(self._data[object_indexes, 1].max())
 
-    def extension_i(self, description: tuple[float, float] or None, base_objects_i: list[int] = None) -> list[int]:
+    def extension_i(self, description: Tuple[float, float] or None, base_objects_i: List[int] = None) -> List[int]:
         """Select a set of indexes of objects from ``base_objects_i`` which fall into interval of ``description``"""
         if description is None:
             return []
@@ -522,12 +522,12 @@ class IntervalNumpyPS(IntervalPS):
         return same_data and self._name == other.name
 
     @classmethod
-    def to_json(cls, x: tuple[float, float] or None) -> str:
+    def to_json(cls, x: Tuple[float, float] or None) -> str:
         if isinstance(x, np.ndarray):
             x = x.tolist()
         return super(IntervalNumpyPS, cls).to_json(x)
 
-    def to_bin_attr_extents(self) -> Iterable[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterable[Tuple[str, fbarray]]:
         uniq_left, uniq_right = np.unique(self.data[:, 0]), np.unique(self.data[:, 1])
         min_left, max_right = np.min(uniq_left), np.max(uniq_right)
 

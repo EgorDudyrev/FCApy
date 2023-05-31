@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 import zlib
-from typing import Tuple, Iterator
+from typing import Tuple, Iterator, List
 import json
 from bitarray import frozenbitarray as fbarray
 
@@ -97,7 +97,7 @@ class MVContext:
         self._attribute_names = value
 
     @property
-    def pattern_structures(self) -> list[PS.AbstractPS]:
+    def pattern_structures(self) -> List[PS.AbstractPS]:
         """A list of pattern structures kept in a context"""
         return self._pattern_structures
 
@@ -115,7 +115,7 @@ class MVContext:
         """A list of target values for Supervised ML scenarios"""
         return self._target
 
-    def assemble_pattern_structures(self, data, pattern_types) -> list[PS.AbstractPS]:
+    def assemble_pattern_structures(self, data, pattern_types) -> List[PS.AbstractPS]:
         """Return pattern_structures based on ``data`` and the ``pattern_types``"""
         if data is None:
             return None
@@ -302,7 +302,7 @@ class MVContext:
             A path to .json file
         json_data: `str`
             A json encoded data
-        pattern_types: `tuple[AbstractPS]`
+        pattern_types: `Tuple[AbstractPS]`
             Tuple of additional Pattern Structures not defined in fcapy.mvcontext.pattern_structure
 
         Returns
@@ -608,7 +608,7 @@ class MVContext:
         description = [descr for descr in description if descr]
         return '; '.join(description)
 
-    def to_bin_attr_extents(self) -> Iterator[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterator[Tuple[str, fbarray]]:
         for ps_i, ps in enumerate(self.pattern_structures):
             for m, extent in ps.to_bin_attr_extents():
                 yield m, extent
