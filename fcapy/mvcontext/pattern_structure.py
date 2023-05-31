@@ -6,7 +6,7 @@ import math
 from itertools import combinations
 from numbers import Number
 import json
-from typing import Sequence, Iterable, Tuple
+from typing import Sequence, Iterable, Tuple, List
 from bitarray import frozenbitarray as fbarray
 
 from fcapy import LIB_INSTALLED

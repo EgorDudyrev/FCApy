@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from frozendict import frozendict
 from itertools import combinations
 import zlib
-from typing import Tuple, Iterator
+from typing import Tuple, Iterator, List
 import json
 from bitarray import frozenbitarray as fbarray
 
