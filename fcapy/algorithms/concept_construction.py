@@ -214,19 +214,23 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
         combinations_to_check.extend(new_combs)
 
 
-def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False, use_log_stability_bound=False)\
-        -> list[FormalConcept | PatternConcept]:
+def sofia(
+        K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0,
+        use_tqdm: bool = False,use_log_stability_bound=True
+) -> list[FormalConcept | PatternConcept]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
     if use_log_stability_bound:
         def stability_lbounds(extents: list[fbarray]) -> list[float]:
-            children_ordering = inverse_order(sort_intents_inclusion(extents))
-            children_intersections = (
-                ((extent & (~extents[child])).count() for child in children.itersearch(True))
-                if children.any() else [extent.count()]
-                for children, extent in zip(children_ordering, extents)
-            )
-            bounds = [min(intersections) for intersections in children_intersections]
+            #assert all(a.count() <= b.count() for a, b in zip(extents, extents[1:]))
+            bounds = []
+            for i, extent in enumerate(extents):
+                bound = extent.count()
+                for potent_child in extents[i-1::-1]:
+                    if potent_child & extent == potent_child:
+                        bound -= potent_child.count()
+                        break
+                bounds.append(bound)
             return bounds
     else:
         def stability_lbounds(extents: list[fbarray]) -> list[float]:
