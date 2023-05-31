@@ -221,13 +221,12 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         children_ordering = inverse_order(sort_intents_inclusion(extents))
 
         bounds = [
-            sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
+            1-sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
             for children, extent in zip(children_ordering, extents)
         ]
         return bounds
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
-    min_extent_size_new = K.n_objects
 
     n_projs = K.n_bin_attrs
     proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
