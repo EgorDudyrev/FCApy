@@ -214,30 +214,19 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
         combinations_to_check.extend(new_combs)
 
 
-def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False,
-          use_loose_stability_lbound: bool = False)\
+def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False)\
         -> list[FormalConcept | PatternConcept]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
-    if use_loose_stability_lbound:
-        def stability_lbounds(extents: list[fbarray], proj_number: int) -> list[float]:
-            children_ordering = inverse_order(sort_intents_inclusion(extents))
-            log_proj_number = np.log2(proj_number)
-            bounds = [
-                min((extent & (~extents[child_i])).count() for child_i in children.itersearch(True))
-                if children.any() else 1 for children, extent in zip(children_ordering, extents)
-            ]
-            bounds = [b-log_proj_number for b in bounds]
-            return bounds
-    else:
-        def stability_lbounds(extents: list[fbarray], proj_number: int = None) -> list[float]:
-            children_ordering = inverse_order(sort_intents_inclusion(extents))
-
-            bounds = [
-                1-sum(2**(-(extent & ~extents[child_i]).count()) for child_i in children.itersearch(True))
-                for children, extent in zip(children_ordering, extents)
-            ]
-            return bounds
+    def stability_lbounds(extents: list[fbarray]) -> list[float]:
+        children_ordering = inverse_order(sort_intents_inclusion(extents))
+        children_intersections = (
+            ((extent & (~extents[child])).count() for child in children.itersearch(True))
+            if children.any() else [extent.count()]
+            for children, extent in zip(children_ordering, extents)
+        )
+        bounds = [1-sum(2**(-v) for v in intersections) for intersections in children_intersections]
+        return bounds
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
@@ -256,7 +245,7 @@ def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, u
         extents_proj = extents_proj[:1] + [extent for extent in extents_proj[1:] if extent.count() >= min_supp]
 
         if len(extents_proj) > L_max:
-            measure_values = stability_lbounds(extents_proj, proj_i+1)
+            measure_values = stability_lbounds(extents_proj)
             thold = sorted(measure_values)[::-1][L_max]
             extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
