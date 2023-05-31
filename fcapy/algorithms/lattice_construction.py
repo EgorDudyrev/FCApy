@@ -8,7 +8,7 @@ and there is no other concept between these two.
 
 """
 from copy import deepcopy
-from typing import Collection
+from typing import Collection, Union
 
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
@@ -16,7 +16,7 @@ from fcapy.utils import utils
 
 
 def complete_comparison(
-        concepts: Collection[FormalConcept or PatternConcept],
+        concepts: Collection[Union[FormalConcept, PatternConcept]],
         is_concepts_sorted: bool = False, n_jobs: int = 1, use_tqdm: bool = False
 ) -> dict[int, set[int]]:
     """Return a dict with subconcepts relation on given ``concepts``. A slow but accurate bruteforce method
