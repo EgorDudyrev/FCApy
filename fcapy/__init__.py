@@ -22,3 +22,6 @@ PACKAGE_DESCRIPTION = {
     'networkx': "The package to convert POSets to Graphs and to visualize them as graphs",
 }
 LIB_INSTALLED = check_installed_packages(PACKAGE_DESCRIPTION)
+
+
+__version__ = '0.1.4.2'

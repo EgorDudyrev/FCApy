@@ -14,7 +14,7 @@ FCApy can be installed from `PyPI <https://pypi.org/project/fcapy>`_::
 
 The library has no strict dependencies. However one would better install it with all the additional packages::
 
-    pip install fcapy[all]
+    pip install "fcapy[all]"
 
 
 Contents
