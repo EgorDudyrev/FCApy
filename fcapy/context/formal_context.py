@@ -713,7 +713,7 @@ class FormalContext:
         """
         return self._data.to_list(), self._attribute_names
 
-    def to_bin_attr_extents(self) -> Iterator[tuple[str, fbarray]]:
+    def to_bin_attr_extents(self) -> Iterator[Tuple[str, fbarray]]:
         for i, m in enumerate(self.attribute_names):
             extent = fbarray(self.data[:, i])
             yield m, extent

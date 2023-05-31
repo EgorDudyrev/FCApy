@@ -155,7 +155,7 @@ def close_by_one_objectwise_fbarray(context: Union[FormalContext, MVContext])\
     object_names, attribute_names = context.object_names, context.attribute_names
     context_hash = context.hash_fixed()
 
-    def create_concept(extent_idxs: list[int], intent_ba: fbarray):
+    def create_concept(extent_idxs: List[int], intent_ba: fbarray):
         extent_idxs = sorted(extent_idxs)
         extent = [object_names[g_i] for g_i in extent_idxs]
         if type(context) == FormalContext:
@@ -218,11 +218,11 @@ def close_by_one_objectwise_fbarray(context: Union[FormalContext, MVContext])\
 def sofia(
         K: Union[FormalContext, MVContext], L_max: int = 100, min_supp: float = 0,
         use_tqdm: bool = False,use_log_stability_bound=True
-) -> list[Union[FormalConcept, PatternConcept]]:
+) -> List[Union[FormalConcept, PatternConcept]]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
     if use_log_stability_bound:
-        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+        def stability_lbounds(extents: List[fbarray]) -> List[float]:
             #assert all(a.count() <= b.count() for a, b in zip(extents, extents[1:]))
             bounds = []
             for i, extent in enumerate(extents):
@@ -234,7 +234,7 @@ def sofia(
                 bounds.append(bound)
             return bounds
     else:
-        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+        def stability_lbounds(extents: List[fbarray]) -> List[float]:
             children_ordering = inverse_order(sort_intents_inclusion(extents))
             children_intersections = (
                 ((extent & (~extents[child])).count() for child in children.itersearch(True))
@@ -244,7 +244,7 @@ def sofia(
             bounds = [1-sum(2**(-v) for v in intersections) for intersections in children_intersections]
             return bounds
 
-    extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
+    extents_proj: List[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
     n_projs = K.n_bin_attrs
     proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
@@ -477,7 +477,7 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
 
 
 def lcm_skmine(context: Union[FormalContext, MVContext], min_supp: float = 1, n_jobs: int = 1)\
-        -> list[Union[FormalConcept, PatternConcept]]:
+        -> List[Union[FormalConcept, PatternConcept]]:
     from skmine.itemsets import LCM
 
     context_bin = context if isinstance(context, FormalContext) else context.binarize()
