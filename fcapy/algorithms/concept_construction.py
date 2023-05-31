@@ -214,19 +214,30 @@ def close_by_one_objectwise_fbarray(context: FormalContext | MVContext) -> Itera
         combinations_to_check.extend(new_combs)
 
 
-def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False)\
+def sofia(K: FormalContext | MVContext, L_max: int = 100, min_supp: float = 0, use_tqdm: bool = False, use_log_stability_bound=False)\
         -> list[FormalConcept | PatternConcept]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
-    def stability_lbounds(extents: list[fbarray]) -> list[float]:
-        children_ordering = inverse_order(sort_intents_inclusion(extents))
-        children_intersections = (
-            ((extent & (~extents[child])).count() for child in children.itersearch(True))
-            if children.any() else [extent.count()]
-            for children, extent in zip(children_ordering, extents)
-        )
-        bounds = [1-sum(2**(-v) for v in intersections) for intersections in children_intersections]
-        return bounds
+    if use_log_stability_bound:
+        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+            children_ordering = inverse_order(sort_intents_inclusion(extents))
+            children_intersections = (
+                ((extent & (~extents[child])).count() for child in children.itersearch(True))
+                if children.any() else [extent.count()]
+                for children, extent in zip(children_ordering, extents)
+            )
+            bounds = [min(intersections) for intersections in children_intersections]
+            return bounds
+    else:
+        def stability_lbounds(extents: list[fbarray]) -> list[float]:
+            children_ordering = inverse_order(sort_intents_inclusion(extents))
+            children_intersections = (
+                ((extent & (~extents[child])).count() for child in children.itersearch(True))
+                if children.any() else [extent.count()]
+                for children, extent in zip(children_ordering, extents)
+            )
+            bounds = [1-sum(2**(-v) for v in intersections) for intersections in children_intersections]
+            return bounds
 
     extents_proj: list[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
