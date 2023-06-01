@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fcapy"
-version = "0.1.4.2"
+version = "0.1.4.3"
 description = "A library to work with formal (and pattern) contexts, concepts, lattices"
 readme = "README.md"
 authors = [{ name = "Egor Dudyrev" }]
@@ -35,3 +35,6 @@ Homepage = "https://github.com/EgorDudyrev/FCApy"
 
 [tool.setuptools]
 py-modules = ["fcapy"]
+
+[tool.setuptools.packages]
+find = {}  # Scanning implicit namespaces is active by default

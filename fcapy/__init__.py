@@ -24,4 +24,4 @@ PACKAGE_DESCRIPTION = {
 LIB_INSTALLED = check_installed_packages(PACKAGE_DESCRIPTION)
 
 
-__version__ = '0.1.4.2'
+__version__ = '0.1.4.3'
