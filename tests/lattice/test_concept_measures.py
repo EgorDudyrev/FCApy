@@ -32,3 +32,18 @@ def test_stability_bounds():
               )/len(lstabs_true)
     assert mae < 0.05, "concept_measure.stability_bounds failed. " \
                        "Lower stability bounds of concepts does not match the ones computed by latviz.loria.ft"
+
+
+def test_log_stability_lbound():
+    ctx = read_json('data/animal_movement.json')
+    ltc = ConceptLattice.read_json('data/animal_movement_lattice.json')
+    lstabs_true = [c.measures.get('LStab') for c in ltc]
+    
+    ltc.calc_concepts_measures('log_stability_lbound', ctx)
+    lstabs_est = [c.measures.get('LStab') for c in ltc]
+
+    mae = sum(abs(lstabs_true[c_i] - lstabs_est[c_i]) if len(c.extent_i) > 0 else 0 for c_i, c in enumerate(ltc))
+    mae /= len(lstabs_true)
+    assert mae < 0.05, "concept_measure.stability_bounds failed. " \
+                       "Lower stability bounds of concepts does not match the ones computed by latviz.loria.ft"
+    

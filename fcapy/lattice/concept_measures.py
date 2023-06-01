@@ -13,10 +13,13 @@ Buzmakov, Aleksey & Kuznetsov, Sergei & Napoli, Amedeo. (2014). Scalable Estimat
 8478. 10.1007/978-3-319-07248-7_12.
 
 """
+import math
 
 from fcapy.lattice.concept_lattice import ConceptLattice
 from fcapy.context.formal_context import FormalContext
 from fcapy.utils.utils import powerset
+from math import log2
+
 
 from fcapy import LIB_INSTALLED
 if LIB_INSTALLED['numpy']:
@@ -57,6 +60,17 @@ def stability_bounds(c_i, lattice: ConceptLattice):
     lb = 1 - sum(inv_diff)
     ub = 1 - max(inv_diff)
     return lb, ub
+
+
+def log_stability_lbound(c_i, lattice: ConceptLattice, n_bin_attrs: int) -> float:
+    extent_i = set(lattice[c_i].extent_i)
+    children_i = lattice.children(c_i)
+    if children_i:
+        bound = min(len(extent_i - set(lattice[child_i].extent_i)) for child_i in children_i)
+    else:
+        bound = math.inf
+    bound -= log2(n_bin_attrs)
+    return bound
 
 
 def target_entropy(c_i, lattice: ConceptLattice, context: FormalContext):
