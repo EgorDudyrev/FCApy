@@ -304,7 +304,8 @@ class ConceptLattice(Lattice):
 
         Parameters
         ----------
-        measure: `str` in {'stability_bounds', 'LStab', 'UStab', 'stability', 'target_entropy', 'mean_information_gain'}
+        measure: `str` in {'stability_bounds', 'LStab', 'UStab', 'stability', 'log_stability_lbound',
+            'target_entropy', 'mean_information_gain'}
             The name of the measure to compute
         context: `FormalContext` or `MVContext`
             The context is used when calculating 'stability' measure
@@ -314,7 +315,7 @@ class ConceptLattice(Lattice):
 
         """
         # TODO: Reflect these measures in the docstring
-        possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability',
+        possible_measures = ['stability_bounds', 'LStab', 'UStab', 'stability', 'log_stability_lbound',
                              'target_entropy', 'mean_information_gain']
 
         from fcapy.lattice import concept_measures as cms
@@ -324,6 +325,10 @@ class ConceptLattice(Lattice):
                 lb, ub = cms.stability_bounds(c_i, self)
                 c.measures['LStab'] = lb
                 c.measures['UStab'] = ub
+        elif measure == 'log_stability_lbound':
+            n_bin_attrs = context.n_bin_attrs
+            for c_i, c in enumerate(self):
+                c.measures['log_stability_lbound'] = cms.log_stability_lbound(c_i, self, n_bin_attrs)
         elif measure == 'stability':
             warnings.warn("Calculation of concept stability index takes exponential time. "
                           "One better use its approximate measure `stability_bounds`")
