@@ -35,3 +35,6 @@ Homepage = "https://github.com/EgorDudyrev/FCApy"
 
 [tool.setuptools]
 py-modules = ["fcapy"]
+
+[tool.setuptools.packages]
+find = {}  # Scanning implicit namespaces is active by default
