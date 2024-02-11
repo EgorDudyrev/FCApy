@@ -5,9 +5,8 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 
 """
 from collections import deque
-from typing import List, Tuple, Iterator, Iterable, Union
+from typing import List, Tuple, Iterator, Iterable, Union, Callable
 
-import numpy as np
 from bitarray import frozenbitarray as fbarray
 from bitarray.util import zeros as bazeros
 from caspailleur.order import inverse_order, sort_intents_inclusion
@@ -40,41 +39,30 @@ def close_by_one(context: Union[FormalContext, MVContext], n_projections_to_bina
 
     """
     if isinstance(context, FormalContext):
-        is_wide = context.n_objects < context.n_bin_attrs
+        if context.n_objects < context.n_bin_attrs:
+            return close_by_one_objectwise_fbarray(context)
+        # not wide, i.e. contains more objects than attributes
+        return (
+            FormalConcept.from_objects(c.intent_i, context, is_extent=True)
+            for c in close_by_one_objectwise_fbarray(context.T)
+        )
 
-        if is_wide:
-            concepts_iterator = close_by_one_objectwise_fbarray(context)
-        else:  # not wide, i.e. contains more objects than attributes
-            concepts_transpose_iter = close_by_one_objectwise_fbarray(context.T)
-            context_hash = context.hash_fixed()
-            concepts_iterator = (
-                FormalConcept(c.intent_i, c.intent, c.extent_i, c.extent, context_hash=context_hash)
-                for c in concepts_transpose_iter
-            )
+    # not formal, i.e. many valued context
+    try:
+        n_projections = context.n_bin_attrs
+    except NotImplementedError:
+        n_projections = None
 
-    else:  # not formal, i.e. many valued context
-        try:
-            n_projections = context.n_bin_attrs
-        except NotImplementedError:
-            n_projections = None
+    if n_projections is None or n_projections > n_projections_to_binarize:
+        return close_by_one_objectwise(context)
 
-        if n_projections is None or n_projections > n_projections_to_binarize:
-            concepts_iterator = close_by_one_objectwise(context)
+    # n_projections <= n_projections_to_binarize:
+    if context.n_objects <= n_projections:
+        extents_iter = (c.extent_i for c in close_by_one_objectwise_fbarray(context.binarize()))
+    else:  # context.n_objects > n_projections
+        extents_iter = (c.intent_i for c in close_by_one_objectwise_fbarray(context.binarize().T))
 
-        else:  # n_projections <= n_projections_to_binarize:
-            if context.n_objects <= n_projections:
-                extents_iter = ((c.extent_i, c.extent) for c in close_by_one_objectwise_fbarray(context.binarize()))
-            else:  # context.n_objects > n_projections
-                extents_iter = ((c.intent_i, c.intent) for c in close_by_one_objectwise_fbarray(context.binarize().T))
-
-            context_hash = context.hash_fixed()
-            def pattern_concept_factory(extent_i, extent):
-                intent_i = context.intention_i(extent_i)
-                intent = {context.pattern_structures[ps_i].name: pattern for ps_i, pattern in intent_i.items()}
-                return PatternConcept(extent_i, extent, intent_i, intent,
-                                      context.pattern_types, context.attribute_names, context_hash=context_hash)
-            concepts_iterator = (pattern_concept_factory(extent_i, extent) for extent_i, extent in extents_iter)
-    return concepts_iterator
+    return (PatternConcept.from_objects(extent, context) for extent in extents_iter)
 
 
 def close_by_one_objectwise(context: Union[FormalContext, MVContext]) -> Iterator[Union[FormalConcept, PatternConcept]]:
@@ -93,19 +81,7 @@ def close_by_one_objectwise(context: Union[FormalContext, MVContext]) -> Iterato
 
     """
     n_objs = context.n_objects
-    object_names, attribute_names = context.object_names, context.attribute_names
-    context_hash = context.hash_fixed()
-
-    def create_concept(extent_idxs, intent_idxs):
-        extent_idxs = sorted(extent_idxs)
-        extent = [object_names[g_i] for g_i in extent_idxs]
-        if type(context) == FormalContext:
-            intent = [attribute_names[m_i] for m_i in intent_idxs]
-            return FormalConcept(extent_idxs, extent, intent_idxs, intent, context_hash=context_hash)
-
-        intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_idxs.items()}
-        return PatternConcept(extent_idxs, extent, intent_idxs, intent,
-                              context.pattern_types, context.attribute_names, context_hash=context_hash)
+    concept_cls = FormalConcept if isinstance(context, FormalContext) else PatternConcept
 
     extents_i_found = set()
     combinations_to_check = deque([tuple()])
@@ -127,7 +103,7 @@ def close_by_one_objectwise(context: Union[FormalContext, MVContext]) -> Iterato
         if extent_i in extents_i_found:
             continue
 
-        yield create_concept(extent_i, intent_i)
+        yield concept_cls.from_objects(extent_i, context, is_extent=True)
 
         possible_new_objects = range(n_objs - 1, (comb_i[-1] if comb_i else 0) - 1, -1)
         extent_i_set = set(extent_i)
@@ -152,21 +128,7 @@ def close_by_one_objectwise_fbarray(context: Union[FormalContext, MVContext])\
 
     """
     n_objs, n_attrs = context.n_objects, context.n_bin_attrs
-    object_names, attribute_names = context.object_names, context.attribute_names
-    context_hash = context.hash_fixed()
-
-    def create_concept(extent_idxs: List[int], intent_ba: fbarray):
-        extent_idxs = sorted(extent_idxs)
-        extent = [object_names[g_i] for g_i in extent_idxs]
-        if type(context) == FormalContext:
-            intent_idxs = list(intent_ba.itersearch(True))
-            intent = [attribute_names[m_i] for m_i in intent_idxs]
-            return FormalConcept(extent_idxs, extent, intent_idxs, intent, context_hash=context_hash)
-
-        intent_idxs = context.intention_i(extent_idxs)
-        intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_idxs.items()}
-        return PatternConcept(extent_idxs, extent, intent_idxs, intent,
-                              context.pattern_types, context.attribute_names, context_hash=context_hash)
+    concept_cls = FormalConcept if isinstance(context, FormalContext) else PatternConcept
 
     all_attrs = ~bazeros(n_attrs)
 
@@ -205,7 +167,8 @@ def close_by_one_objectwise_fbarray(context: Union[FormalContext, MVContext])\
         base_objects_i = (i for i in base_objects_i if i not in comb_i_set)
         extent_i = comb_i + tuple(extension_iter(intent_ba, base_objects_i))
 
-        yield create_concept(extent_i, intent_ba)
+        yield concept_cls.from_objects(extent_i, context)
+
         n_cncpt += 1
 
         intents_found.add(intent_ba)
@@ -217,7 +180,7 @@ def close_by_one_objectwise_fbarray(context: Union[FormalContext, MVContext])\
 
 def sofia(
         K: Union[FormalContext, MVContext], L_max: int = 100, min_supp: float = 0,
-        use_tqdm: bool = False,use_log_stability_bound=True
+        use_tqdm: bool = False, use_log_stability_bound=True
 ) -> List[Union[FormalConcept, PatternConcept]]:
     min_supp = min_supp * len(K) if min_supp < 1 else min_supp
 
@@ -266,24 +229,8 @@ def sofia(
             extents_proj = [extent for extent_i, (extent, measure) in enumerate(zip(extents_proj, measure_values))
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
 
-    context_hash = None  # K.hash_fixed()
-    def concept_factory(extent_ba: fbarray):
-        extent_ids = list(extent_ba.itersearch(True))
-        intent_ids = K.intention_i(extent_ids)
-        if isinstance(K, FormalContext):
-            return FormalConcept(extent_ids, [K.object_names[g_i] for g_i in extent_ids],
-                                 intent_ids, [K.attribute_names[m_i] for m_i in intent_ids],
-                                 context_hash=context_hash)
-
-        return PatternConcept(
-            extent_ids, [K.object_names[g_i] for g_i in extent_ids],
-            intent_ids, {K.pattern_structures[ps_i].name: description
-                         for ps_i, description in intent_ids.items()},
-            pattern_types=K.pattern_types,
-            attribute_names=K.attribute_names,
-            context_hash=context_hash
-        )
-    final_concepts = [concept_factory(extent) for extent in extents_proj]
+    concept_cls = FormalConcept if isinstance(K, FormalContext) else PatternConcept
+    final_concepts = [concept_cls.from_objects(extent.itersearch(True), K, is_extent=True) for extent in extents_proj]
     return final_concepts
 
 
@@ -324,7 +271,7 @@ def parse_decision_tree_to_extents(tree, X, n_jobs=1) -> List[Tuple[int, ...]]:
     return exts
 
 
-def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
+def random_forest_concepts(context: Union[FormalContext, MVContext], rf_params=None, rf_class=None):
     """Fit a RandomForest model and return a set of pattern concepts used by this model
 
     Parameters
@@ -345,6 +292,7 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
 
     """
     from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+    concept_cls = FormalConcept if isinstance(context, FormalContext) else PatternConcept
 
     rf_params = rf_params if rf_params is not None else {}
 
@@ -359,23 +307,7 @@ def random_forest_concepts(context: MVContext, rf_params=None, rf_class=None):
     extents_i = parse_decision_tree_to_extents(rf, X)
     extents_i.append(context.extension_i(context.intention_i([])))
 
-    concepts = []
-
-    object_names = context.object_names
-    context_hash = context.hash_fixed()
-    for extent_i in extents_i:
-        extent = [object_names[g_i] for g_i in extent_i]
-        intent_i = context.intention_i(extent_i)
-        if type(context) == FormalContext:
-            intent = [context.attribute_names[m_i] for m_i in intent_i]
-            concept = FormalConcept(extent_i, extent, intent_i, intent, context_hash=context_hash)
-        else:
-            intent = {context.pattern_structures[ps_i].name: description for ps_i, description in intent_i.items()}
-            concept = PatternConcept(extent_i, extent, intent_i, intent,
-                                     context.pattern_types, context.attribute_names, context_hash=context_hash)
-        concepts.append(concept)
-
-    return concepts
+    return [concept_cls.from_objects(extent_i, context, is_extent=True) for extent_i in extents_i]
 
 
 def lindig_algorithm(context: FormalContext, iterate_extents=None):
@@ -467,7 +399,7 @@ def lindig_algorithm(context: FormalContext, iterate_extents=None):
 
     if not iterate_extents:
         concepts = [FormalConcept(concepts[i].intent_i, concepts[i].intent,
-                                  concepts[i].extent_i, concepts[i].extent, 
+                                  concepts[i].extent_i, concepts[i].extent,
                                   context_hash=context_hash)
                     for i in range(len(concepts))]
         children_dict, parents_dict = parents_dict, children_dict
@@ -490,27 +422,11 @@ def lcm_skmine(context: Union[FormalContext, MVContext], min_supp: float = 1, n_
     del lcm_data
 
     if all(len(intent_i) < context_bin.n_attributes for intent_i in intents_i):
-        intents_i.append(list(range(context_bin.n_attributes)))
-        extents_i.append(context_bin.extension_i(intents_i[-1]))
+        bottom_extent = context_bin.extension_i(list(range(context_bin.n_attributes)))
+        extents_i.append(bottom_extent)
 
     if all(len(extent_i) < context_bin.n_objects for extent_i in extents_i):
         extents_i.append(list(range(context_bin.n_objects)))
-        intents_i.append(context_bin.intention_i(extents_i[-1]))
 
-    context_hash = context.hash_fixed()
-    if isinstance(context, FormalContext):
-        def concept_factory(extent_i, intent_i):
-            return FormalConcept(
-                extent_i, [context.object_names[g_i] for g_i in extent_i],
-                intent_i, [context.attribute_names[m_i] for m_i in intent_i],
-                context_hash=context_hash
-            )
-    else:
-        def concept_factory(extent_i, _):
-            intent_i = context.intention_i(extent_i)
-            intent = {context.pattern_structures[ps_i].name: pattern for ps_i, pattern in intent_i.items()}
-            return PatternConcept(extent_i, [context.object_names[g_i] for g_i in extent_i],
-                                  intent_i, intent,
-                                  context.pattern_types, context.attribute_names, context_hash=context_hash)
-
-    return [concept_factory(extent_i, intent_i) for extent_i, intent_i in zip(extents_i, intents_i)]
+    concept_cls = FormalConcept if isinstance(context, FormalContext) else PatternConcept
+    return [concept_cls.from_objects(extent_i, context) for extent_i in extents_i]

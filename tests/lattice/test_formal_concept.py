@@ -1,18 +1,25 @@
+import pydantic
 import pytest
+
+from fcapy.context import FormalContext
 from fcapy.lattice.formal_concept import FormalConcept, UnmatchedMonotonicityError, UnmatchedContextError
 
 
 def test_formal_concept_init():
     c = FormalConcept([1, 2], ['a', 'b'], [4, 5], ['d', 'e'])
-
-    #with pytest.raises(AssertionError):
-    c = FormalConcept([1, 2], [1, 2], [4, 5], ["d", "e"])
-    assert c.extent == ('1', '2')
+    assert c.extent == ('a', 'b')
     assert c.intent == ('d', 'e')
 
-    c = FormalConcept([1, 2], ["a", "b"], [4, 5], [4, 5])
-    assert c.extent == ('a', 'b')
-    assert c.intent == ('4', '5')
+    with pytest.raises(pydantic.ValidationError):
+        c = FormalConcept([1, 2], [1, 2], [4, 5], ["d", "e"])
+        assert c.extent == ('1', '2')
+        assert c.intent == ('d', 'e')
+
+
+    with pytest.raises(pydantic.ValidationError):
+        c = FormalConcept([1, 2], ["a", "b"], [4, 5], [4, 5])
+        assert c.extent == ('a', 'b')
+        assert c.intent == ('4', '5')
 
 
 def test_formal_concept_extent_intent():
@@ -119,3 +126,15 @@ def test_json_converter():
     assert c1 == c2, "FormalConcept.write_json/read_json failed. The concept is modified after to/from file operations"
     import os
     os.remove('concept_tmp.json')
+
+
+def test_from_objects():
+    K = FormalContext([
+        [True, True, False],
+        [True, False, False],
+        [False, False, False]
+    ], object_names=list('123'), attribute_names=list('abc'))
+
+    c = FormalConcept([0, 1], list('12'), [0], list('a'), context_hash=K.hash_fixed())
+    assert FormalConcept.from_objects([0, 1], K) == c
+    assert FormalConcept.from_objects(list('12'), K) == c

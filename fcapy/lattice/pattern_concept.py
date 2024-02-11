@@ -6,9 +6,9 @@ from collections.abc import Iterable
 import json
 from frozendict import frozendict
 import numbers
-from typing import Tuple
+from typing import Tuple, Union
 
-from fcapy.mvcontext import PS
+from fcapy.mvcontext import PS, MVContext
 
 
 class PatternConcept:
@@ -267,3 +267,26 @@ class PatternConcept:
 
         c = cls.from_dict(c_dict, json_ready=True, pattern_types=pattern_types)
         return c
+
+    @classmethod
+    def from_objects(
+            cls,
+            objects: Union[Iterable[int], Iterable[str]],
+            K: MVContext,
+            is_extent: bool = False,
+            is_monotone: bool = False,
+    ) -> 'PatternConcept':
+        assert not is_monotone, "Sorry. Automatic creation of monotone concepts is not yet supported"
+        objects = list(objects)
+        objects_i = [K.object_names.index(g) for g in objects] if objects and isinstance(objects[0], str) else objects
+        intent_i = K.intention_i(objects_i)
+        intent = {K.attribute_names[m_i]: v for m_i, v in intent_i.items()}
+
+        if not is_extent:
+            objects_i = K.extension_i(intent_i)
+        objects = [K.object_names[i] for i in objects_i]
+        return cls(
+            objects_i, objects, intent_i, intent,
+            pattern_types=K.pattern_types, attribute_names=K.attribute_names,
+            context_hash=K.hash_fixed()
+        )
