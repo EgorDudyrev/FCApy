@@ -11,7 +11,7 @@ from fcapy.lattice import ConceptLattice
 import networkx as nx
 
 from typing import Tuple, Callable, Dict, Iterable
-from attr import dataclass
+from dataclasses import dataclass
 
 import logging
 import warnings
