@@ -17,7 +17,6 @@ PACKAGE_DESCRIPTION = {
     'pandas': "The package is used to create a FormalContext based on pandas.DataFrame and vice versa",
     'tqdm': "The package helps to track the progress of looped functions and estimate their time to complete",
     'numpy': "The package Uses C++ and vectorized matrix multiplication to speed up IntervalPS execution",
-    'bitsets': "The package greatly optimizes BinTables execution",
     'bitarray': "The package greatly optimizes BinTables execution",
     'networkx': "The package to convert POSets to Graphs and to visualize them as graphs",
 }
