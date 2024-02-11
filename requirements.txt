@@ -4,8 +4,6 @@
 #
 #    pip-compile --extra=ml --extra=visualizer pyproject.toml
 #
-attr==0.3.2
-    # via fcapy (pyproject.toml)
 bitarray==2.7.4
     # via
     #   caspailleur
