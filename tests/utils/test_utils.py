@@ -30,12 +30,3 @@ def test_sparse_unique_columns():
     assert (M1 != M_true).mean() == 0, 'utils.sparse_unique_columns failed'
     assert (idx == idx_true).mean() == 1, 'utils.sparse_unique_columns failed'
     assert (counts == counts_true).mean() == 1, 'utils.sparse_unique_columns failed'
-
-
-def test_safe_tqdm():
-    flg_true = LIB_INSTALLED['tqdm']
-    for flg in [False, True]:
-        LIB_INSTALLED['tqdm'] = flg
-        for i in utils.safe_tqdm(range(100)):
-            pass
-    LIB_INSTALLED['tqdm'] = flg_true

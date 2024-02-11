@@ -9,6 +9,7 @@ and there is no other concept between these two.
 """
 from copy import deepcopy
 from typing import Collection, Union, Tuple, List, Dict, Set
+from tqdm.auto import tqdm
 
 from fcapy.lattice.formal_concept import FormalConcept
 from fcapy.lattice.pattern_concept import PatternConcept
@@ -52,8 +53,8 @@ def complete_comparison(
 
     if n_jobs == 1:
         all_subconcepts = []
-        for a_i, a in utils.safe_tqdm(enumerate(concepts), total=len(concepts),
-                                      disable=not use_tqdm, desc='Complete concepts comparison'):
+        for a_i, a in tqdm(enumerate(concepts),
+                           total=len(concepts), disable=not use_tqdm, desc='Complete concepts comparison'):
             all_subconcepts.append(get_subconcepts(a_i, a, concepts))
     else:
         from joblib import Parallel, delayed
@@ -107,7 +108,7 @@ def construct_spanning_tree(concepts, is_concepts_sorted=False, use_tqdm=False) 
     subconcepts_st_dict = {}
     superconcepts_st_dict = {}
 
-    for c_sort_i in utils.safe_tqdm(range(len(concepts)),
+    for c_sort_i in tqdm(range(len(concepts)),
                                     disable=not use_tqdm, desc='Spanning tree construction'):
         if is_concepts_sorted:
             c = concepts[c_sort_i]
@@ -225,8 +226,8 @@ def construct_lattice_from_spanning_tree(concepts, sptree_chains, is_concepts_so
         return superconcepts_cur, all_superconcepts_cur, incomparables_cur, idx_comp_start
 
         # iterate through every chain. If new concept in the chain is found: select its superconcepts and subconcepts
-    for ch_i_cur in utils.safe_tqdm(range(len(sptree_chains)),
-                                    disable=not use_tqdm, desc='Construct lattice from spanning tree'):
+    for ch_i_cur in tqdm(range(len(sptree_chains)),
+                         disable=not use_tqdm, desc='Construct lattice from spanning tree'):
         # start comparison of current concept and concepts from chain `ch_i from idxs_comp[ch_i]
         idxs_comp = [0] * len(sptree_chains)
         # iterate through every concept in the chain. Except the very first one (it is the lattice top concept)

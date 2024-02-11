@@ -7,8 +7,6 @@ from collections.abc import Iterable
 import inspect
 
 from fcapy import LIB_INSTALLED
-if LIB_INSTALLED['tqdm']:
-    from tqdm.notebook import tqdm
 
 
 def powerset(iterable):
@@ -60,14 +58,6 @@ def sparse_unique_columns(M):
     uniques = M@sp.sparse.csc_matrix((np.ones((nu,)), idx[counts[:-1].cumsum()],
                                    np.arange(nu + 1)), (n, nu))
     return uniques, idx, counts[1:]
-
-
-def safe_tqdm(*args, **kwargs):
-    """A decorator to used instead of basic tqdm. Does not raise any error if tqdm package is not installed"""
-    if LIB_INSTALLED['tqdm']:
-        return tqdm(*args, **kwargs)
-    else:
-        return args[0]
 
 
 def slice_list(lst: list, slicer):

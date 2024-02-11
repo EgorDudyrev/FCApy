@@ -5,6 +5,7 @@ This module provides a ConceptLattice class. It may be considered as the main mo
 import json
 
 from typing import Tuple, Union, Optional, List, Dict, Set, Collection
+from tqdm.auto import tqdm
 
 from fcapy.algorithms import concept_construction as cca, lattice_construction as lca
 from fcapy.lattice.formal_concept import FormalConcept
@@ -520,7 +521,7 @@ class ConceptLattice(Lattice):
         object_traced_concepts = {idx: set() for idx in range(context.n_objects)}
         visited_concepts = set()
 
-        for i in utils.safe_tqdm(range(len(self)), disable=not use_tqdm, desc='Iterate through concepts'):
+        for i in tqdm(range(len(self)), disable=not use_tqdm, desc='Iterate through concepts'):
             if len(concepts_to_visit) == 0:
                 break
 
@@ -589,7 +590,7 @@ class ConceptLattice(Lattice):
         else:
             supc_exts_i = [np.array(context.extension_i(c.intent_i)) for c in self]
 
-        for c_i in utils.safe_tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
+        for c_i in tqdm(concepts_to_visit[1:], disable=not use_tqdm, desc='Calc conditional generators'):
             intent_i = self[c_i].intent_i
 
             superconcepts_i = self.parents_dict[c_i]
@@ -597,7 +598,7 @@ class ConceptLattice(Lattice):
             condgens = {}
             if algo == 'exact':
                 if type(context) is MVContext:
-                    for supc_i in utils.safe_tqdm(superconcepts_i, desc='Iterate superconcepts', leave=False, disable=not use_tqdm):
+                    for supc_i in tqdm(superconcepts_i, desc='Iterate superconcepts', leave=False, disable=not use_tqdm):
                         supc_ext_i = supc_exts_i[supc_i]
                         supc_int_i = self[supc_i].intent_i
                         ps_to_iterate = [ps_i for ps_i, descr in intent_i.items()
