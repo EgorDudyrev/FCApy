@@ -5,7 +5,7 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 
 """
 from collections import deque
-from typing import List, Tuple, Iterator, Iterable, Union
+from typing import List, Tuple, Iterator, Iterable, Union, Callable
 
 from bitarray import frozenbitarray as fbarray
 from bitarray.util import zeros as bazeros
