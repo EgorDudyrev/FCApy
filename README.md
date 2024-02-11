@@ -12,13 +12,8 @@ A python package to work with Formal Concept Analysis (FCA).
 FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
 
 ```console
-pip install fcapy[all]
+pip install fcapy
 ```
-
-*The appendix [all] installs additional packages like numpy and scikit-learn
-(see more in [setup.py](https://github.com/EgorDudyrev/FCApy/blob/main/setup.py)).*
-
-*This option is preferred, but not obligatory.*
 
 
 ## Gentle Intro to Formal Concept Analysis  
