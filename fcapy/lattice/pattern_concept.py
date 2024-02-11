@@ -2,11 +2,11 @@
 This module provides a class PatternConcept which represents the Pattern Concept object from FCA theory
 
 """
-from collections.abc import Iterable
 import json
 from frozendict import frozendict
 import numbers
-from typing import Tuple, Union
+from typing import Tuple, Union, Iterable
+
 
 from fcapy.mvcontext import PS, MVContext
 

@@ -5,7 +5,8 @@ Some of them return a `ConceptLattice` instead of just a set of concepts.
 
 """
 from collections import deque
-from typing import List, Tuple, Iterator, Iterable, Union, Callable
+from typing import List, Tuple, Iterator, Iterable, Union
+from tqdm.auto import tqdm
 
 from bitarray import frozenbitarray as fbarray
 from bitarray.util import zeros as bazeros
@@ -210,8 +211,8 @@ def sofia(
     extents_proj: List[fbarray] = [fbarray(~bazeros(K.n_objects))]
 
     n_projs = K.n_bin_attrs
-    proj_iterator = utils.safe_tqdm(enumerate(K.to_bin_attr_extents()), total=n_projs,
-                                    desc='Iter. Sofia projections', disable=not use_tqdm)
+    proj_iterator = tqdm(enumerate(K.to_bin_attr_extents()),
+                         total=n_projs, desc='Iter. Sofia projections', disable=not use_tqdm)
     for proj_i, (_, attr_extent_ba) in proj_iterator:
         if attr_extent_ba.all():
             continue

@@ -7,8 +7,7 @@ import json
 from pydantic.dataclasses import dataclass
 from pydantic import Field
 from dataclasses import FrozenInstanceError
-from typing import Dict, Container, FrozenSet, Any, List, Tuple, Union, Iterable, Optional
-from frozendict import frozendict
+from typing import Dict, Any, List, Tuple, Union, Iterable, Optional
 
 from fcapy.context import FormalContext
 from fcapy.mvcontext import MVContext
