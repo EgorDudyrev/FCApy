@@ -20,8 +20,8 @@ classifiers = [
 keywords = ["python", "fca", "formal-concept-analysis"]
 dependencies = [
     'numpy>=1.20', 'scikit-mine>=1', 'bitarray>=2.5.1', 'tqdm',
-    'pandas', 'frozendict', 'bitsets', 'pydantic', 'joblib', 'scikit-learn',
-    'matplotlib', 'networkx>=2.5', 'caspailleur', 'ipywidgets',
+    'pandas', 'frozendict', 'pydantic', 'joblib', 'scikit-learn',
+    'matplotlib', 'networkx>=2.5', 'caspailleur',
 ]
 requires-python = ">=3.8"
 
