@@ -5,9 +5,13 @@ This module provides a class FormalConcept which represents the Formal Concept o
 from abc import ABCMeta, abstractmethod
 import json
 from pydantic.dataclasses import dataclass
+from pydantic import Field
 from dataclasses import FrozenInstanceError
-from typing import Dict, Container, FrozenSet, Any, List, Tuple
+from typing import Dict, Container, FrozenSet, Any, List, Tuple, Union, Iterable, Optional
 from frozendict import frozendict
+
+from fcapy.context import FormalContext
+from fcapy.mvcontext import MVContext
 
 JSON_BOTTOM_PLACEHOLDER = {"Inds": (-2,), "Names": ("BOTTOM_PLACEHOLDER",)}
 
@@ -28,8 +32,8 @@ class AbstractConcept(metaclass=ABCMeta):
     extent: Tuple[str, ...]  # Tuple of names of objects described by intent of the concept
     intent_i: Tuple[int, ...]  # Description of object indices from extent of the concept
     intent: Tuple[str, ...]  # Description of object names from extent of the concept
-    measures: Dict[str, float] = frozendict({})  # Dict with values of interestingness measures of the concept
-    context_hash: int = None  # Hash value of a FormalContext the FormalConcept is based on
+    measures: Dict[str, float] = Field(default_factory=dict)  # Dict with values of interestingness measures of the concept
+    context_hash: Optional[int] = None  # Hash value of a FormalContext the FormalConcept is based on
     is_monotone: bool = False  # "Bigger extent->bigger concept" if False else "smaller extent->bigger concept"
 
     def __setattr__(self, key, value):
@@ -116,6 +120,16 @@ class AbstractConcept(metaclass=ABCMeta):
         c = cls.from_dict(data)
         return c
 
+    @classmethod
+    def from_objects(
+            cls,
+            objects: Union[Iterable[int], Iterable[str]],
+            K: Union[FormalContext, MVContext],
+            is_extent: bool = False,
+            is_monotone: bool = False,
+    ) -> 'AbstractConcept':
+        ...
+
 
 @dataclass(eq=False)
 class FormalConcept(AbstractConcept):
@@ -178,3 +192,22 @@ class FormalConcept(AbstractConcept):
                 continue
             c.measures[k] = v
         return c
+
+    @classmethod
+    def from_objects(
+            cls,
+            objects: Union[Iterable[int], Iterable[str]],
+            K: FormalContext,
+            is_extent: bool = False,
+            is_monotone: bool = False,
+    ) -> 'FormalConcept':
+        assert not is_monotone, "Sorry. Automatic creation of monotone concepts is not yet supported"
+        objects = list(objects)
+        objects_i = [K.object_names.index(g) for g in objects] if objects and isinstance(objects[0], str) else objects
+        intent_i = K.intention_i(objects_i)
+        intent = [K.attribute_names[m_i] for m_i in intent_i]
+
+        if not is_extent:
+            objects_i = K.extension_i(intent_i)
+        objects = [K.object_names[i] for i in objects_i]
+        return cls(objects_i, objects, intent_i, intent, context_hash=K.hash_fixed(), is_monotone=is_monotone)

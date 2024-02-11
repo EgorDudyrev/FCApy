@@ -1,6 +1,6 @@
 import pytest
 from fcapy.lattice.pattern_concept import PatternConcept
-from fcapy.mvcontext import pattern_structure as ps
+from fcapy.mvcontext import pattern_structure as ps, MVContext
 from frozendict import frozendict
 
 
@@ -71,3 +71,17 @@ def test_from_to_json():
         'PatternConcept.write/read_json failed. The lattice changed after 2 conversions and saving to file.'
     import os
     os.remove(path)
+
+
+def test_from_objects():
+    K = MVContext(
+        [[1], [2], [3]],
+        pattern_types={'a': ps.IntervalPS}, object_names=list('123'), attribute_names=list('a')
+    )
+
+    c = PatternConcept(
+        (0, 1), ('1', '2'), {0: (1, 2)}, {'a': (1, 2)},
+        {'a': ps.IntervalPS}, ('a',), context_hash=K.hash_fixed()
+    )
+    assert PatternConcept.from_objects([0, 1], K) == c
+    assert PatternConcept.from_objects(list('12'), K) == c
