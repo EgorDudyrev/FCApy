@@ -24,7 +24,7 @@ copyright = '2020, Egor Dudyrev'
 author = 'Egor Dudyrev'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.4.4'
+release = '0.1.4.5'
 
 
 # -- General configuration ---------------------------------------------------
