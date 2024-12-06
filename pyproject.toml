@@ -21,7 +21,7 @@ keywords = ["python", "fca", "formal-concept-analysis"]
 dependencies = [
     'numpy>=1.20', 'scikit-mine>=1', 'bitarray>=3', 'tqdm',
     'pandas', 'frozendict', 'pydantic', 'joblib', 'scikit-learn',
-    'matplotlib', 'networkx>=2.5', 'caspailleur',
+    'matplotlib', 'networkx>=2.5', 'caspailleur>=0.2.1',
 ]
 requires-python = ">=3.9"
 
