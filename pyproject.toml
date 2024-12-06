@@ -30,6 +30,9 @@ docs = ["numpydoc", "sphinx_rtd_theme", "sphinx", 'nbsphinx']
 ml = ["xgboost"]
 visualizer = ["plotly"]
 
+all = ["fcapy[ml,visualizer]"]
+tests = ["fcapy[all,docs]"]
+
 [project.urls]
 Homepage = "https://github.com/EgorDudyrev/FCApy"
 
