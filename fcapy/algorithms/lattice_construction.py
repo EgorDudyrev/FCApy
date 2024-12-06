@@ -468,7 +468,7 @@ def order_extents_comparison(concepts: List[Union[FormalConcept, PatternConcept]
 
     topo_to_id_map = {v: k for k, v in enumerate(id_to_topo_map)}
 
-    subconcepts_dict = {topo_to_id_map[i_topo]: {topo_to_id_map[s] for s in subs_topo.itersearch(True)}
+    subconcepts_dict = {topo_to_id_map[i_topo]: {topo_to_id_map[s] for s in subs_topo.search(True)}
                         for i_topo, subs_topo in enumerate(subconcepts_ba_topo)}
 
     return subconcepts_dict

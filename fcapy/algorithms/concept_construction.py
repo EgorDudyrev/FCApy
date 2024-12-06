@@ -201,7 +201,7 @@ def sofia(
         def stability_lbounds(extents: List[fbarray]) -> List[float]:
             children_ordering = inverse_order(sort_intents_inclusion(extents))
             children_intersections = (
-                ((extent & (~extents[child])).count() for child in children.itersearch(True))
+                ((extent & (~extents[child])).count() for child in children.search(True))
                 if children.any() else [extent.count()]
                 for children, extent in zip(children_ordering, extents)
             )
@@ -231,7 +231,7 @@ def sofia(
                             if measure > thold or extent_i in {0, len(extents_proj)-1}]
 
     concept_cls = FormalConcept if isinstance(K, FormalContext) else PatternConcept
-    final_concepts = [concept_cls.from_objects(extent.itersearch(True), K, is_extent=True) for extent in extents_proj]
+    final_concepts = [concept_cls.from_objects(extent.search(True), K, is_extent=True) for extent in extents_proj]
     return final_concepts
 
 
@@ -414,7 +414,7 @@ def lcm_skmine(context: Union[FormalContext, MVContext], min_supp: float = 1, n_
     from skmine.itemsets import LCM
 
     context_bin = context if isinstance(context, FormalContext) else context.binarize()
-    itemsets = [list(row.itersearch(True)) for row in BinTableBitarray(context_bin.data.data)]
+    itemsets = [list(row.search(True)) for row in BinTableBitarray(context_bin.data.data)]
 
     lcm = LCM(min_supp=min_supp, n_jobs=n_jobs)
     lcm_data = lcm.fit_transform(itemsets, return_tids=True)
