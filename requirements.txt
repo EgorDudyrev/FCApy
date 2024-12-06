@@ -4,8 +4,10 @@
 #
 #    pip-compile --extra=tests pyproject.toml
 #
-alabaster==1.0.0
-    # via sphinx
+alabaster==0.7.16
+    # via
+    #   fcapy (pyproject.toml)
+    #   sphinx
 attrs==24.2.0
     # via
     #   jsonschema
@@ -191,7 +193,7 @@ sortedcontainers==2.4.0
     # via scikit-mine
 soupsieve==2.6
     # via beautifulsoup4
-sphinx==8.1.3
+sphinx==7.4.7
     # via
     #   fcapy (pyproject.toml)
     #   nbsphinx
