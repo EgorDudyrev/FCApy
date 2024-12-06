@@ -455,20 +455,20 @@ def construct_lattice_by_spanning_tree(concepts, is_concepts_sorted=False, n_job
 
 
 def order_extents_comparison(concepts: List[Union[FormalConcept, PatternConcept]]) -> Dict[int, Set[int]]:
-    from caspailleur.order import inverse_order, sort_intents_inclusion, topological_sorting, test_topologically_sorted
-    from caspailleur.base_functions import isets2bas
+    from caspailleur.order import inverse_order, sort_intents_inclusion, topological_sorting, check_topologically_sorted
+    from caspailleur.io import isets2bas
 
     n_objects = max(len(c.extent_i) for c in concepts)
     extents_ba = list(isets2bas([c.extent_i for c in concepts], n_objects))
     extents_ba_topo, id_to_topo_map = topological_sorting(extents_ba)
-    assert test_topologically_sorted(extents_ba_topo)
+    assert check_topologically_sorted(extents_ba_topo)
     assert len(extents_ba_topo) == len(extents_ba)
 
     subconcepts_ba_topo = inverse_order(sort_intents_inclusion(extents_ba_topo))
 
     topo_to_id_map = {v: k for k, v in enumerate(id_to_topo_map)}
 
-    subconcepts_dict = {topo_to_id_map[i_topo]: {topo_to_id_map[s] for s in subs_topo.itersearch(True)}
+    subconcepts_dict = {topo_to_id_map[i_topo]: {topo_to_id_map[s] for s in subs_topo.search(True)}
                         for i_topo, subs_topo in enumerate(subconcepts_ba_topo)}
 
     return subconcepts_dict

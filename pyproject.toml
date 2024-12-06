@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fcapy"
-version = "0.1.4.5"
+version = "0.1.4.6"
 description = "A library to work with formal (and pattern) contexts, concepts, lattices"
 readme = "README.md"
 authors = [{ name = "Egor Dudyrev" }]
@@ -19,16 +19,19 @@ classifiers = [
 ]
 keywords = ["python", "fca", "formal-concept-analysis"]
 dependencies = [
-    'numpy>=1.20', 'scikit-mine>=1', 'bitarray>=2.5.1', 'tqdm',
+    'numpy>=1.20', 'scikit-mine>=1', 'bitarray>=3', 'tqdm',
     'pandas', 'frozendict', 'pydantic', 'joblib', 'scikit-learn',
-    'matplotlib', 'networkx>=2.5', 'caspailleur',
+    'matplotlib', 'networkx>=2.5', 'caspailleur>=0.2.1',
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
-docs = ["numpydoc", "sphinx_rtd_theme", "sphinx", 'nbsphinx']
+docs = ["numpydoc", "sphinx_rtd_theme", "sphinx<8", 'nbsphinx', "alabaster==0.7.16"]
 ml = ["xgboost"]
 visualizer = ["plotly"]
+
+all = ["xgboost", "plotly"]
+tests = ["xgboost", "plotly", "numpydoc", "sphinx_rtd_theme", "sphinx<8", 'nbsphinx', "alabaster==0.7.16"]
 
 [project.urls]
 Homepage = "https://github.com/EgorDudyrev/FCApy"

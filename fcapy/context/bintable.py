@@ -544,7 +544,7 @@ class BinTableBitarray(AbstractBinTable):
     def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_all = self.all(axis, rows, columns)
 
-        idxs = flg_all.itersearch(1)
+        idxs = flg_all.search(1)
         if axis == 0:
             output = [columns[i] for i in idxs] if columns is not None else list(idxs)
         else:  # axis == 1
@@ -554,7 +554,7 @@ class BinTableBitarray(AbstractBinTable):
     def any_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_any = self.any(axis, rows, columns)
 
-        idxs = flg_any.itersearch(1)
+        idxs = flg_any.search(1)
         if axis == 0:
             output = [columns[i] for i in idxs] if columns is not None else list(idxs)
         else:  # axis == 1
@@ -766,7 +766,7 @@ class BinTableOneBitarray(AbstractBinTable):
     def all_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_all = self.all(axis, rows, columns)
 
-        idxs = flg_all.itersearch(1)  # Use itersearch to speed up obtaining the indices
+        idxs = flg_all.search(1)  # Use itersearch to speed up obtaining the indices
         if axis == 0 and columns is not None:
             output = (columns[i] for i in idxs)
         elif axis == 1 and rows is not None:
@@ -778,7 +778,7 @@ class BinTableOneBitarray(AbstractBinTable):
     def any_i(self, axis: int, rows: List[int] = None, columns: List[int] = None) -> List[int]:
         flg_any = self.any(axis, rows, columns)
 
-        idxs = flg_any.itersearch(1)  # Use itersearch to speed up obtaining the indices
+        idxs = flg_any.search(1)  # Use itersearch to speed up obtaining the indices
         if axis == 0 and columns is not None:
             output = (columns[i] for i in idxs)
         elif axis == 1 and rows is not None:
