@@ -8,6 +8,15 @@
 
 A python package to work with Formal Concept Analysis (FCA).
 
+> [!NOTE]  
+> The development of `FCApy` is paused since 2023.
+> Check out `caspailleur` [package](https://github.com/EgorDudyrev/caspailleur) for mining formal concepts and implications.
+> And check out `paspailleur` [package](https://github.com/EgorDudyrev/paspailleur) for mining pattern concepts and implications.
+> Tutorials for both packages are presented in `expailleur` [repository](https://github.com/EgorDudyrev/expailleur).
+> 
+> The current `FCApy` package can be used for visualising concept lattices and ordered sets.    
+
+
 ## Install
 FCApy can be installed from [PyPI](https://pypi.org/project/fcapy):
 
