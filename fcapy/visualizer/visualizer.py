@@ -185,24 +185,32 @@ class POSetVisualizer:
         pos = self._pos
         nx.set_node_attributes(digraph, pos, 'pos')
 
+        if nodelist is None:
+            nodelist = list(range(len(self._poset)))
+        missing_nodeset = set(range(len(self._poset))) - set(nodelist)
+        edgelist = [
+            e for e in digraph.edges
+            if e[0] not in missing_nodeset and e[1] not in missing_nodeset
+        ]
+
         # Convert edges of the graph to the plotly format
-        edge_x = [y for edge in digraph.edges() for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
-        edge_y = [y for edge in digraph.edges() for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
+        edge_x = [y for edge in edgelist for y in [pos[edge[0]][0], pos[edge[1]][0], None]]
+        edge_y = [y for edge in edgelist for y in [pos[edge[0]][1], pos[edge[1]][1], None]]
 
         import math
 
-        edge_color = [self.edge_color] * len(digraph.edges) if type(self.edge_color) == str \
-            else self.edge_color * math.ceil((len(digraph.edges) / len(self.edge_color)))
+        edge_color = [self.edge_color] * len(edgelist) if type(self.edge_color) == str \
+            else self.edge_color * math.ceil((len(edgelist) / len(self.edge_color)))
 
         edge_traces = [dict(type='scatter',
                             x=[edge_x[k * 3], edge_x[k * 3 + 1]],
                             y=[edge_y[k * 3], edge_y[k * 3 + 1]],
                             mode='lines',
-                            line=dict(width=1, color=edge_color[k])) for k in range(len(digraph.edges))]
+                            line=dict(width=1, color=edge_color[k])) for k in range(len(edgelist))]
 
         # Convert nodes of the graph to the plotly format
-        node_x = [pos[node][0] for node in digraph.nodes()]
-        node_y = [pos[node][1] for node in digraph.nodes()]
+        node_x = [pos[node][0] for node in digraph.nodes() if node in nodelist]
+        node_y = [pos[node][1] for node in digraph.nodes() if node in nodelist]
 
         node_color = [self.node_color[n] for n in digraph.nodes()] if type(self.node_color) != str \
             else [self.node_color for n in digraph.nodes()]
